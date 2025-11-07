@@ -10,7 +10,7 @@ print(f"--- Running Example: {__file__} ---")
 # --- 1. 测试 DuplicateTagError ---
 print("\n--- Test 1: Catching DuplicateTagError ---")
 try:
-    plotter = pp.Plotter(n_rows=1, n_cols=2)
+    plotter = pp.Plotter(layout=(2, 1))
     df = pd.DataFrame({'x': [1], 'y': [1]})
     
     plotter.add_bar(data=df, x='x', y='y', tag='my_tag')
@@ -32,7 +32,7 @@ finally:
 # --- 2. 测试 TagNotFoundError ---
 print("\n--- Test 2: Catching TagNotFoundError ---")
 try:
-    plotter = pp.Plotter(n_rows=1, n_cols=1)
+    plotter = pp.Plotter(layout=(1, 1))
     plotter.add_line(pd.DataFrame({'t': [0], 'v': [0]}), x='t', y='v', tag='actual_tag')
     print("Plot with tag 'actual_tag' added successfully.")
     
@@ -53,7 +53,7 @@ finally:
 print("\n--- Test 3: Catching PlottingSpaceError ---")
 try:
     # 创建一个只能放1个图的画布
-    plotter = pp.Plotter(n_rows=1, n_cols=1)
+    plotter = pp.Plotter(layout=(1, 1))
     df = pd.DataFrame({'x': [1], 'y': [1]})
     
     plotter.add_bar(data=df, x='x', y='y')

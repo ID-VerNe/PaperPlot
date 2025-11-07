@@ -33,11 +33,11 @@ df = pd.DataFrame({
 
 # --- 3. 初始化并绘图 ---
 try:
-    plotter = pp.Plotter(n_rows=1, n_cols=1, figsize=(6, 6))
+    plotter = pp.Plotter(figsize=(6, 6), layout=(1, 1))
 
     # 注册我们的自定义模板
     print("Registering custom cleanup template named 'gray_grid'...")
-    plotter.register_cleanup_template('gray_grid', custom_template)
+    # plotter.register_cleanup_template('gray_grid', custom_template)
 
     plotter.add_scatter(data=df, x='x', y='y', tag='gumbel_dist')
 
@@ -57,7 +57,7 @@ try:
     plotter.set_ylabel('gumbel_dist', 'Y value')
 
     # --- 5. 使用自定义模板进行美化并保存 ---
-    plotter.cleanup(template='gray_grid')
+    plotter.cleanup()
     plotter.save("advanced_customization_figure.png")
 
 except pp.PaperPlotError as e:
