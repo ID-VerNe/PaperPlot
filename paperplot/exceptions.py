@@ -30,6 +30,6 @@ class PlottingSpaceError(PaperPlotError):
         message = (
             f"Cannot add more plots. All {max_plots} subplots are occupied. \n"
             f"Error Cause: You tried to add a new plot, but the grid you initialized is full. \n"
-            f"How to fix: Increase the 'n_rows' or 'n_cols' when creating the Plotter object."
+            f"How to fix: Increase the 'rows' or 'cols' when creating the Plotter object layout."
         )
         super().__init__(message)
