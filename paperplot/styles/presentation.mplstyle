@@ -1,0 +1,41 @@
+# styles/presentation.mplstyle
+# 一个适合屏幕演示的、高对比度的深色主题
+
+# Fonts (使用无衬线字体，字号更大)
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, sans-serif
+font.size           : 14
+axes.labelsize      : 16
+axes.titlesize      : 18
+legend.fontsize     : 12
+xtick.labelsize     : 12
+ytick.labelsize     : 12
+
+# Lines
+lines.linewidth     : 2.5
+lines.markersize    : 8
+
+# Axes (坐标轴和标签使用白色)
+axes.labelcolor     : white
+axes.titlecolor     : white
+axes.edgecolor      : white
+axes.grid           : True
+axes.axisbelow      : True
+grid.color          : "#444444" # 深灰色网格
+grid.linestyle      : -
+
+# Ticks (刻度使用白色)
+xtick.color         : white
+ytick.color         : white
+
+# Figure (画布和子图背景设为深色)
+figure.facecolor    : "#1e1e1e" # 深灰色背景
+axes.facecolor      : "#2a2a2a" # 稍亮的子图背景
+
+# Spines (隐藏顶部和右侧的轴线)
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Legend (图例背景透明)
+legend.frameon      : False
+legend.labelcolor   : white

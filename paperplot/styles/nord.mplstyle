@@ -1,0 +1,44 @@
+# styles/nord.mplstyle
+# A cool, arctic, north-bluish color scheme from the Nord palette.
+
+# Font
+font.family         : sans-serif
+font.sans-serif     : Segoe UI, Arial, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (light text on dark background)
+axes.facecolor      : "#3B4252"  # nord1
+axes.edgecolor      : "#D8DEE9"  # nord4
+axes.labelcolor     : "#ECEFF4"  # nord6
+axes.titlecolor     : "#ECEFF4"  # nord6
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#D8DEE9"  # nord4
+ytick.color         : "#D8DEE9"  # nord4
+
+# Grid
+grid.color          : "#4C566A"  # nord3
+grid.linestyle      : --
+
+# Figure
+figure.facecolor    : "#2E3440"  # nord0
+
+# Legend
+legend.frameon      : False
+legend.labelcolor   : "#ECEFF4"
+
+# Color Cycle (the "aurora" colors)
+axes.prop_cycle: cycler(color=["#BF616A", "#D08770", "#EBCB8B", "#A3BE8C", "#B48EAD"])

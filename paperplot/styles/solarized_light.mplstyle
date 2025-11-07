@@ -1,0 +1,44 @@
+# styles/solarized_light.mplstyle
+# A light theme based on the popular Solarized palette.
+
+# Font
+font.family         : sans-serif
+font.sans-serif     : Segoe UI, DejaVu Sans, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 7
+
+# Axes
+axes.facecolor      : "#fdf6e3"  # base3
+axes.edgecolor      : "#93a1a1"  # base1
+axes.labelcolor     : "#586e75"  # base01
+axes.titlecolor     : "#073642"  # base02
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#657b83"  # base00
+ytick.color         : "#657b83"  # base00
+
+# Grid
+grid.color          : "#eee8d5"  # base2
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : "#fdf6e3"  # base3
+
+# Legend
+legend.framealpha   : 0.5
+legend.facecolor    : "#eee8d5" # base2
+
+# Color Cycle (the accent colors)
+axes.prop_cycle: cycler(color=["#268bd2", "#859900", "#dc322f", "#d33682", "#6c71c4", "#2aa198", "#b58900"])

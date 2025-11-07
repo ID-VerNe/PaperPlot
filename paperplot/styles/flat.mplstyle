@@ -1,0 +1,40 @@
+# styles/flat.mplstyle
+# A modern, flat design style with a bright, friendly palette.
+
+# Font (a clean, modern sans-serif)
+font.family         : sans-serif
+font.sans-serif     : Helvetica, Arial, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes
+axes.facecolor      : "#f0f0f0"  # Light gray background for the plot area
+axes.edgecolor      : "#b0b0b0"
+axes.labelcolor     : "#333333"
+axes.titlecolor     : "#333333"
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#333333"
+ytick.color         : "#333333"
+
+# Grid
+grid.color          : white
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white  # White background for the figure
+
+# Color Cycle (from a flat UI palette)
+axes.prop_cycle: cycler(color=["#3498db", "#2ecc71", "#e74c3c", "#f1c40f", "#9b59b6", "#1abc9c"])

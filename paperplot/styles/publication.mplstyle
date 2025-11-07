@@ -1,0 +1,24 @@
+# Fonts
+font.family         : serif
+font.serif          : Times New Roman
+font.size           : 10
+axes.labelsize      : 12
+legend.fontsize     : 9
+xtick.labelsize     : 8
+ytick.labelsize     : 8
+
+# Lines
+lines.linewidth     : 1.5
+lines.markersize    : 4
+
+# Axes
+axes.grid           : True
+axes.axisbelow      : True
+grid.color          : 0.8
+grid.linestyle      : --
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Figure
+figure.dpi          : 300
+figure.facecolor    : white
