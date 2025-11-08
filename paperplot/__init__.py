@@ -1,4 +1,15 @@
 # paperplot/__init__.py
+import logging
+import sys
+
+# Configure logging for the package
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 from .core import Plotter
 from .exceptions import PaperPlotError, TagNotFoundError, DuplicateTagError, PlottingSpaceError
