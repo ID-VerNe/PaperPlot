@@ -1,6 +1,8 @@
 # paperplot/utils.py
 
 import os
+from typing import Optional, Union
+
 import numpy as np
 from scipy import stats
 import pandas as pd
@@ -43,7 +45,7 @@ def _p_to_stars(p_value: float) -> str:
     return ''
 
 def add_stat_test(ax, data: pd.DataFrame, x: str, y: str, group1: str, group2: str,
-                  test: str = 't-test_ind', text_offset: float = 0.1, **kwargs):
+                  test: str = 't-test_ind', text_offset: float = 0.1, y_level: Optional[float] = None, **kwargs):
     """
     在两组数据之间自动进行统计检验，并在图上标注显著性。
 
@@ -59,6 +61,8 @@ def add_stat_test(ax, data: pd.DataFrame, x: str, y: str, group1: str, group2: s
                               和 'mannwhitneyu' (Mann-Whitney U检验)。
                               默认为 't-test_ind'。
         text_offset (float, optional): 标注线与数据最高点之间的垂直距离比例。默认为 0.1。
+        y_level (Optional[float], optional): 如果提供，则强制标注线和文本的y轴位置。
+                                             主要用于 `add_pairwise_tests` 内部调用。
         **kwargs: 传递给 `ax.plot` 和 `ax.text` 的额外参数。
     """
     # 1. 数据筛选
@@ -87,10 +91,14 @@ def add_stat_test(ax, data: pd.DataFrame, x: str, y: str, group1: str, group2: s
     except ValueError:
         raise ValueError(f"Groups '{group1}' or '{group2}' not found in x-axis tick labels: {xtick_labels}")
 
-    y_max = max(data1.max(), data2.max())
-    y_range = ax.get_ylim()[1] - ax.get_ylim()[0]
-    bar_y = y_max + y_range * text_offset
-    text_y = bar_y + y_range * 0.02
+    if y_level is None:
+        y_max = max(data1.max(), data2.max())
+        y_range = ax.get_ylim()[1] - ax.get_ylim()[0]
+        bar_y = y_max + y_range * text_offset
+        text_y = bar_y + y_range * 0.02
+    else:
+        bar_y = y_level
+        text_y = y_level + (ax.get_ylim()[1] - ax.get_ylim()[0]) * 0.02 # 文本略高于线
 
     # 5. 绘制标注
     line_kwargs = {'color': 'black', 'lw': 1.5}
@@ -100,6 +108,52 @@ def add_stat_test(ax, data: pd.DataFrame, x: str, y: str, group1: str, group2: s
     text_kwargs = {'ha': 'center', 'va': 'bottom', 'color': 'black'}
     text_kwargs.update(kwargs)
     ax.text((x1_pos + x2_pos) * 0.5, text_y, p_text, **text_kwargs)
+    
+    return text_y # 返回当前标注的最高Y值，供堆叠使用
+
+
+def add_pairwise_tests(ax, data: pd.DataFrame, x: str, y: str, comparisons: list[tuple],
+                       test: str = 't-test_ind', text_offset_factor: float = 0.05, **kwargs):
+    """
+    执行多组统计比较，并在图上标注显著性，智能堆叠标注线。
+
+    Args:
+        ax (plt.Axes): 要在其上操作的Matplotlib Axes对象。
+        data (pd.DataFrame): 包含绘图数据的DataFrame。
+        x (str): 分组变量的列名。
+        y (str): 数值变量的列名。
+        comparisons (list[tuple]): 一个列表，每个元素是一个包含两个组名的元组，例如 [('A', 'B'), ('A', 'C')]。
+        test (str, optional): 要执行的统计检验。默认为 't-test_ind'。
+        text_offset_factor (float, optional): 每层标注线之间的垂直间距比例。默认为 0.05。
+        **kwargs: 传递给 `add_stat_test` 的额外参数。
+    """
+    # 找到所有组的最大Y值
+    all_groups_max_y = data.groupby(x)[y].max().max()
+    y_range = ax.get_ylim()[1] - ax.get_ylim()[0]
+    
+    # 初始标注Y位置
+    current_y_level = all_groups_max_y + y_range * text_offset_factor
+
+    for group1, group2 in comparisons:
+        # 调用 add_stat_test，并强制指定y_level
+        # add_stat_test 会返回它实际使用的最高y值
+        highest_y_used = add_stat_test(
+            ax=ax,
+            data=data,
+            x=x,
+            y=y,
+            group1=group1,
+            group2=group2,
+            test=test,
+            y_level=current_y_level, # 强制y轴位置
+            **kwargs
+        )
+        # 更新下一个标注的Y位置
+        if highest_y_used is not None:
+            current_y_level = highest_y_used + y_range * text_offset_factor
+            
+    # 调整y轴上限以容纳所有标注
+    ax.set_ylim(top=current_y_level + y_range * text_offset_factor)
 
 
 def plot_learning_curve(ax, train_sizes, train_scores, test_scores, **kwargs):
@@ -384,5 +438,73 @@ def plot_bifurcation_diagram(ax, data: pd.DataFrame, x: str, y: str, **kwargs):
     ax.set_xlabel(kwargs.get('xlabel', 'Bifurcation Parameter'))
     ax.set_ylabel(kwargs.get('ylabel', 'State Variable'))
     ax.set_title(kwargs.get('title', 'Bifurcation Diagram'))
+
+
+def fit_and_plot_distribution(ax, data_series: pd.Series, dist_name: str = 'norm', **kwargs):
+    """
+    拟合数据到指定分布并绘制其概率密度函数 (PDF) 曲线。
+
+    Args:
+        ax (plt.Axes): 要在其上操作的Matplotlib Axes对象。
+        data_series (pd.Series): 要拟合的数据序列。
+        dist_name (str, optional): 要拟合的分布名称，例如 'norm' (正态分布)。
+                                   支持 scipy.stats 中的大多数分布。默认为 'norm'。
+        **kwargs: 传递给 `ax.plot` 的额外参数。
+                  可以设置 `color`, `linestyle`, `label` 等。
+    """
+    dist = getattr(stats, dist_name)
+    params = dist.fit(data_series)
+    
+    # 生成拟合分布的PDF曲线
+    x_min, x_max = ax.get_xlim()
+    x_plot = np.linspace(x_min, x_max, 1000)
+    pdf = dist.pdf(x_plot, *params)
+    
+    label = kwargs.pop('label', f'Fitted {dist_name} (μ={params[0]:.2f}, σ={params[1]:.2f})')
+    ax.plot(x_plot, pdf, label=label, **kwargs)
+    ax.legend()
+
+
+def bin_data(data: pd.DataFrame, x: str, y: str, bins: Union[int, list] = 10, 
+             agg_func: str = 'mean', error_func: Optional[str] = 'std') -> pd.DataFrame:
+    """
+    将数据按X轴分箱，并计算每个箱内Y值的聚合统计量和误差。
+
+    Args:
+        data (pd.DataFrame): 包含绘图数据的DataFrame。
+        x (str): X轴数据的列名。
+        y (str): Y轴数据的列名。
+        bins (Union[int, list], optional): 分箱的数量或自定义分箱边界。默认为 10。
+        agg_func (str, optional): 每个箱内Y值的聚合函数 ('mean', 'median', 'sum'等)。默认为 'mean'。
+        error_func (Optional[str], optional): 每个箱内Y值的误差计算函数 ('std', 'sem'等)。
+                                              如果为None，则不计算误差。默认为 'std'。
+
+    Returns:
+        pd.DataFrame: 包含分箱中心、聚合Y值和误差的新DataFrame。
+                      列名为 'bin_center', 'y_agg', 'y_error' (如果计算误差)。
+    """
+    data_plot = data.copy() # 使用副本，避免修改原始DataFrame
+    # 创建分箱
+    data_plot['bin'] = pd.cut(data_plot[x], bins=bins)
+    
+    # 聚合Y值
+    grouped = data_plot.groupby('bin', observed=False)[y]
+    y_agg = grouped.agg(agg_func)
+    
+    # 计算每个箱的中心
+    # 直接从分组结果的索引（CategoricalIndex）中获取分箱的mid值，它们已经是排序好的
+    bin_centers = [interval.mid for interval in y_agg.index]
+
+    result_df = pd.DataFrame({
+        'bin_center': bin_centers,
+        'y_agg': y_agg.values
+    })
+
+    # 计算误差
+    if error_func:
+        y_error = grouped.agg(error_func)
+        result_df['y_error'] = y_error.values
+        
+    return result_df
 
 

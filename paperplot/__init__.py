@@ -13,6 +13,7 @@ logging.basicConfig(
 
 from .core import Plotter
 from .exceptions import PaperPlotError, TagNotFoundError, DuplicateTagError, PlottingSpaceError
+from . import utils
 
 def generate_grid_layout(rows: int, cols: int) -> list[list[str]]:
     """

@@ -14,34 +14,41 @@ data = {
     'value': np.concatenate([
         np.random.normal(loc=10, scale=2, size=30),
         np.random.normal(loc=15, scale=2.5, size=30),
-        np.random.normal(loc=12, scale=2, size=30)
+        np.random.normal(loc=12, scale=2, size=30),
+        np.random.normal(loc=16, scale=2.2, size=30) # 新增组 D
     ]),
-    'group': ['A'] * 30 + ['B'] * 30 + ['C'] * 30
+    'group': ['A'] * 30 + ['B'] * 30 + ['C'] * 30 + ['D'] * 30
 }
 df = pd.DataFrame(data)
 
 # --- 2. 创建绘图 ---
 try:
     # 使用新的 add_box 方法
-    plotter = pp.Plotter(layout=(1, 1), figsize=(6, 5))
+    plotter = pp.Plotter(layout=(1, 1), figsize=(8, 6))
     plotter.add_box(data=df, x='group', y='value', tag='box')
     
     # --- 3. 添加统计标注 ---
     ax = plotter.get_ax('box')
     
-    # 在 A 组和 B 组之间进行 t-test 并添加标注
-    pp.utils.add_stat_test(
+    # 定义比较对
+    comparisons = [
+        ('A', 'B'),
+        ('C', 'D')
+    ]
+
+    # 使用 add_pairwise_tests 进行多组比较
+    pp.utils.add_pairwise_tests(
         ax=ax,
         data=df,
         x='group',
         y='value',
-        group1='A',
-        group2='B',
-        test='t-test_ind'
+        comparisons=comparisons,
+        test='t-test_ind',
+        text_offset_factor=0.05 # 控制标注线之间的间距
     )
     
     # --- 4. 设置标题和标签 ---
-    plotter.set_title('box', 'Statistical Annotation Example')
+    plotter.set_title('box', 'Statistical Annotation Example (Multiple Comparisons)')
     plotter.set_xlabel('box', 'Group')
     plotter.set_ylabel('box', 'Value')
 

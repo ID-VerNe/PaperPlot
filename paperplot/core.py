@@ -943,6 +943,109 @@ class Plotter:
 
         return self
 
+    def add_phasor_diagram(self, magnitudes: List[float], angles: List[float],
+                           labels: Optional[List[str]] = None, tag: Union[str, int] = None,
+                           angle_unit: str = 'degrees', **kwargs) -> 'Plotter':
+        """
+        在指定子图上绘制相量图。
+
+        如果目标子图不是极坐标投影，它将被替换为一个新的极坐标子图。
+
+        Args:
+            magnitudes (List[float]): 相量的幅值列表。
+            angles (List[float]): 相量的角度列表。
+            labels (Optional[List[str]], optional): 相量的标签列表。默认为None。
+            tag (Union[str, int], optional): 目标子图的tag。如果未提供，将自动分配。
+            angle_unit (str, optional): 角度的单位，'degrees' 或 'radians'。默认为 'degrees'。
+            **kwargs: 其他传递给 `matplotlib.axes.Axes.plot` 或 `matplotlib.axes.Axes.annotate` 的关键字参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+
+        Raises:
+            ValueError: 如果幅值和角度列表长度不匹配。
+            TagNotFoundError: 如果指定的tag未找到。
+        """
+        if len(magnitudes) != len(angles):
+            raise ValueError("Magnitudes and angles lists must have the same length.")
+
+        if ax is None:
+            ax = self._get_next_ax_and_assign_tag(tag)
+        elif tag is not None:
+            if tag in self.tag_to_ax:
+                raise DuplicateTagError(tag)
+            self.tag_to_ax[tag] = ax
+
+        # 获取目标轴
+        target_ax = self._get_ax_by_tag(tag)
+
+        # 如果轴不是极坐标投影，则替换它
+        if target_ax.projection != 'polar':
+            logger.info(f"Axis '{tag}' is not polar. Replacing with a polar axis.")
+            # 获取当前轴的位置
+            bbox = target_ax.get_position()
+            # 从图中删除当前轴
+            self.fig.delaxes(target_ax)
+            # 在相同位置创建一个新的极坐标轴
+            polar_ax = self.fig.add_axes(bbox, projection='polar')
+            # 更新Plotter内部的轴引用
+            self.axes_dict[tag] = polar_ax
+            # 还需要更新self.axes列表，找到并替换
+            for i, ax_in_list in enumerate(self.axes):
+                if ax_in_list == target_ax:
+                    self.axes[i] = polar_ax
+                    break
+            target_ax = polar_ax
+        
+        # 设置极坐标轴的常见电气工程约定
+        target_ax.set_theta_zero_location('right') # 0度在右侧
+        target_ax.set_theta_direction(-1) # 角度顺时针增加
+
+        # 转换角度为弧度
+        if angle_unit == 'degrees':
+            angles_rad = np.deg2rad(angles)
+        else:
+            angles_rad = np.array(angles)
+
+        # 绘制相量
+        for i, (mag, ang_rad) in enumerate(zip(magnitudes, angles_rad)):
+            # 绘制向量 (从原点到 (mag, ang_rad))
+            # 使用 plot 绘制线段，并用 marker='->' 表示箭头
+            line_kwargs = kwargs.copy()
+            label = labels[i] if labels and i < len(labels) else f'Phasor {i+1}'
+            line_kwargs.setdefault('label', label)
+            line_kwargs.setdefault('color', plt.cm.viridis(i / len(magnitudes))) # 默认颜色
+            line_kwargs.setdefault('linewidth', 2)
+            line_kwargs.setdefault('marker', '>') # 箭头标记
+            line_kwargs.setdefault('markersize', 8)
+            line_kwargs.setdefault('markevery', [1]) # 只在末端显示箭头
+
+            target_ax.plot([0, ang_rad], [0, mag], **line_kwargs)
+
+            # 添加标签
+            if labels and i < len(labels):
+                text_kwargs = kwargs.copy()
+                text_kwargs.setdefault('ha', 'center')
+                text_kwargs.setdefault('va', 'bottom')
+                text_kwargs.setdefault('fontsize', 10)
+                # 稍微偏移标签，避免与箭头重叠
+                text_offset_mag = mag * 0.1 
+                target_ax.text(ang_rad, mag + text_offset_mag, labels[i], **text_kwargs)
+
+        # 设置极径（幅值）范围
+        max_mag = max(magnitudes) if magnitudes else 1
+        target_ax.set_rlim(0, max_mag * 1.2) # 留出一些空间
+
+        # 设置角度网格线（例如每30度）
+        target_ax.set_thetagrids(np.arange(0, 360, 30))
+        
+        # 设置径向刻度标签
+        target_ax.set_rticks(np.linspace(0, max_mag, 3)) # 3个径向刻度
+
+        target_ax.legend(loc='upper left', bbox_to_anchor=(1.05, 1)) # 将图例放在外面
+
+        return self
+
     # --- 收尾与美化 ---
     def get_ax(self, tag: Union[str, int]) -> plt.Axes:
         """
