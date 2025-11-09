@@ -62,7 +62,6 @@ plotter.set_ylabel('scatter_plot', 'Y Value')
 plotter.save("quick_start_figure.png")
 ```
 
-*(请替换为 `quick_start_figure.png` 的实际图片链接)*
 
 ## 通过示例学习 (Learn from Examples)
 
