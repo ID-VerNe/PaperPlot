@@ -31,16 +31,11 @@ class DomainSpecificPlotsMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        if ax is None:
-            ax, _ = self._get_next_ax_and_assign_tag(tag)
-        elif tag is not None:
-            if tag in self.tag_to_ax:
-                raise DuplicateTagError(tag)
-            self.tag_to_ax[tag] = ax
+        _ax = self._resolve_ax(tag, ax)
 
         for i, y_col in enumerate(y_cols):
             label = kwargs.pop('label', y_col) # 如果用户没有提供label，则使用列名
-            ax.plot(data[x], data[y_col] + i * offset, label=label, **kwargs)
+            _ax.plot(data[x], data[y_col] + i * offset, label=label, **kwargs)
         
         return self
 
@@ -61,24 +56,19 @@ class DomainSpecificPlotsMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        if ax is None:
-            ax, tag = self._get_next_ax_and_assign_tag(tag)
-        elif tag is not None:
-            if tag in self.tag_to_ax:
-                raise DuplicateTagError(tag)
-            self.tag_to_ax[tag] = ax
+        _ax = self._resolve_ax(tag, ax)
         
         create_cbar = kwargs.pop('cbar', True)
         kwargs.setdefault('cmap', 'inferno') # 默认使用 inferno 颜色映射
         
         import seaborn as sns
-        sns.heatmap(data, ax=ax, cbar=create_cbar, **kwargs)
+        sns.heatmap(data, ax=_ax, cbar=create_cbar, **kwargs)
         
-        if tag and ax.collections:
-            self.tag_to_mappable[tag] = ax.collections[0]
+        if tag and _ax.collections:
+            self.tag_to_mappable[tag] = _ax.collections[0]
 
-        ax.set_xlabel(kwargs.pop('xlabel', 'X (μm)'))
-        ax.set_ylabel(kwargs.pop('ylabel', 'Y (μm)'))
+        _ax.set_xlabel(kwargs.pop('xlabel', 'X (μm)'))
+        _ax.set_ylabel(kwargs.pop('ylabel', 'Y (μm)'))
 
         return self
 
@@ -101,12 +91,7 @@ class DomainSpecificPlotsMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        if ax is None:
-            ax, _ = self._get_next_ax_and_assign_tag(tag)
-        elif tag is not None:
-            if tag in self.tag_to_ax:
-                raise DuplicateTagError(tag)
-            self.tag_to_ax[tag] = ax
+        _ax = self._resolve_ax(tag, ax)
 
         if normalize:
             matrix = matrix.astype('float') / matrix.sum(axis=1)[:, np.newaxis]
@@ -121,10 +106,10 @@ class DomainSpecificPlotsMixin:
         kwargs.setdefault('fmt', fmt)
         kwargs.setdefault('cmap', 'Blues')
         
-        sns.heatmap(df_cm, ax=ax, **kwargs)
+        sns.heatmap(df_cm, ax=_ax, **kwargs)
 
-        ax.set_xlabel('Predicted Label')
-        ax.set_ylabel('True Label')
+        _ax.set_xlabel('Predicted Label')
+        _ax.set_ylabel('True Label')
         
         return self
 
@@ -145,27 +130,22 @@ class DomainSpecificPlotsMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        if ax is None:
-            ax, _ = self._get_next_ax_and_assign_tag(tag)
-        elif tag is not None:
-            if tag in self.tag_to_ax:
-                raise DuplicateTagError(tag)
-            self.tag_to_ax[tag] = ax
+        _ax = self._resolve_ax(tag, ax)
 
         # 绘制每个类别的ROC曲线
         for key in fpr.keys():
             label = f'{key} (AUC = {roc_auc[key]:.2f})'
-            ax.plot(fpr[key], tpr[key], label=label, **kwargs)
+            _ax.plot(fpr[key], tpr[key], label=label, **kwargs)
 
         # 绘制对角参考线
-        ax.plot([0, 1], [0, 1], 'k--', lw=2)
+        _ax.plot([0, 1], [0, 1], 'k--', lw=2)
         
-        ax.set_xlim([0.0, 1.0])
-        ax.set_ylim([0.0, 1.05])
-        ax.set_xlabel('False Positive Rate')
-        ax.set_ylabel('True Positive Rate')
-        ax.set_title('Receiver Operating Characteristic (ROC) Curve')
-        ax.legend(loc="lower right")
+        _ax.set_xlim([0.0, 1.0])
+        _ax.set_ylim([0.0, 1.05])
+        _ax.set_xlabel('False Positive Rate')
+        _ax.set_ylabel('True Positive Rate')
+        _ax.set_title('Receiver Operating Characteristic (ROC) Curve')
+        _ax.legend(loc="lower right")
         
         return self
 
@@ -188,15 +168,10 @@ class DomainSpecificPlotsMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        if ax is None:
-            ax, _ = self._get_next_ax_and_assign_tag(tag)
-        elif tag is not None:
-            if tag in self.tag_to_ax:
-                raise DuplicateTagError(tag)
-            self.tag_to_ax[tag] = ax
+        _ax = self._resolve_ax(tag, ax)
         
         import seaborn as sns
-        sns.scatterplot(data=data, x=x_pc, y=y_pc, hue=hue, ax=ax, **kwargs)
+        sns.scatterplot(data=data, x=x_pc, y=y_pc, hue=hue, ax=_ax, **kwargs)
         
         return self
 
@@ -221,31 +196,26 @@ class DomainSpecificPlotsMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        if ax is None:
-            ax, _ = self._get_next_ax_and_assign_tag(tag)
-        elif tag is not None:
-            if tag in self.tag_to_ax:
-                raise DuplicateTagError(tag)
-            self.tag_to_ax[tag] = ax
+        _ax = self._resolve_ax(tag, ax)
 
         # 绘制时间序列线
         for y_col in y_cols:
             label = kwargs.pop('label', y_col)
-            ax.plot(data[x], data[y_col], label=label, **kwargs)
+            _ax.plot(data[x], data[y_col], label=label, **kwargs)
 
         # 标记事件
         if events and isinstance(events, dict):
             utils.add_event_markers(
-                ax=ax,
+                ax=_ax,
                 event_dates=list(events.values()),
                 labels=list(events.keys())
             )
         
         # 设置默认标签和图例
-        ax.set_xlabel(kwargs.pop('xlabel', 'Time (s)'))
-        ax.set_ylabel(kwargs.pop('ylabel', 'Value'))
-        if any(ax.get_legend_handles_labels()):
-             ax.legend()
+        _ax.set_xlabel(kwargs.pop('xlabel', 'Time (s)'))
+        _ax.set_ylabel(kwargs.pop('ylabel', 'Value'))
+        if any(_ax.get_legend_handles_labels()):
+             _ax.legend()
 
         return self
 
@@ -276,21 +246,23 @@ class DomainSpecificPlotsMixin:
             DuplicateTagError: 如果尝试使用一个已经存在的tag。
             TagNotFoundError: 如果指定的tag未找到。
         """
+        _ax = self._resolve_ax(tag, ax)
+
         if len(magnitudes) != len(angles):
             raise ValueError("Magnitudes and angles lists must have the same length.")
 
         _target_ax: plt.Axes
         _assigned_tag: Union[str, int]
 
-        if ax is None:
+        if _ax is None:
             _target_ax, _assigned_tag = self._get_next_ax_and_assign_tag(tag)
         else:
             if tag is None:
                 raise ValueError("When 'ax' is explicitly provided, a 'tag' must also be provided.")
-            if tag in self.tag_to_ax and self.tag_to_ax[tag] != ax:
+            if tag in self.tag_to_ax and self.tag_to_ax[tag] != _ax:
                 raise DuplicateTagError(tag)
-            self.tag_to_ax[tag] = ax
-            _target_ax = ax
+            self.tag_to_ax[tag] = _ax
+            _target_ax = _ax
             _assigned_tag = tag
 
         # 检查轴是否为极坐标投影

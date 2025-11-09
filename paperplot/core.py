@@ -1,4 +1,7 @@
 import logging
+
+from matplotlib.gridspec import GridSpecFromSubplotSpec
+
 logger = logging.getLogger(__name__)
 from typing import Optional, Union, List, Tuple, Callable, Dict
 import matplotlib.pyplot as plt
@@ -91,7 +94,9 @@ class Plotter(GenericPlotsMixin, ModifiersMixin, DomainSpecificPlotsMixin):
         self.axes_dict: Dict[Union[str, int], plt.Axes] = {}
         self.axes: List[plt.Axes] = []
 
-        if isinstance(layout, tuple) and len(layout) == 2:
+        if isinstance(layout, dict):
+            self._create_nested_layout(layout)
+        elif isinstance(layout, tuple) and len(layout) == 2:
             n_rows, n_cols = layout
             for r in range(n_rows):
                 for c in range(n_cols):
@@ -114,10 +119,57 @@ class Plotter(GenericPlotsMixin, ModifiersMixin, DomainSpecificPlotsMixin):
         else:
             raise ValueError("Invalid layout format. Must be (rows, cols) tuple or list of lists for mosaic.")
 
-        self.tag_to_ax: Dict[Union[str, int], plt.Axes] = {} # This will store user-assigned tags to actual axes
+        # self.tag_to_ax: Dict[Union[str, int], plt.Axes] = {} # This will store user-assigned tags to actual axes
+        self.tag_to_ax = self.axes_dict.copy()
+
         self.tag_to_mappable: Dict[Union[str, int], plt.cm.ScalarMappable] = {}
         self.current_ax_index: int = 0
         self.next_default_tag: int = 1
+
+    def _create_nested_layout(self, layout_def: Dict):
+        """
+        [私有] 根据声明式定义，递归创建嵌套布局。
+        """
+        main_layout_list = layout_def['main']
+        subgrids_def = layout_def.get('subgrids', {})
+
+        # 1. 创建主网格
+        parsed_main_layout, (n_rows, n_cols) = utils.parse_mosaic_layout(main_layout_list)
+        main_gs = self.fig.add_gridspec(n_rows, n_cols)
+
+        # 2. 遍历主网格中的所有命名区域
+        for name, spec in parsed_main_layout.items():
+
+            # 检查这个区域是否需要被进一步划分为子网格
+            if name in subgrids_def:
+                # --- 是一个容器，需要创建子网格 ---
+                subgrid_info = subgrids_def[name]
+                sub_layout_list = subgrid_info['layout']
+                subgrid_kwargs = {k: v for k, v in subgrid_info.items() if k != 'layout'}
+
+                # 创建 GridSpecFromSubplotSpec
+                main_subplot_spec = main_gs[spec['row_start']:spec['row_start'] + spec['row_span'],
+                                    spec['col_start']:spec['col_start'] + spec['col_span']]
+
+                parsed_sub_layout, (sub_rows, sub_cols) = utils.parse_mosaic_layout(sub_layout_list)
+                sub_gs = GridSpecFromSubplotSpec(sub_rows, sub_cols, subplot_spec=main_subplot_spec, **subgrid_kwargs)
+
+                # 在子网格中创建最终的 Axes
+                for sub_name, sub_spec in parsed_sub_layout.items():
+                    # 生成层级名称，例如：'heatmap_container.nh2_map'
+                    hierarchical_name = f"{name}.{sub_name}"
+
+                    ax = self.fig.add_subplot(sub_gs[sub_spec['row_start']:sub_spec['row_start'] + sub_spec['row_span'],
+                                              sub_spec['col_start']:sub_spec['col_start'] + sub_spec['col_span']])
+
+                    self.axes_dict[hierarchical_name] = ax
+                    self.axes.append(ax)
+
+            else:
+                ax = self.fig.add_subplot(main_gs[spec['row_start']:spec['row_start'] + spec['row_span'],
+                                          spec['col_start']:spec['col_start'] + spec['col_span']])
+                self.axes_dict[name] = ax
+                self.axes.append(ax)
 
     def _get_ax_by_tag(self, tag: Union[str, int]) -> plt.Axes:
         """
@@ -139,29 +191,32 @@ class Plotter(GenericPlotsMixin, ModifiersMixin, DomainSpecificPlotsMixin):
     def _get_next_ax_and_assign_tag(self, tag: Optional[Union[str, int]] = None) -> Tuple[plt.Axes, Union[str, int]]:
         """
         获取下一个可用的Axes对象，并为其分配一个tag。
+        此方法用于顺序绘图模式。
         """
-        claimed_axes = set(self.tag_to_ax.values())
-
-        ax_to_use = None
-        while self.current_ax_index < len(self.axes):
-            potential_ax = self.axes[self.current_ax_index]
-            if potential_ax not in claimed_axes:
-                ax_to_use = potential_ax
-                break
-            self.current_ax_index += 1
-
-        if ax_to_use is None:
+        # 步骤 1: 检查索引是否已经超出了可用 Axes 的范围。
+        if self.current_ax_index >= len(self.axes):
             raise PlottingSpaceError(len(self.axes))
 
+        # 步骤 2: 根据当前索引直接获取下一个 Axes。
+        # 我们不再检查它是否已被“认领”，因为我们就是要覆盖或赋予它新标签。
+        ax_to_use = self.axes[self.current_ax_index]
+
+        # 步骤 3: 处理并检查新标签是否重复。
         current_tag = tag if tag is not None else self.next_default_tag
         if current_tag in self.tag_to_ax:
+            # 顺序绘图模式下，一个已经存在的标签意味着重复，这是不允许的。
+            # 声明式模式会在 _resolve_ax 中被提前捕获，不会进入此方法。
             raise DuplicateTagError(current_tag)
-            
+
         if tag is None:
             self.next_default_tag += 1
-            
+
+        # 步骤 4: 将新标签与选定的 Axes 关联起来。
         self.tag_to_ax[current_tag] = ax_to_use
+
+        # 步骤 5: 将索引向前移动，为下一次调用做准备。
         self.current_ax_index += 1
+
         return ax_to_use, current_tag
 
     def get_ax(self, tag: Union[str, int]) -> plt.Axes:
@@ -178,3 +233,22 @@ class Plotter(GenericPlotsMixin, ModifiersMixin, DomainSpecificPlotsMixin):
             available_names = list(self.axes_dict.keys()) if isinstance(self.axes_dict, dict) else []
             raise ValueError(f"Name '{name}' not found in layout. Available names are: {available_names}")
         return self.axes_dict[name]
+
+    def _resolve_ax(self, tag: Optional[Union[str, int]] = None, ax: Optional[plt.Axes] = None) -> plt.Axes:
+        """[私有] 智能解析并返回正确的 Axes 对象。"""
+        _ax: plt.Axes
+        if ax is not None:
+            _ax = ax
+            # 如果用户同时提供了 ax 和 tag，需要注册这个关联
+            if tag is not None:
+                # 检查是否存在冲突
+                if tag in self.tag_to_ax and self.tag_to_ax[tag] is not _ax:
+                    raise DuplicateTagError(tag)
+                self.tag_to_ax[tag] = _ax
+        elif tag is not None and tag in self.tag_to_ax:
+            # tag 在布局时已定义，直接使用
+            _ax = self.tag_to_ax[tag]
+        else:
+            # ax 未提供，tag 也是新的或 None，按顺序分配
+            _ax, _ = self._get_next_ax_and_assign_tag(tag)
+        return _ax
