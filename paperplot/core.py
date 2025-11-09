@@ -45,6 +45,8 @@ class Plotter(GenericPlotsMixin, ModifiersMixin, DomainSpecificPlotsMixin):
         Raises:
             ValueError: 如果布局定义无效，或者 `figsize` 和 `subplot_aspect` 被同时指定。
         """
+        super().__init__()
+
         if figsize is not None and subplot_aspect is not None:
             raise ValueError("Cannot specify both 'figsize' and 'subplot_aspect'. Choose one.")
 

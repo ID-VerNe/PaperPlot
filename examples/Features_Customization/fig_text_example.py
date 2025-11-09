@@ -31,10 +31,10 @@ try:
     plotter.set_legend('ax01')
 
     # 3. Add figure-level text using fig_text
-    plotter.fig_text(0.5, 0.96, 'Overall Figure Title (using fig_text)', ha='center', va='top', fontsize=14, weight='bold')
-    plotter.fig_text(0.02, 0.5, 'Left Side Annotation', rotation=90, va='center', ha='left', fontsize=10, color='gray')
-    plotter.fig_text(0.98, 0.5, 'Right Side Annotation', rotation=-90, va='center', ha='right', fontsize=10, color='gray')
-    plotter.fig_text(0.5, 0.02, 'Figure Footer - Source: Example Data', ha='center', va='bottom', fontsize=8, style='italic')
+    plotter.fig_add_text(0.5, 0.96, 'Overall Figure Title (using fig_add_text)', ha='center', va='top', fontsize=14, weight='bold')
+    plotter.fig_add_text(0.02, 0.5, 'Left Side Annotation', rotation=90, va='center', ha='left', fontsize=10, color='gray')
+    plotter.fig_add_text(0.98, 0.5, 'Right Side Annotation', rotation=-90, va='center', ha='right', fontsize=10, color='gray')
+    plotter.fig_add_text(0.5, 0.02, 'Figure Footer - Source: Example Data', ha='center', va='bottom', fontsize=8, style='italic')
 
     # 4. Apply cleanup and save the figure
     plotter.cleanup(auto_share=True) # Auto-share for demonstration
