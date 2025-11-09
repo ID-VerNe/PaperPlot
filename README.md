@@ -20,7 +20,7 @@
 ## 安装
 
 ```bash
-pip install paperplot
+pip install paperplotter
 ```
 
 ## 快速开始
