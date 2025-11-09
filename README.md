@@ -1,7 +1,6 @@
 # PaperPlot
 
-[//]: # ([![PyPI version]&#40;https://badge.fury.io/py/paperplot.svg&#41;]&#40;https://badge.fury.io/py/paperplot&#41;)
-[//]: # ([![Build Status]&#40;https://travis-ci.org/your-username/paperplot.svg?branch=main&#41;]&#40;https://travis-ci.org/your-username/paperplot&#41;)
+[![PyPI version](https://badge.fury.io/py/paperplotter.svg)](https://badge.fury.io/py/paperplotter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **一个为科研论文设计的声明式 Matplotlib 封装库，让复杂图表的创建变得简单直观。**
