@@ -11,8 +11,10 @@
 
 *   **🎨 声明式链式调用**: 像写句子一样构建你的图表，例如 `plotter.add_line(...).set_title(...).set_xlabel(...)`。
 *   **🏷️ 基于标签的控制**: 给每个子图一个独一无二的 `tag`，之后就可以随时通过 `tag` 对其进行任何修改，告别混乱的 `axes[i][j]` 索引。
-*   **🧩 强大的布局系统**: 无论是简单的 `(行, 列)` 网格，还是使用 `subplot_mosaic` 实现的跨行跨列复杂布局，都能轻松定义。
+*   **🧩 强大的布局系统**: 无论是简单的 `(行, 列)` 网格，还是使用 `mosaic` 实现的跨行跨列复杂布局，都能轻松定义。
+*   **📐 灵活的尺寸控制**: 除了传统的 `figsize`，还可以通过 `subplot_aspect` 指定子图单元格的宽高比，让 `PaperPlot` 自动计算最合适的画布尺寸。
 *   **✨ 内置科研主题**: 提供多种专业美观的内置样式，如 `publication`, `presentation` 等，一键切换图表风格。
+*   **🌐 全局图层级标注**: 提供了在整个画布（Figure）上添加文本、线条、方框和标签的 API，非常适合添加全局注释或高亮一组图表。
 *   **🔬 丰富的领域专用图表**: 内置了科研中常用的图表类型，如光谱图、混淆矩阵、ROC 曲线、学习曲线、分岔图、相量图等。
 *   **🔧 智能美化工具**: `cleanup()` 方法可以智能地共享坐标轴、对齐标签；`cleanup_heatmaps()` 可以为多个热图创建共享的颜色条。
 
@@ -83,10 +85,17 @@ plotter.save("quick_start_figure.png")
 | **高级定制**<br/> `Features_Customization/advanced_customization.py` | 演示如何使用 `get_ax()` "逃生舱口" 来获取原生的 Matplotlib `Axes` 对象，并添加任意 `Patch`（如椭圆）。 | `get_ax()`, `ax.add_patch()` |
 | **全局控制**<br/> `Features_Customization/global_controls_example.py` | 展示如何设置全局标题 (`suptitle`) 和创建全局图例。 | `set_suptitle()`, `add_global_legend()` |
 | **共享颜色条**<br/> `Features_Customization/heatmap_colorbar_example.py` | 为多个热图创建一个共享的、能反映全局数据范围的颜色条。 | `add_heatmap(cbar=False)`, `cleanup_heatmaps()` |
-| **智能清理**<br/> `Features_Customization/cleanup_demonstration.py` | 演示 `cleanup()` 函数如何动态地为指定行/列的子图共享 X/Y 轴，并自动隐藏多余的刻度标签。 | `cleanup(share_y_on_rows=...)`, `cleanup(share_x_on_cols=...)` |
+| **智能清理**<br/> `Features_Customization/cleanup_demonstration.py` | 演示 `cleanup()` 函数如何动态地为指定行/列的子图共享 X/Y 轴，并自动隐藏多余的刻度标签。 | `cleanup(auto_share=True)` |
 | **组合图与内嵌图**<br/> `Features_Customization/composite_figure_example.py` | 创建一个 L 型的复杂图表，并在其中一个子图内部嵌入一张图片。 | `layout=[['A', 'A'], ['B', '.']]`, `add_inset_image()` |
 | **功能扩展**<br/> `Features_Customization/feature_expansion_example.py` | 演示双Y轴 (`add_twinx`)、回归图 (`add_regplot`)、参考线 (`add_hline`) 和文本标注 (`add_text`) 等高级功能。 | `add_twinx()`, `add_regplot()`, `add_hline()`, `add_text()` |
 | **错误处理**<br/> `Features_Customization/error_handling_test.py` | 展示 `PaperPlot` 的自定义异常，如 `DuplicateTagError`, `TagNotFoundError`, `PlottingSpaceError`。 | `try...except pp.PaperPlotError` |
+
+### 标注与高亮 (Annotation & Highlighting)
+
+| 示例 | 描述 | 关键功能 |
+| :--- | :--- | :--- |
+| **图层级标注**<br/>`Features_Customization/fig_annotation_example.py`| 演示添加跨越多个子图的画布级注解，如方框、标签和线条。| `fig_add_box()`, `fig_add_label()`, `fig_add_line()`, `fig_add_text()`|
+| **区域高亮**<br/>`Features_Customization/highlighting_example.py` | 展示如何在子图内部高亮特定的数据区域，并为整个图表添加边框。| `add_highlight_box()`, `fig_add_boundary_box()` |
 
 ### 风格与美化 (Styles & Aesthetics)
 
@@ -105,7 +114,7 @@ plotter.save("quick_start_figure.png")
 | **SERS 浓度图**<br/> `Domain_Specific_Plots/concentration_map_example.py` | 绘制 SERS Mapping 浓度图，本质上是带有专业美化的热图。 | `add_concentration_map()` |
 | **电力系统时间序列**<br/> `Domain_Specific_Plots/power_timeseries_example.py` | 绘制电力系统动态仿真结果，并自动标记故障、切除等事件。 | `add_power_timeseries()` |
 | **相量图**<br/> `Domain_Specific_Plots/phasor_diagram_example.py` | 在极坐标上绘制电气工程中的相量图。 | `add_phasor_diagram()` |
-| **分岔图**<br/> `Domain_Specific_Plots/bifurcation_diagram_example.py` | 绘制常用于非线性系统和稳定性分析的分岔图。 | `utils.plot_bifurcation_diagram()` |
+| **分岔图**<br/> `Domain_Specific_Plots/bifurcation_diagram_example.py` | 绘制常用于非线性系统和稳定性分析的分岔图。 | `add_scatter(rasterized=True)` |
 
 ### 数据分析工具 (Data Analysis Utils)
 
