@@ -70,49 +70,49 @@ plotter.save("quick_start_figure.png")
 
 | 示例 | 描述 | 关键功能 |
 | :--- | :--- | :--- |
-| **高级布局**<br/> `advanced_layout_example.py` | 展示如何使用列表定义一个跨列的复杂布局。 | `layout=[['A', 'B', 'B'], ...]`<br/>`get_ax_by_name()` |
-| **行跨越**<br/> `row_span_example.py` | 创建一个图表，其中某个子图跨越多行。 | `layout=[['A', 'B'], ['A', 'C']]` |
-| **块跨越**<br/> `block_span_example.py` | 创建一个图表，其中某个子图同时跨越多行和多列。 | `layout=[['A', 'A', 'B'], ['A', 'A', 'C']]` |
-| **固定子图宽高比**<br/> `aspect_ratio_example.py` | 在不指定 `figsize` 的情况下，通过 `subplot_aspect` 保证每个子图单元格的宽高比，Plotter 会自动计算画布大小。 | `subplot_aspect=(16, 9)` |
+| **高级布局**<br/> `Layout/advanced_layout_example.py` | 展示如何使用列表定义一个跨列的复杂布局。 | `layout=[['A', 'B', 'B'], ...]`<br/>`get_ax_by_name()` |
+| **行跨越**<br/> `Layout/row_span_example.py` | 创建一个图表，其中某个子图跨越多行。 | `layout=[['A', 'B'], ['A', 'C']]` |
+| **块跨越**<br/> `Layout/block_span_example.py` | 创建一个图表，其中某个子图同时跨越多行和多列。 | `layout=[['A', 'A', 'B'], ['A', 'A', 'C']]` |
+| **固定子图宽高比**<br/> `Layout/aspect_ratio_example.py` | 在不指定 `figsize` 的情况下，通过 `subplot_aspect` 保证每个子图单元格的宽高比，Plotter 会自动计算画布大小。 | `subplot_aspect=(16, 9)` |
 
 ### 功能与定制化 (Features & Customization)
 
 | 示例 | 描述 | 关键功能 |
 | :--- | :--- | :--- |
-| **多图网格**<br/> `multi_plot_grid.py` | 在一个网格中混合绘制不同类型的图表（线图、柱状图、散点图、热图）。 | `add_line()`, `add_bar()`, `add_scatter()`, `add_heatmap()` |
-| **高级定制**<br/> `advanced_customization.py` | 演示如何使用 `get_ax()` "逃生舱口" 来获取原生的 Matplotlib `Axes` 对象，并添加任意 `Patch`（如椭圆）。 | `get_ax()`, `ax.add_patch()` |
-| **全局控制**<br/> `global_controls_example.py` | 展示如何设置全局标题 (`suptitle`) 和创建全局图例。 | `set_suptitle()`, `add_global_legend()` |
-| **共享颜色条**<br/> `heatmap_colorbar_example.py` | 为多个热图创建一个共享的、能反映全局数据范围的颜色条。 | `add_heatmap(cbar=False)`, `cleanup_heatmaps()` |
-| **智能清理**<br/> `cleanup_demonstration.py` | 演示 `cleanup()` 函数如何动态地为指定行/列的子图共享 X/Y 轴，并自动隐藏多余的刻度标签。 | `cleanup(share_y_on_rows=...)`, `cleanup(share_x_on_cols=...)` |
-| **组合图与内嵌图**<br/> `composite_figure_example.py` | 创建一个 L 型的复杂图表，并在其中一个子图内部嵌入一张图片。 | `layout=[['A', 'A'], ['B', '.']]`, `add_inset_image()` |
-| **功能扩展**<br/> `feature_expansion_example.py` | 演示双Y轴 (`add_twinx`)、回归图 (`add_regplot`)、参考线 (`add_hline`) 和文本标注 (`add_text`) 等高级功能。 | `add_twinx()`, `add_regplot()`, `add_hline()`, `add_text()` |
-| **错误处理**<br/> `error_handling_test.py` | 展示 `PaperPlot` 的自定义异常，如 `DuplicateTagError`, `TagNotFoundError`, `PlottingSpaceError`。 | `try...except pp.PaperPlotError` |
+| **多图网格**<br/> `Features_Customization/multi_plot_grid.py` | 在一个网格中混合绘制不同类型的图表（线图、柱状图、散点图、热图）。 | `add_line()`, `add_bar()`, `add_scatter()`, `add_heatmap()` |
+| **高级定制**<br/> `Features_Customization/advanced_customization.py` | 演示如何使用 `get_ax()` "逃生舱口" 来获取原生的 Matplotlib `Axes` 对象，并添加任意 `Patch`（如椭圆）。 | `get_ax()`, `ax.add_patch()` |
+| **全局控制**<br/> `Features_Customization/global_controls_example.py` | 展示如何设置全局标题 (`suptitle`) 和创建全局图例。 | `set_suptitle()`, `add_global_legend()` |
+| **共享颜色条**<br/> `Features_Customization/heatmap_colorbar_example.py` | 为多个热图创建一个共享的、能反映全局数据范围的颜色条。 | `add_heatmap(cbar=False)`, `cleanup_heatmaps()` |
+| **智能清理**<br/> `Features_Customization/cleanup_demonstration.py` | 演示 `cleanup()` 函数如何动态地为指定行/列的子图共享 X/Y 轴，并自动隐藏多余的刻度标签。 | `cleanup(share_y_on_rows=...)`, `cleanup(share_x_on_cols=...)` |
+| **组合图与内嵌图**<br/> `Features_Customization/composite_figure_example.py` | 创建一个 L 型的复杂图表，并在其中一个子图内部嵌入一张图片。 | `layout=[['A', 'A'], ['B', '.']]`, `add_inset_image()` |
+| **功能扩展**<br/> `Features_Customization/feature_expansion_example.py` | 演示双Y轴 (`add_twinx`)、回归图 (`add_regplot`)、参考线 (`add_hline`) 和文本标注 (`add_text`) 等高级功能。 | `add_twinx()`, `add_regplot()`, `add_hline()`, `add_text()` |
+| **错误处理**<br/> `Features_Customization/error_handling_test.py` | 展示 `PaperPlot` 的自定义异常，如 `DuplicateTagError`, `TagNotFoundError`, `PlottingSpaceError`。 | `try...except pp.PaperPlotError` |
 
 ### 风格与美化 (Styles & Aesthetics)
 
 | 示例 | 描述 | 关键功能 |
 | :--- | :--- | :--- |
-| **风格画廊**<br/> `style_gallery_example.py` | 循环遍历所有内置的绘图风格，并为每种风格生成一个示例图。 | `Plotter(style='...')` |
-| **统计标注**<br/> `statistical_annotation_example.py` | 在箱线图上自动进行多组成对统计检验（如 t-test），并智能堆叠显著性标记。 | `add_box()`, `utils.add_pairwise_tests()` |
-| **美学与处理**<br/> `aesthetic_and_processing_example.py` | 使用 `utils` 模块中的函数对数据进行平滑处理或根据条件高亮特定数据点。 | `utils.moving_average()`, `utils.highlight_points()` |
+| **风格画廊**<br/> `Styles_Aesthetics/style_gallery_example.py` | 循环遍历所有内置的绘图风格，并为每种风格生成一个示例图。 | `Plotter(style='...')` |
+| **统计标注**<br/> `Styles_Aesthetics/statistical_annotation_example.py` | 在箱线图上自动进行多组成对统计检验（如 t-test），并智能堆叠显著性标记。 | `add_box()`, `utils.add_pairwise_tests()` |
+| **美学与处理**<br/> `Styles_Aesthetics/aesthetic_and_processing_example.py` | 使用 `utils` 模块中的函数对数据进行平滑处理或根据条件高亮特定数据点。 | `utils.moving_average()`, `utils.highlight_points()` |
 
 ### 领域专用图 (Domain-Specific Plots)
 
 | 示例 | 描述 | 关键功能 |
 | :--- | :--- | :--- |
-| **领域专用图合集**<br/> `domain_specific_plots_example.py` | 一站式展示多种领域专用图，包括 SERS 光谱图、混淆矩阵、ROC 曲线和 PCA 散点图。 | `add_spectra()`, `add_confusion_matrix()`, `add_roc_curve()`, `add_pca_scatter()` |
-| **学习曲线**<br/> `learning_curve_example.py` | 绘制机器学习模型的学习曲线，帮助诊断过拟合或欠拟合问题。 | `utils.plot_learning_curve()` |
-| **SERS 浓度图**<br/> `concentration_map_example.py` | 绘制 SERS Mapping 浓度图，本质上是带有专业美化的热图。 | `add_concentration_map()` |
-| **电力系统时间序列**<br/> `power_timeseries_example.py` | 绘制电力系统动态仿真结果，并自动标记故障、切除等事件。 | `add_power_timeseries()` |
-| **相量图**<br/> `phasor_diagram_example.py` | 在极坐标上绘制电气工程中的相量图。 | `add_phasor_diagram()` |
-| **分岔图**<br/> `bifurcation_diagram_example.py` | 绘制常用于非线性系统和稳定性分析的分岔图。 | `utils.plot_bifurcation_diagram()` |
+| **领域专用图合集**<br/> `Domain_Specific_Plots/domain_specific_plots_example.py` | 一站式展示多种领域专用图，包括 SERS 光谱图、混淆矩阵、ROC 曲线和 PCA 散点图。 | `add_spectra()`, `add_confusion_matrix()`, `add_roc_curve()`, `add_pca_scatter()` |
+| **学习曲线**<br/> `Domain_Specific_Plots/learning_curve_example.py` | 绘制机器学习模型的学习曲线，帮助诊断过拟合或欠拟合问题。 | `utils.plot_learning_curve()` |
+| **SERS 浓度图**<br/> `Domain_Specific_Plots/concentration_map_example.py` | 绘制 SERS Mapping 浓度图，本质上是带有专业美化的热图。 | `add_concentration_map()` |
+| **电力系统时间序列**<br/> `Domain_Specific_Plots/power_timeseries_example.py` | 绘制电力系统动态仿真结果，并自动标记故障、切除等事件。 | `add_power_timeseries()` |
+| **相量图**<br/> `Domain_Specific_Plots/phasor_diagram_example.py` | 在极坐标上绘制电气工程中的相量图。 | `add_phasor_diagram()` |
+| **分岔图**<br/> `Domain_Specific_Plots/bifurcation_diagram_example.py` | 绘制常用于非线性系统和稳定性分析的分岔图。 | `utils.plot_bifurcation_diagram()` |
 
 ### 数据分析工具 (Data Analysis Utils)
 
 | 示例 | 描述 | 关键功能 |
 | :--- | :--- | :--- |
-| **数据分析工具集**<br/> `data_analysis_utils_example.py` | 演示如何对数据进行分布拟合 (`fit_and_plot_distribution`) 和数据分箱 (`bin_data`)。 | `utils.fit_and_plot_distribution()`, `utils.bin_data()` |
-| **通用工具函数**<br/> `utility_functions_example.py` | 展示更多通用的 `utils` 函数，如在高光谱上高亮特征峰 (`highlight_peaks`) 和在时间序列上标记事件 (`add_event_markers`)。 | `utils.highlight_peaks()`, `utils.add_event_markers()` |
+| **数据分析工具集**<br/> `Data_Analysis_Utils/data_analysis_utils_example.py` | 演示如何对数据进行分布拟合 (`fit_and_plot_distribution`) 和数据分箱 (`bin_data`)。 | `utils.fit_and_plot_distribution()`, `utils.bin_data()` |
+| **通用工具函数**<br/> `Data_Analysis_Utils/utility_functions_example.py` | 展示更多通用的 `utils` 函数，如在高光谱上高亮特征峰 (`highlight_peaks`) 和在时间序列上标记事件 (`add_event_markers`)。 | `utils.highlight_peaks()`, `utils.add_event_markers()` |
 
 ---
 
