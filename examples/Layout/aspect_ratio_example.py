@@ -17,14 +17,13 @@ try:
 
     # 填充所有子图
     for i, ax in enumerate(plotter1.axes):
-        tag = f'ax_{i}'
+        tag = f'ax{i//plotter1.layout[1]}{i%plotter1.layout[1]}' # Correct tag for simple grid
         plotter1.add_line(
             data=pd.DataFrame({'x': [0, 1], 'y': [0, 1]}), 
             x='x', y='y', 
             ax=ax, 
             tag=tag
-        )
-        plotter1.set_title(tag, f'Plot {i+1} (16:9)')
+        ).set_title(f'Plot {i+1} (16:9)')
 
     plotter1.save("aspect_ratio_simple_grid.png")
     print("Generated 'aspect_ratio_simple_grid.png'")
@@ -48,18 +47,18 @@ try:
 
     # 填充子图
     # 区域 'A' 跨越 1x2 个单元格，所以它的实际比例应该是 1:2
-    plotter2.add_line(data=pd.DataFrame({'x': [0, 1], 'y': [0, 1]}), x='x', y='y', ax=plotter2.get_ax_by_name('A'), tag='A')
-    plotter2.set_title('A', "Area 'A' (1x2 cells)")
+    plotter2.add_line(data=pd.DataFrame({'x': [0, 1], 'y': [0, 1]}), x='x', y='y', ax=plotter2.get_ax_by_name('A'), tag='A'
+    ).set_title("Area 'A' (1x2 cells)")
 
     # 区域 'B' 跨越 2x1 个单元格，所以它的实际比例应该是 2:1
-    plotter2.add_line(data=pd.DataFrame({'x': [0, 1], 'y': [0, 1]}), x='x', y='y', ax=plotter2.get_ax_by_name('B'), tag='B')
-    plotter2.set_title('B', "Area 'B' (2x1 cells)")
+    plotter2.add_line(data=pd.DataFrame({'x': [0, 1], 'y': [0, 1]}), x='x', y='y', ax=plotter2.get_ax_by_name('B'), tag='B'
+    ).set_title("Area 'B' (2x1 cells)")
 
     # 区域 'C' 和 'D' 都是 1x1 的正方形
-    plotter2.add_line(data=pd.DataFrame({'x': [0, 1], 'y': [0, 1]}), x='x', y='y', ax=plotter2.get_ax_by_name('C'), tag='C')
-    plotter2.set_title('C', "Area 'C' (1x1 cell)")
-    plotter2.add_line(data=pd.DataFrame({'x': [0, 1], 'y': [0, 1]}), x='x', y='y', ax=plotter2.get_ax_by_name('D'), tag='D')
-    plotter2.set_title('D', "Area 'D' (1x1 cell)")
+    plotter2.add_line(data=pd.DataFrame({'x': [0, 1], 'y': [0, 1]}), x='x', y='y', ax=plotter2.get_ax_by_name('C'), tag='C'
+    ).set_title("Area 'C' (1x1 cell)")
+    plotter2.add_line(data=pd.DataFrame({'x': [0, 1], 'y': [0, 1]}), x='x', y='y', ax=plotter2.get_ax_by_name('D'), tag='D'
+    ).set_title("Area 'D' (1x1 cell)")
 
     plotter2.save("aspect_ratio_mosaic.png")
     print("Generated 'aspect_ratio_mosaic.png'")

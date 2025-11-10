@@ -33,3 +33,9 @@ class PlottingSpaceError(PaperPlotError):
             f"How to fix: Increase the 'rows' or 'cols' when creating the Plotter object layout."
         )
         super().__init__(message)
+
+
+class PlottingError(PaperPlotError):
+    """当发生绘图错误时抛出。"""
+    def __init__(self, message):
+        super().__init__(message)

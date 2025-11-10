@@ -26,57 +26,49 @@ event_points = [25, 50, 80]
 event_labels = ['Fault', 'Clear', 'Load Shed']
 
 
-# --- 2. 创建一个 1x2 的布局 ---
+# --- 2. 创建一个 1x2 的布局并使用新API绘图 ---
 try:
-    plotter = pp.Plotter(layout=(1, 2), figsize=(12, 5))
-    plotter.set_suptitle("Utility Functions Demonstration", fontsize=16, weight='bold')
+    (
+        pp.Plotter(layout=(1, 2), figsize=(12, 5))
+        .set_suptitle("Utility Functions Demonstration (New API)", fontsize=16, weight='bold')
 
-    # --- 3. 左侧子图: 高亮光谱峰 ---
-    plotter.add_line(data=spectra_df, x='wavenumber', y='intensity', tag='spectra')
-    plotter.set_title('spectra', 'highlight_peaks() Example')
-    plotter.set_xlabel('spectra', 'Wavenumber (cm⁻¹)')
-    plotter.set_ylabel('spectra', 'Intensity (a.u.)')
-    
-    # 调用 utils 函数
-    ax_spectra = plotter.get_ax('spectra')
-    pp.utils.highlight_peaks(
-        ax=ax_spectra, 
-        x=spectra_df['wavenumber'], 
-        y=spectra_df['intensity'], 
-        peaks_x=peaks_to_highlight,
-        label_positions={
-            1200: (1250, 0.4) # 手动将1200峰的标签移动到右下方
-        },
-        ha='center' # 水平居中
+        # --- 左侧子图: 高亮光谱峰 ---
+        .add_line(data=spectra_df, x='wavenumber', y='intensity', tag='spectra')
+        .add_peak_highlights(
+            peaks_x=peaks_to_highlight,
+            x_col='wavenumber',
+            y_col='intensity',
+            label_positions={1200: (1250, 0.4)}, # 手动将1200峰的标签移动到右下方
+            ha='center' # 水平居中
+        )
+        .set_title('add_peak_highlights() Example')
+        .set_xlabel('Wavenumber (cm⁻¹)')
+        .set_ylabel('Intensity (a.u.)')
+
+        # --- 右侧子图: 标记时间序列事件 ---
+        .add_line(data=timeseries_df, x='time', y='signal', tag='timeseries', color='navy')
+        .add_event_markers(
+            event_dates=event_points,
+            labels=event_labels,
+            label_positions={25: (15, 2.5)} # 手动移动 'Fault' 标签
+        )
+        .set_title('add_event_markers() Example')
+        .set_xlabel('Time (s)')
+        .set_ylabel('Signal Value')
+
+        # --- 清理和保存 ---
+        .cleanup(align_labels=True)
+        .save("utility_functions_example.png")
     )
-
-    # --- 4. 右侧子图: 标记时间序列事件 ---
-    plotter.add_line(data=timeseries_df, x='time', y='signal', tag='timeseries', color='navy')
-    plotter.set_title('timeseries', 'add_event_markers() Example')
-    plotter.set_xlabel('timeseries', 'Time (s)')
-    plotter.set_ylabel('timeseries', 'Signal Value')
-
-    # 调用 utils 函数
-    ax_timeseries = plotter.get_ax('timeseries')
-    pp.utils.add_event_markers(
-        ax=ax_timeseries,
-        event_dates=event_points,
-        labels=event_labels,
-        label_positions={
-            25: (15, 2.5) # 手动移动 'Fault' 标签
-        }
-    )
-
-    # --- 5. 清理和保存 ---
-    plotter.cleanup(align_labels=True)
-    plotter.save("utility_functions_example.png")
 
 except (pp.PaperPlotError, ValueError) as e:
     print(f"\nAn error occurred:\n{e}")
 except Exception as e:
     print(f"An unexpected error occurred: {e}")
+    # import traceback
+    # traceback.print_exc()
 finally:
     plt.close('all')
 
 print(f"\n--- Finished Example: {__file__} ---")
-print("A new file 'utility_functions_example.png' was generated.")
+print("A new file 'utility_functions_example.png' was generated with the new API.")

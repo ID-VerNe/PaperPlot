@@ -18,17 +18,17 @@ try:
         'y2': np.cos(np.linspace(0, 10, 100))
     })
 
-    plotter.add_line(data=df, x='x', y='y1', tag='ax00', label='Sine Wave')
-    plotter.set_title('ax00', 'Left Subplot')
-    plotter.set_xlabel('ax00', 'X-axis')
-    plotter.set_ylabel('ax00', 'Y-axis')
-    plotter.set_legend('ax00')
+    plotter.add_line(data=df, x='x', y='y1', tag='ax00', label='Sine Wave'
+    ).set_title('Left Subplot'
+    ).set_xlabel('X-axis'
+    ).set_ylabel('Y-axis'
+    ).set_legend()
 
-    plotter.add_scatter(data=df, x='x', y='y2', tag='ax01', label='Cosine Points', marker='o', s=20)
-    plotter.set_title('ax01', 'Right Subplot')
-    plotter.set_xlabel('ax01', 'X-axis')
-    plotter.set_ylabel('ax01', 'Y-axis')
-    plotter.set_legend('ax01')
+    plotter.add_scatter(data=df, x='x', y='y2', tag='ax01', label='Cosine Points', marker='o', s=20
+    ).set_title('Right Subplot'
+    ).set_xlabel('X-axis'
+    ).set_ylabel('Y-axis'
+    ).set_legend()
 
     # 3. Add figure-level text using fig_text
     plotter.fig_add_text(0.5, 0.96, 'Overall Figure Title (using fig_add_text)', ha='center', va='top', fontsize=14, weight='bold')

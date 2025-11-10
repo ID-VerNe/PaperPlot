@@ -19,19 +19,19 @@ try:
         'y3': np.random.rand(50) * 5
     })
 
-    plotter.add_line(data=df, x='x', y='y1', tag='ax00', label='Sine')
-    plotter.set_title('ax00', 'Top-Left Plot')
-    plotter.set_legend('ax00')
+    plotter.add_line(data=df, x='x', y='y1', tag='ax00', label='Sine'
+    ).set_title('Top-Left Plot'
+    ).set_legend()
 
-    plotter.add_scatter(data=df, x='x', y='y2', tag='ax01', label='Cosine', marker='o')
-    plotter.set_title('ax01', 'Top-Right Plot')
-    plotter.set_legend('ax01')
+    plotter.add_scatter(data=df, x='x', y='y2', tag='ax01', label='Cosine', marker='o'
+    ).set_title('Top-Right Plot'
+    ).set_legend()
 
-    plotter.add_hist(data=df, x='y3', tag='ax10', bins=10, color='skyblue')
-    plotter.set_title('ax10', 'Bottom-Left Plot')
+    plotter.add_hist(data=df, x='y3', tag='ax10', bins=10, color='skyblue'
+    ).set_title('Bottom-Left Plot')
 
-    plotter.add_bar(data=pd.DataFrame({'cat': ['A', 'B', 'C'], 'val': [1, 3, 2]}), x='cat', y='val', tag='ax11')
-    plotter.set_title('ax11', 'Bottom-Right Plot')
+    plotter.add_bar(data=pd.DataFrame({'cat': ['A', 'B', 'C'], 'val': [1, 3, 2]}), x='cat', y='val', tag='ax11'
+    ).set_title('Bottom-Right Plot')
 
     # Apply cleanup for shared axes
     plotter.cleanup(auto_share=True)

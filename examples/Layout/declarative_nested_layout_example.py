@@ -52,10 +52,10 @@ try:
 
     # --- 4. 填充主图区域 ---
     # 直接使用顶层布局中定义的名字 'main_plot' 作为 tag
-    plotter.add_line(data=df_line, x='x', y='y', tag='main_plot')
-    plotter.set_title('main_plot', 'Standard Plot')
-    plotter.set_xlabel('main_plot', 'X-axis')
-    plotter.set_ylabel('main_plot', 'Y-axis')
+    plotter.add_line(data=df_line, x='x', y='y', tag='main_plot'
+    ).set_title('Standard Plot'
+    ).set_xlabel('X-axis'
+    ).set_ylabel('Y-axis')
 
     # --- 5. 填充子网格区域 ---
     # 使用 '容器名.子图名' 的层级结构来直接引用嵌套的子图
@@ -64,12 +64,12 @@ try:
         # 构造层级 tag, e.g., 'heatmap_group.nh2_map'
         hierarchical_tag = f"heatmap_group.{sub_name}"
 
-        plotter.add_heatmap(data=all_heatmap_data[i], tag=hierarchical_tag)
-        plotter.set_ylabel(hierarchical_tag, y_labels[i], fontsize=14, weight='bold')
+        plotter.add_heatmap(data=all_heatmap_data[i], tag=hierarchical_tag
+        ).set_ylabel(y_labels[i], fontsize=14, weight='bold')
 
     # --- 6. 对子网格进行精细化设置 ---
     # a. 只在最顶部的子图上添加标题
-    plotter.set_title('heatmap_group.nh2_map', 'Nested Heatmap Group', fontsize=14)
+    plotter.set_title(label='Nested Heatmap Group', tag='heatmap_group.nh2_map', fontsize=14)
 
     # b. 同时隐藏X轴、Y轴刻度线、Y轴刻度数字
     plotter.hide_axes('heatmap_group.nh2_map', x_axis=True, y_ticks=True, y_tick_labels=True)
@@ -77,7 +77,7 @@ try:
     plotter.hide_axes('heatmap_group.ring_map', x_axis=True, y_ticks=True, y_tick_labels=True)
 
     # c. 只在最底部的子图上添加 X 轴标签
-    plotter.set_xlabel('heatmap_group.ring_map', 'Time (min)', fontsize=14, weight='bold')
+    plotter.set_xlabel(label='Time (min)', tag='heatmap_group.ring_map', fontsize=14, weight='bold')
 
     # --- 7. 保存图像 ---
     plotter.save("declarative_nested_layout.png")

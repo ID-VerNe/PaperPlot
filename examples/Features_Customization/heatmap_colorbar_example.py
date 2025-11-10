@@ -22,14 +22,9 @@ try:
 
     # --- 3. 添加热图，并明确指定 cbar=False ---
     # 这是关键一步：我们告诉plotter不要为每个热图单独创建颜色条
-    plotter.add_heatmap(data=df1, tag='h1', cbar=False, annot=True, fmt='.0f')
-    plotter.add_heatmap(data=df2, tag='h2', cbar=False, annot=True, fmt='.0f')
-    plotter.add_heatmap(data=df3, tag='h3', cbar=False, annot=True, fmt='.0f')
-
-    # --- 4. 设置标题 ---
-    plotter.set_title('h1', 'Range 0-10')
-    plotter.set_title('h2', 'Range 5-15')
-    plotter.set_title('h3', 'Range -5-5')
+    plotter.add_heatmap(data=df1, tag='h1', cbar=False, annot=True, fmt='.0f').set_title('Range 0-10')
+    plotter.add_heatmap(data=df2, tag='h2', cbar=False, annot=True, fmt='.0f').set_title('Range 5-15')
+    plotter.add_heatmap(data=df3, tag='h3', cbar=False, annot=True, fmt='.0f').set_title('Range -5-5')
 
     # --- 5. 调用 cleanup_heatmaps 来创建共享颜色条 ---
     # 函数会自动找到所有热图的全局数据范围 (-5 到 15)
@@ -54,8 +49,7 @@ try:
     print("\nCreating a single heatmap with its own colorbar (default behavior)...")
     plotter_single = pp.Plotter(layout=(1, 1))
     # 默认调用，不加 cbar 参数，会自动创建颜色条
-    plotter_single.add_heatmap(data=df1, tag='single')
-    plotter_single.set_title('single', 'Default Behavior with cbar=True')
+    plotter_single.add_heatmap(data=df1, tag='single').set_title('Default Behavior with cbar=True')
     plotter_single.save("heatmap_default_figure.png")
 
 except pp.PaperPlotError as e:

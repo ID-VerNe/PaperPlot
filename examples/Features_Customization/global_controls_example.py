@@ -25,22 +25,16 @@ try:
 
     # --- 3. 填充图表 ---
     # 注意我们为每条线都设置了label，以便全局图例能收集到它们
-    plotter.add_line(data=df1, x='x', y='y', tag='tl', label='Series A', color='blue')
-    plotter.add_line(data=df2, x='x', y='y', tag='tr', label='Series B', color='red')
-    plotter.add_line(data=df3, x='x', y='y', tag='bl', label='Series C', color='green')
-    plotter.add_line(data=df4, x='x', y='y', tag='br', label='Series D', color='purple')
+    plotter.add_line(data=df1, x='x', y='y', tag='tl', label='Series A', color='blue').set_title('Top-Left Plot')
+    plotter.add_line(data=df2, x='x', y='y', tag='tr', label='Series B', color='red').set_title('Top-Right Plot')
+    plotter.add_line(data=df3, x='x', y='y', tag='bl', label='Series C', color='green').set_title('Bottom-Left Plot')
+    plotter.add_line(data=df4, x='x', y='y', tag='br', label='Series D', color='purple').set_title('Bottom-Right Plot')
 
     # --- 4. 使用新的全局控制功能 ---
     
     # a. 设置一个全局主标题
     print("Setting a global suptitle...")
     plotter.set_suptitle("Global Figure Title (Suptitle)", fontsize=20, weight='bold')
-
-    # b. 为所有子图设置独立的标题
-    plotter.set_title('tl', 'Top-Left Plot')
-    plotter.set_title('tr', 'Top-Right Plot')
-    plotter.set_title('bl', 'Bottom-Left Plot')
-    plotter.set_title('br', 'Bottom-Right Plot')
 
     # c. 创建一个全局图例
     # 它会自动收集所有子图的'label'，并移除子图自身的图例

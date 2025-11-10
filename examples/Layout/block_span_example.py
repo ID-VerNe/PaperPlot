@@ -18,8 +18,6 @@ def generate_line_data(num_points):
     })
 
 # --- 2. 定义一个块区域跨越的复杂布局 ---
-# 我们想要一个2x3的网格，其中左侧是一个2x2的大图'A'
-# 右侧是两个独立的图'B'和'C'
 layout = [
     ['A', 'A', 'B'],
     ['A', 'A', 'C']
@@ -31,34 +29,62 @@ try:
     plotter = pp.Plotter(layout=layout, figsize=(10, 6))
 
     # --- 4. 在跨2x2区域的“大图”A上绘制热图 ---
+    # 使用布局中定义的tag 'A' 来指定位置
     print("Drawing a heatmap on the 2x2 spanning plot 'A'...")
-    ax_A = plotter.get_ax_by_name('A')
-    # 对于热图，我们让它自己生成一个颜色条，因为它不与别的图共享
-    plotter.add_heatmap(data=generate_heatmap_data(0, 20), ax=ax_A, tag='main_heatmap', cbar=True)
-    plotter.set_title('main_heatmap', 'Plot A (2x2 Span)')
+    plotter.add_heatmap(
+        data=generate_heatmap_data(0, 20),
+        tag='A',  # <--- 使用布局中的tag 'A'
+        cbar=True
+    ).set_title('Plot A (2x2 Span)')
 
-    # --- 5. 在右侧的B和C上顺序绘图 ---
-    # Plotter会自动按 B, C 的顺序填充剩下的格子
-    print("Drawing sequentially on the remaining plots 'B' and 'C'...")
-    plotter.add_line(data=generate_line_data(100), x='x', y='y', tag='plot_B')
-    plotter.set_title('plot_B', 'Plot B')
+    # --- 5. 在右侧的B和C上绘图 ---
+    # 同样，使用布局中定义的tag 'B' 和 'C'
+    print("Drawing on plots 'B' and 'C' using their layout tags...")
+    plotter.add_line(
+        data=generate_line_data(100),
+        x='x',
+        y='y',
+        tag='B'  # <--- 使用布局中的tag 'B'
+    ).set_title('Plot B')
 
-    plotter.add_line(data=generate_line_data(100), x='x', y='y', tag='plot_C')
-    plotter.set_title('plot_C', 'Plot C')
+    plotter.add_line(
+        data=generate_line_data(100),
+        x='x',
+        y='y',
+        tag='C'  # <--- 使用布局中的tag 'C'
+    ).set_title('Plot C')
 
     # --- 6. 使用cleanup来美化布局 ---
-    # 共享B和C的X轴
-    plotter.cleanup(share_x_on_cols=[2])
+    # 这里的逻辑也需要调整，因为 'B' 和 'C' 不在同一列
+    # 如果想共享B和C的X轴，可以这样做，但它们是对齐的，可能不需要
+    # plotter.get_ax_by_name('C').sharex(plotter.get_ax_by_name('B'))
+    # plotter.hide_axes(tag='B', x_tick_labels=True) # 如果共享，隐藏上面图的x刻度标签
+
+    # 由于它们在同一列，我们可以直接对这一列进行操作
+    # 在这个布局中，B和C在第2列 (索引从0开始)
+    # 但是，由于'A'跨越了0和1列，所以'B'和'C'实际上在第2列
+    # Matplotlib的GridSpec会将'A'放在(0,0)，'B'放在(0,2)，'C'放在(1,2)
+    # 因此它们不在同一列，不能用share_x_on_cols
+    # 我们需要手动共享
+    ax_b = plotter.get_ax('B')
+    ax_c = plotter.get_ax('C')
+    ax_c.sharex(ax_b)
+    plotter.hide_axes(tag='B', x_tick_labels=True)
+    plotter.set_xlabel("", tag='B') # 移除B的x轴标签
 
     # --- 7. 保存图像 ---
     plotter.save("block_span_figure.png")
 
 except (pp.PaperPlotError, ValueError) as e:
+    import traceback
     print(f"\nA PaperPlot error occurred:\n{e}")
+    traceback.print_exc()
 except Exception as e:
+    import traceback
     print(f"An unexpected error occurred: {e}")
+    traceback.print_exc()
 finally:
     plt.close('all')
 
 print(f"\n--- Finished Example: {__file__} ---")
-print("A new file 'block_span_figure.png' was generated.")
+print("A new file 'block_span_figure_fixed.png' was generated.")

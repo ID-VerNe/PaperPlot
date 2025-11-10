@@ -61,32 +61,28 @@ try:
     y_cols = [col for col in spectra_df.columns if col.startswith('Sample')]
     plotter.add_spectra(
         data=spectra_df, x='wavenumber', y_cols=y_cols, tag='spectra', offset=0.5
-    )
-    plotter.set_title('spectra', 'SERS Spectra with Offset')
-    plotter.set_xlabel('spectra', 'Wavenumber (cm⁻¹)')
-    plotter.set_ylabel('spectra', 'Intensity (a.u.)')
-    plotter.set_legend('spectra')
+    ).set_title('SERS Spectra with Offset'
+    ).set_xlabel('Wavenumber (cm⁻¹)'
+    ).set_ylabel('Intensity (a.u.)'
+    ).set_legend()
 
     # --- Top-Right: 混淆矩阵 ---
     plotter.add_confusion_matrix(
         matrix=cm, class_names=class_names, tag='cm', normalize=True
-    )
-    plotter.set_title('cm', 'Normalized Confusion Matrix')
+    ).set_title('Normalized Confusion Matrix')
 
     # --- Bottom-Left: ROC 曲线 ---
+    # add_roc_curve 已经设置了大部分标题和标签，我们也可以覆盖它们
     plotter.add_roc_curve(
         fpr=fpr, tpr=tpr, roc_auc=roc_auc, tag='roc'
-    )
-    # add_roc_curve 已经设置了大部分标题和标签，我们也可以覆盖它们
-    plotter.set_title('roc', 'Multi-Class ROC Curves')
+    ).set_title('Multi-Class ROC Curves')
 
     # --- Bottom-Right: PCA 散点图 ---
     plotter.add_pca_scatter(
         data=pca_df, x_pc='PC1', y_pc='PC2', hue='Category', tag='pca'
-    )
-    plotter.set_title('pca', 'PCA Scatter Plot')
-    plotter.set_xlabel('pca', f'Principal Component 1 ({pca.explained_variance_ratio_[0]:.1%})')
-    plotter.set_ylabel('pca', f'Principal Component 2 ({pca.explained_variance_ratio_[1]:.1%})')
+    ).set_title('PCA Scatter Plot'
+    ).set_xlabel(f'Principal Component 1 ({pca.explained_variance_ratio_[0]:.1%})'
+    ).set_ylabel(f'Principal Component 2 ({pca.explained_variance_ratio_[1]:.1%})')
 
 
     # --- 5. 清理和保存 ---

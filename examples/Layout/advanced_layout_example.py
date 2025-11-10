@@ -33,28 +33,28 @@ try:
     # a. 通过名字 'B' 获取目标ax
     ax_b = plotter.get_ax_by_name('B')
     # b. 使用 ax 参数指定在该ax上绘图
-    plotter.add_line(data=generate_data(200), x='x', y='y', ax=ax_b, tag='spanning_plot')
-    plotter.set_title('spanning_plot', 'Plot B (Spanning two columns)')
+    plotter.add_line(data=generate_data(200), x='x', y='y', ax=ax_b, tag='spanning_plot'
+    ).set_title('Plot B (Spanning two columns)')
 
     # --- 5. 在其他子图上顺序绘图 ---
     # Plotter会自动按 A, C, D, E 的顺序填充剩下的格子
     print("Drawing sequentially on the remaining plots...")
-    plotter.add_scatter(data=generate_data(50), x='x', y='y', tag='plot_A')
-    plotter.set_title('plot_A', 'Plot A')
+    plotter.add_scatter(data=generate_data(50), x='x', y='y', tag='plot_A'
+    ).set_title('Plot A')
 
-    plotter.add_scatter(data=generate_data(50, offset=2), x='x', y='y', tag='plot_C')
-    plotter.set_title('plot_C', 'Plot C')
+    plotter.add_scatter(data=generate_data(50, offset=2), x='x', y='y', tag='plot_C'
+    ).set_title('Plot C')
 
-    plotter.add_scatter(data=generate_data(50, offset=4), x='x', y='y', tag='plot_D')
-    plotter.set_title('plot_D', 'Plot D')
+    plotter.add_scatter(data=generate_data(50, offset=4), x='x', y='y', tag='plot_D'
+    ).set_title('Plot D')
 
-    plotter.add_scatter(data=generate_data(50, offset=6), x='x', y='y', tag='plot_E')
-    plotter.set_title('plot_E', 'Plot E')
+    plotter.add_scatter(data=generate_data(50, offset=6), x='x', y='y', tag='plot_E'
+    ).set_title('Plot E')
 
     # --- 6. 演示 hide_axes() 功能 ---
     # 为了让布局更紧凑，我们隐藏所有X轴
-    print("Hiding all X-axes using hide_axes(x=True)...")
-    plotter.hide_axes(x=True, y=True)
+    print("Hiding all X-axes using hide_axes(x_axis=True)...")
+    plotter.hide_axes(x_axis=True, y_axis=True)
 
     # --- 7. 保存图像 ---
     plotter.save("advanced_layout_figure.png")

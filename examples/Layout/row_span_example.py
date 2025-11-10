@@ -29,26 +29,26 @@ try:
     # --- 4. 在跨行的“大图”A上绘图 ---
     print("Drawing on the row-spanning plot 'A'...")
     ax_A = plotter.get_ax_by_name('A')
-    plotter.add_line(data=generate_data(200, scale=5), x='x', y='y', ax=ax_A, tag='spanning_plot')
-    plotter.set_title('spanning_plot', 'Plot A (Spanning two rows)')
-    plotter.set_ylabel('spanning_plot', 'Value')
+    plotter.add_line(data=generate_data(200, scale=5), x='x', y='y', ax=ax_A, tag='spanning_plot'
+    ).set_title('Plot A (Spanning two rows)'
+    ).set_ylabel('Value')
 
     # --- 5. 在其他子图上顺序绘图 ---
     # Plotter会自动按 B, C, D, E 的顺序填充剩下的格子
     print("Drawing sequentially on the remaining plots...")
-    plotter.add_scatter(data=generate_data(50), x='x', y='y', tag='plot_B')
-    plotter.set_title('plot_B', 'Plot B')
+    plotter.add_scatter(data=generate_data(50), x='x', y='y', tag='plot_B'
+    ).set_title('Plot B')
 
-    plotter.add_scatter(data=generate_data(50, offset=20), x='x', y='y', tag='plot_C')
-    plotter.set_title('plot_C', 'Plot C')
+    plotter.add_scatter(data=generate_data(50, offset=20), x='x', y='y', tag='plot_C'
+    ).set_title('Plot C')
 
-    plotter.add_scatter(data=generate_data(50, offset=40), x='x', y='y', tag='plot_D')
-    plotter.set_title('plot_D', 'Plot D')
-    plotter.set_xlabel('plot_D', 'Index') # 只在底部的图上加x标签
+    plotter.add_scatter(data=generate_data(50, offset=40), x='x', y='y', tag='plot_D'
+    ).set_title('Plot D'
+    ).set_xlabel('Index') # 只在底部的图上加x标签
 
-    plotter.add_scatter(data=generate_data(50, offset=60), x='x', y='y', tag='plot_E')
-    plotter.set_title('plot_E', 'Plot E')
-    plotter.set_xlabel('plot_E', 'Index')
+    plotter.add_scatter(data=generate_data(50, offset=60), x='x', y='y', tag='plot_E'
+    ).set_title('Plot E'
+    ).set_xlabel('Index')
 
     # --- 6. 使用cleanup来美化布局 ---
     # 共享B和C的Y轴，D和E的Y轴，以及上下对应的X轴

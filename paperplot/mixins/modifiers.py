@@ -1,9 +1,11 @@
 # paperplot/mixins/modifiers.py
 
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import logging
+import numpy as np
+from adjustText import adjust_text
 logger = logging.getLogger(__name__)
 
 class ModifiersMixin:
@@ -14,53 +16,151 @@ class ModifiersMixin:
         super().__init__(*args, **kwargs) #确保调用父类的__init__
         self._draw_on_save_queue = []
 
-    def set_title(self, tag: Union[str, int], label: str, **kwargs) -> 'Plotter':
+    def set_title(self, label: str, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        为指定子图设置标题。
+        为指定或当前活动的子图设置标题。
+
+        Args:
+            label (str): 标题文本。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.set_title` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        self._get_ax_by_tag(tag).set_title(label, **kwargs)
+        ax = self._get_active_ax(tag)
+        ax.set_title(label, **kwargs)
         return self
 
-    def set_xlabel(self, tag: Union[str, int], label: str, **kwargs) -> 'Plotter':
+    def set_xlabel(self, label: str, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        为指定子图设置X轴标签。
+        为指定或当前活动的子图设置X轴标签。
+
+        Args:
+            label (str): X轴标签文本。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.set_xlabel` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        self._get_ax_by_tag(tag).set_xlabel(label, **kwargs)
+        ax = self._get_active_ax(tag)
+        ax.set_xlabel(label, **kwargs)
         return self
 
-    def set_ylabel(self, tag: Union[str, int], label: str, **kwargs) -> 'Plotter':
+    def set_ylabel(self, label: str, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        为指定子图设置Y轴标签。
+        为指定或当前活动的子图设置Y轴标签。
+
+        Args:
+            label (str): Y轴标签文本。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.set_ylabel` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        self._get_ax_by_tag(tag).set_ylabel(label, **kwargs)
+        ax = self._get_active_ax(tag)
+        ax.set_ylabel(label, **kwargs)
         return self
 
-    def set_xlim(self, tag: Union[str, int], *args, **kwargs) -> 'Plotter':
+    def set_zlabel(self, label: str, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        为指定子图设置X轴的显示范围。
+        为指定或当前活动的3D子图设置Z轴标签。
+
+        Args:
+            label (str): Z轴标签文本。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.set_zlabel` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        self._get_ax_by_tag(tag).set_xlim(*args, **kwargs)
+        ax = self._get_active_ax(tag)
+        if ax.name != '3d':
+            raise TypeError(f"Cannot set z-label for a non-3D axis. Axis '{self.last_active_tag}' is of type '{ax.name}'.")
+        ax.set_zlabel(label, **kwargs)
         return self
 
-    def set_ylim(self, tag: Union[str, int], *args, **kwargs) -> 'Plotter':
+    def view_init(self, elev: Optional[float] = None, azim: Optional[float] = None, tag: Optional[Union[str, int]] = None) -> 'Plotter':
         """
-        为指定子图设置Y轴的显示范围。
+        设置3D子图的观察角度。
+
+        Args:
+            elev (Optional[float], optional): 仰角（绕x轴旋转）。
+            azim (Optional[float], optional): 方位角（绕z轴旋转）。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        self._get_ax_by_tag(tag).set_ylim(*args, **kwargs)
+        ax = self._get_active_ax(tag)
+        if ax.name != '3d':
+            raise TypeError(f"Cannot set view angle for a non-3D axis. Axis '{self.last_active_tag}' is of type '{ax.name}'.")
+        ax.view_init(elev=elev, azim=azim)
+        return self
+
+    def set_xlim(self, *args, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
+        """
+        为指定或当前活动的子图设置X轴的显示范围。
+
+        Args:
+            *args: 同 `ax.set_xlim` 的位置参数 (例如 `(min, max)`)。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.set_xlim` 的其他参数 (例如 `xmin=0, xmax=1`)。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        ax = self._get_active_ax(tag)
+        ax.set_xlim(*args, **kwargs)
+        return self
+
+    def set_ylim(self, *args, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
+        """
+        为指定或当前活动的子图设置Y轴的显示范围。
+
+        Args:
+            *args: 同 `ax.set_ylim` 的位置参数 (例如 `(min, max)`)。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.set_ylim` 的其他参数 (例如 `ymin=0, ymax=1`)。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        ax = self._get_active_ax(tag)
+        ax.set_ylim(*args, **kwargs)
         return self
         
-    def tick_params(self, tag: Union[str, int], axis: str = 'both', **kwargs) -> 'Plotter':
+    def tick_params(self, axis: str = 'both', tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        为指定子图的刻度线、刻度标签和网格线设置参数。
+        为指定或当前活动的子图的刻度线、刻度标签和网格线设置参数。
+
+        Args:
+            axis (str, optional): 要操作的轴 ('x', 'y', 'both')。默认为 'both'。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.tick_params` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        self._get_ax_by_tag(tag).tick_params(axis=axis, **kwargs)
+        ax = self._get_active_ax(tag)
+        ax.tick_params(axis=axis, **kwargs)
         return self
 
-    def set_legend(self, tag: Union[str, int], **kwargs) -> 'Plotter':
+    def set_legend(self, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        为指定子图添加图例。
+        为指定或当前活动的子图添加图例。
+
+        Args:
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.legend` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        self._get_ax_by_tag(tag).legend(**kwargs)
+        ax = self._get_active_ax(tag)
+        ax.legend(**kwargs)
         return self
 
     def set_suptitle(self, title: str, **kwargs):
@@ -308,84 +408,133 @@ class ModifiersMixin:
         
         return self
 
-    def add_twinx(self, tag: str, **kwargs) -> plt.Axes:
+    def add_twinx(self, tag: Optional[Union[str, int]] = None, **kwargs) -> plt.Axes:
         """
-        为一个已存在的子图创建一个共享X轴但拥有独立Y轴的“双Y轴”图。
+        为指定或当前活动的子图创建一个共享X轴但拥有独立Y轴的“双Y轴”图。
+
+        Args:
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.twinx` 的其他参数。
+
+        Returns:
+            plt.Axes: 返回新创建的孪生Axes对象，可用于后续绘图。
         """
-        ax1 = self._get_ax_by_tag(tag)
+        ax1 = self._get_active_ax(tag)
         ax2 = ax1.twinx(**kwargs)
         return ax2
 
-    def add_hline(self, tag: str, y: float, **kwargs) -> 'Plotter':
+    def add_hline(self, y: float, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        在指定子图上添加一条水平参考线。
+        在指定或当前活动的子图上添加一条水平参考线。
+
+        Args:
+            y (float): 水平线的y轴位置。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.axhline` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        ax = self._get_ax_by_tag(tag)
+        ax = self._get_active_ax(tag)
         ax.axhline(y, **kwargs)
         return self
 
-    def add_vline(self, tag: str, x: float, **kwargs) -> 'Plotter':
+    def add_vline(self, x: float, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        在指定子图上添加一条垂直参考线。
+        在指定或当前活动的子图上添加一条垂直参考线。
+
+        Args:
+            x (float): 垂直线的x轴位置。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.axvline` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        ax = self._get_ax_by_tag(tag)
+        ax = self._get_active_ax(tag)
         ax.axvline(x, **kwargs)
         return self
 
-    def add_text(self, tag: str, x: float, y: float, text: str, **kwargs) -> 'Plotter':
+    def add_text(self, x: float, y: float, text: str, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        在指定子图的数据坐标系上添加文本。
+        在指定或当前活动的子图的数据坐标系上添加文本。
+
+        Args:
+            x (float): 文本的x坐标。
+            y (float): 文本的y坐标。
+            text (str): 要添加的文本。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.text` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        ax = self._get_ax_by_tag(tag)
+        ax = self._get_active_ax(tag)
         ax.text(x, y, text, **kwargs)
         return self
 
-    def add_patch(self, tag: str, patch_object) -> 'Plotter':
+    def add_patch(self, patch_object, tag: Optional[Union[str, int]] = None) -> 'Plotter':
         """
-        将一个Matplotlib的Patch对象添加到指定子图。
+        将一个Matplotlib的Patch对象添加到指定或当前活动的子图。
+
+        Args:
+            patch_object: 一个Matplotlib Patch对象 (例如 `plt.Circle`)。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        ax = self._get_ax_by_tag(tag)
+        ax = self._get_active_ax(tag)
         ax.add_patch(patch_object)
         return self
 
-    def add_highlight_box(self, tag: Union[str, int], x_range: tuple[float, float], y_range: tuple[float, float], **kwargs) -> 'Plotter':
+    def add_highlight_box(self, x_range: tuple[float, float], y_range: tuple[float, float], tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        在指定子图上，根据数据坐标绘制一个高亮矩形区域。
+        在指定或当前活动的子图上，根据数据坐标绘制一个高亮矩形区域。
 
         Args:
-            tag (Union[str, int]): 目标子图的tag。
-            x_range (tuple[float, float]): 高亮区域的X轴范围 (xmin, xmax)，使用数据坐标。
-            y_range (tuple[float, float]): 高亮区域的Y轴范围 (ymin, ymax)，使用数据坐标。
+            x_range (tuple[float, float]): 高亮区域的X轴范围 (xmin, xmax)。
+            y_range (tuple[float, float]): 高亮区域的Y轴范围 (ymin, ymax)。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
             **kwargs: 其他传递给 `matplotlib.patches.Rectangle` 的关键字参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        ax = self._get_ax_by_tag(tag)
+        ax = self._get_active_ax(tag)
         
         width = x_range[1] - x_range[0]
         height = y_range[1] - y_range[0]
         
-        # 设置高亮框的默认样式
         kwargs.setdefault('facecolor', 'yellow')
         kwargs.setdefault('alpha', 0.3)
         kwargs.setdefault('edgecolor', 'none')
-        kwargs.setdefault('zorder', 0) # 将高亮框置于底层
+        kwargs.setdefault('zorder', 0)
 
         rect = plt.Rectangle((x_range[0], y_range[0]), width, height, **kwargs)
         ax.add_patch(rect)
         return self
 
-    def add_inset_image(self, host_tag: Union[str, int], image_path: str, rect: List[float], **kwargs) -> 'Plotter':
+    def add_inset_image(self, image_path: str, rect: List[float], host_tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        在指定子图内部嵌入一张图片。
+        在指定或当前活动的子图内部嵌入一张图片。
+
+        Args:
+            image_path (str): 要嵌入的图片文件路径。
+            rect (List[float]): 一个定义嵌入位置和大小的列表 `[x, y, width, height]`，
+                                坐标是相对于宿主子图的。
+            host_tag (Optional[Union[str, int]], optional): 宿主子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.imshow` 的其他参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        host_ax = self._get_ax_by_tag(host_tag)
+        host_ax = self._get_active_ax(host_tag)
         
         try:
             img = mpimg.imread(image_path)
         except FileNotFoundError:
-            raise FileNotFoundError(f"Image file not found at: {image_path}")
+            raise FileNotFoundError(f"图片文件未找到: {image_path}")
 
         inset_ax = host_ax.inset_axes(rect)
         inset_ax.imshow(img, **kwargs)
@@ -393,17 +542,60 @@ class ModifiersMixin:
 
         return self
 
-    def hide_axes(self, tag: Union[str, int],
+    def add_zoom_inset(self, rect: List[float], zoom_level: float = 2,
+                       connector_locs: Optional[Tuple[int, int]] = (1, 2),
+                       source_tag: Optional[Union[str, int]] = None,
+                       inset_ax_kwargs: Optional[dict] = None,
+                       mark_inset_kwargs: Optional[dict] = None) -> 'Plotter':
+        """
+        在指定或当前活动的子图上添加一个缩放指示（inset plot）。
+
+        Args:
+            rect (List[float]): 一个定义内嵌图位置和大小的列表 `[x, y, width, height]`，
+                                坐标是相对于整个 Figure 的 (0到1)。
+            zoom_level (float, optional): 缩放级别。默认为2。
+            connector_locs (Optional[Tuple[int, int]], optional): 连接线的起始和结束位置，
+                                                                  使用Matplotlib的loc代码 (例如 (1, 2) 表示右上角到左上角)。
+                                                                  默认为 (1, 2)。
+            source_tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            inset_ax_kwargs (Optional[dict]): 传递给 `zoomed_inset_axes` 的额外关键字参数。
+            mark_inset_kwargs (Optional[dict]): 传递给 `mark_inset` 的额外关键字参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset
+        source_ax = self._get_active_ax(source_tag)
+
+        if inset_ax_kwargs is None:
+            inset_ax_kwargs = {}
+        if mark_inset_kwargs is None:
+            mark_inset_kwargs = {}
+
+        # Create the zoomed inset axes
+        # loc='center' positions the inset_ax within the bbox_to_anchor rectangle
+        # bbox_to_anchor and bbox_transform define the absolute position and size of the inset axes on the figure.
+        inset_ax = zoomed_inset_axes(source_ax, zoom_level, loc='center',
+                                     bbox_to_anchor=rect, bbox_transform=self.fig.transFigure,
+                                     **inset_ax_kwargs)
+
+        # Mark the region in the parent axes and draw connecting lines
+        mark_inset(source_ax, inset_ax, loc1=connector_locs[0], loc2=connector_locs[1],
+                   **mark_inset_kwargs)
+
+        return self
+
+    def hide_axes(self, tag: Optional[Union[str, int]] = None,
                   x_axis=False, y_axis=False,
                   x_ticks=False, y_ticks=False,
                   x_tick_labels=False, y_tick_labels=False,
                   x_label=False, y_label=False,
                   spines: List[str] = None) -> 'Plotter':
         """
-        精细化地隐藏指定子图的坐标轴元素。
+        精细化地隐藏指定或当前活动子图的坐标轴元素。
 
         Args:
-            tag (Union[str, int]): 目标子图的 tag。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
             x_axis (bool): 如果为 True，隐藏整个 X 轴（包括标签、刻度等）。
             y_axis (bool): 如果为 True，隐藏整个 Y 轴。
             x_ticks (bool): 如果为 True，仅隐藏 X 轴的刻度线。
@@ -417,7 +609,7 @@ class ModifiersMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        ax = self._get_ax_by_tag(tag)
+        ax = self._get_active_ax(tag)
 
         if x_axis:
             ax.get_xaxis().set_visible(False)
@@ -443,6 +635,125 @@ class ModifiersMixin:
             for spine in spines:
                 ax.spines[spine].set_visible(False)
 
+        return self
+
+    def add_peak_highlights(self, peaks_x: list, x_col: str, y_col: str,
+                            label_peaks: bool = True, 
+                            prefer_direction: str = 'up',
+                            use_bbox: bool = True,
+                            label_positions: dict = None,
+                            tag: Optional[Union[str, int]] = None,
+                            **kwargs) -> 'Plotter':
+        """
+        在一条已绘制的光谱或曲线上，自动高亮并（可选地）标注出特征峰的位置。
+        使用 adjustText 库来避免标签重叠。
+
+        Args:
+            peaks_x (list): 一个包含特征峰X轴位置的列表。
+            x_col (str): 缓存的DataFrame中包含X轴数据的列名。
+            y_col (str): 缓存的DataFrame中包含Y轴数据的列名。
+            label_peaks (bool, optional): 如果为True，则在峰顶附近标注X轴值。默认为True。
+            prefer_direction (str, optional): 自动布局时文本的初始放置方向, 'up' 或 'down'。默认为 'up'。
+            use_bbox (bool, optional): 如果为True，为文本添加一个半透明的背景框。默认为True。
+            label_positions (dict, optional): 一个字典，用于手动指定标签位置。
+                                              键是峰值的X坐标，值是(x, y)元组。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 其他传递给 `ax.axvline` 和 `ax.text` 的关键字参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        ax = self._get_active_ax(tag)
+        active_tag = tag if tag is not None else self.last_active_tag
+        
+        if active_tag not in self.data_cache:
+            raise ValueError(f"未能为子图 '{active_tag}' 找到缓存的数据。")
+        
+        data = self.data_cache[active_tag]
+        x = data[x_col]
+        y = data[y_col]
+
+        text_kwargs = kwargs.copy()
+        vline_kwargs = {
+            'color': text_kwargs.pop('color', 'gray'),
+            'linestyle': text_kwargs.pop('linestyle', '--')
+        }
+        
+        if use_bbox:
+            text_kwargs.setdefault('bbox', dict(boxstyle='round,pad=0.2', fc='white', ec='none', alpha=0.7))
+
+        auto_texts = []
+        for peak in peaks_x:
+            idx = np.abs(x - peak).argmin()
+            peak_x_val = x.iloc[idx]
+            peak_y_val = y.iloc[idx]
+            
+            ax.axvline(x=peak_x_val, **vline_kwargs)
+            
+            if label_peaks:
+                label_text = f'{peak_x_val:.0f}'
+                if label_positions and peak in label_positions:
+                    pos = label_positions[peak]
+                    ax.text(pos[0], pos[1], label_text, **text_kwargs)
+                else:
+                    y_offset = (ax.get_ylim()[1] - ax.get_ylim()[0]) * 0.05
+                    initial_y = peak_y_val + y_offset if prefer_direction == 'up' else peak_y_val - y_offset
+                    auto_texts.append(ax.text(peak_x_val, initial_y, label_text, **text_kwargs))
+                
+        if auto_texts:
+            adjust_text(auto_texts, ax=ax, arrowprops=dict(arrowstyle='-', color='gray', lw=0.5))
+        
+        return self
+
+    def add_event_markers(self, event_dates: list, labels: list = None, 
+                          use_bbox: bool = True, 
+                          label_positions: dict = None,
+                          tag: Optional[Union[str, int]] = None,
+                          **kwargs) -> 'Plotter':
+        """
+        在时间序列图上标记重要的垂直事件。
+        使用 adjustText 库来避免标签重叠。
+
+        Args:
+            event_dates (list): 包含事件X轴位置的列表。
+            labels (list, optional): 与每个事件对应的标签列表。如果提供，将在事件线上方显示。
+            use_bbox (bool, optional): 如果为True，为文本添加一个半透明的背景框。默认为True。
+            label_positions (dict, optional): 一个字典，用于手动指定标签位置。
+                                              键是事件的X坐标，值是(x, y)元组。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 其他传递给 `ax.axvline` 和 `ax.text` 的关键字参数。
+        
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        ax = self._get_active_ax(tag)
+
+        vline_kwargs = kwargs.copy()
+        vline_kwargs.setdefault('color', 'red')
+        vline_kwargs.setdefault('linestyle', '-.')
+        
+        text_kwargs = kwargs.copy()
+        if use_bbox:
+            text_kwargs.setdefault('bbox', dict(boxstyle='round,pad=0.2', fc='white', ec='none', alpha=0.7))
+
+        auto_texts = []
+        for event_date in event_dates:
+            ax.axvline(x=event_date, **vline_kwargs)
+        
+        if labels:
+            for i, event_date in enumerate(event_dates):
+                if i < len(labels):
+                    label_text = labels[i]
+                    if label_positions and event_date in label_positions:
+                        pos = label_positions[event_date]
+                        ax.text(pos[0], pos[1], label_text, **text_kwargs)
+                    else:
+                        y_pos = ax.get_ylim()[1] * 0.95
+                        auto_texts.append(ax.text(event_date, y_pos, label_text, **text_kwargs))
+        
+        if auto_texts:
+            adjust_text(auto_texts, ax=ax, arrowprops=dict(arrowstyle='->', color='red'))
+        
         return self
 
     def cleanup(self, share_y_on_rows: list[int] = None, share_x_on_cols: list[int] = None, align_labels: bool = True, auto_share: Union[bool, str] = False):

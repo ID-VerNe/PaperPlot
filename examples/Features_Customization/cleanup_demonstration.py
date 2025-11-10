@@ -29,17 +29,10 @@ try:
     plotter = Plotter(layout=(2, 2), figsize=(10, 8), style='flat')
 
     # --- 3. 填充图表 ---
-    plotter.add_line(data=df1, x='time', y='signal', tag='cond1')
-    plotter.add_line(data=df2, x='time', y='signal', tag='cond2')
-    plotter.add_line(data=df3, x='time', y='signal', tag='cond3')
-    plotter.add_line(data=df4, x='time', y='signal', tag='cond4')
-
-    # --- 4. 为每个图表设置标签 ---
-    # 在不使用cleanup时，每个图表都需要自己的标签
-    plotter.set_title('cond1', 'Condition 1').set_ylabel('cond1', 'Signal')
-    plotter.set_title('cond2', 'Condition 2')
-    plotter.set_title('cond3', 'Condition 3').set_xlabel('cond3', 'Time (s)').set_ylabel('cond3', 'Signal')
-    plotter.set_title('cond4', 'Condition 4').set_xlabel('cond4', 'Time (s)')
+    plotter.add_line(data=df1, x='time', y='signal', tag='cond1').set_title('Condition 1').set_ylabel('Signal')
+    plotter.add_line(data=df2, x='time', y='signal', tag='cond2').set_title('Condition 2')
+    plotter.add_line(data=df3, x='time', y='signal', tag='cond3').set_title('Condition 3').set_xlabel('Time (s)').set_ylabel('Signal')
+    plotter.add_line(data=df4, x='time', y='signal', tag='cond4').set_title('Condition 4').set_xlabel('Time (s)')
     
     # --- 5. 使用 cleanup 函数进行智能清理 ---
     print("\nApplying cleanup() to dynamically share axes...")

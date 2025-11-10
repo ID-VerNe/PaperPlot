@@ -31,45 +31,41 @@ try:
     plotter.set_suptitle("Aesthetic and Processing Utilities", fontsize=16, weight='bold')
 
     # --- 3. 左图: 数据平滑 ---
-    ax_smooth = plotter.get_ax_by_name('ax00')
-    plotter.tag_to_ax['smooth'] = ax_smooth # 手动关联tag
-
     # 绘制原始噪声数据
-    ax_smooth.plot(df_smooth['x'], df_smooth['y_noisy'], label='Noisy Data', 
-                   color='gray', alpha=0.5, linestyle=':')
+    plotter.add_line(
+        data=df_smooth, x='x', y='y_noisy', tag='smooth', label='Noisy Data', 
+        color='gray', alpha=0.5, linestyle=':', ax=plotter.get_ax_by_name('ax00')
+    )
     
     # 计算并绘制平滑后数据
     y_smoothed = pp.utils.moving_average(df_smooth['y_noisy'], window_size=10)
-    ax_smooth.plot(df_smooth['x'], y_smoothed, label='Smoothed Data (window=10)', 
-                   color='blue', lw=2)
-    
-    plotter.set_title('smooth', 'moving_average() Example')
-    plotter.set_xlabel('smooth', 'Time')
-    plotter.set_ylabel('smooth', 'Signal')
-    plotter.set_legend('smooth')
+    # 由于 add_line 会更新 last_active_tag，这里需要再次指定 ax
+    plotter.add_line(
+        x=df_smooth['x'], y=y_smoothed, label='Smoothed Data (window=10)', 
+        color='blue', linewidth=2, ax=plotter.get_ax_by_name('ax00')
+    ).set_title('moving_average() Example'
+    ).set_xlabel('Time'
+    ).set_ylabel('Signal'
+    ).set_legend()
 
     # --- 4. 右图: 高亮数据点 ---
-    ax_highlight = plotter.get_ax_by_name('ax01')
-    plotter.tag_to_ax['highlight'] = ax_highlight
-
     # 使用新函数高亮数据点
-    pp.utils.highlight_points(
-        ax=ax_highlight,
+    plotter.add_conditional_scatter(
         data=df_scatter,
         x='x',
         y='y',
         condition=highlight_condition,
+        tag='highlight',
+        ax=plotter.get_ax_by_name('ax01'),
         label_normal='p >= 0.05',
         label_highlight='p < 0.05',
         c_highlight='orange',
         s_highlight=80,
         edgecolors='black' # 应用于所有点的额外参数
-    )
-
-    plotter.set_title('highlight', 'highlight_points() Example')
-    plotter.set_xlabel('highlight', 'X value')
-    plotter.set_ylabel('highlight', 'Y value')
-    plotter.set_legend('highlight')
+    ).set_title('highlight_points() Example'
+    ).set_xlabel('X value'
+    ).set_ylabel('Y value'
+    ).set_legend()
 
 
     # --- 5. 清理和保存 ---

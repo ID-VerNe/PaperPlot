@@ -34,27 +34,23 @@ events = {
     'Fault Cleared': 1.2
 }
 
-# --- 2. 创建绘图 ---
+# --- 2. 创建绘图 (使用新API) ---
 try:
-    plotter = pp.Plotter(layout=(1, 1), figsize=(8, 5))
-    
-    # 使用新的 add_power_timeseries 方法
-    plotter.add_power_timeseries(
-        data=df,
-        x='time',
-        y_cols=['Voltage (p.u.)', 'Frequency (Hz)'], # 这里我们把两个不同单位的信号画在一起了，仅为演示
-        tag='power_dynamics',
-        events=events
+    (
+        pp.Plotter(layout=(1, 1), figsize=(8, 5))
+        # 使用新的 add_power_timeseries 方法
+        .add_power_timeseries(
+            data=df,
+            x='time',
+            y_cols=['Voltage (p.u.)', 'Frequency (Hz)'], # 这里我们把两个不同单位的信号画在一起了，仅为演示
+            events=events
+        )
+        # 链式调用修饰器，无需tag
+        .set_title('Power System Dynamic Simulation')
+        .set_ylabel('Value') # 保持通用标签
+        .cleanup()
+        .save("power_timeseries_example.png")
     )
-    
-    # --- 3. 设置标题和标签 ---
-    # add_power_timeseries 已经设置了默认标签，但我们可以覆盖它们
-    plotter.set_title('power_dynamics', 'Power System Dynamic Simulation')
-    plotter.set_ylabel('power_dynamics', 'Value') # 保持通用标签
-
-    # --- 4. 清理和保存 ---
-    plotter.cleanup()
-    plotter.save("power_timeseries_example.png")
 
 except Exception as e:
     print(f"An unexpected error occurred: {e}")

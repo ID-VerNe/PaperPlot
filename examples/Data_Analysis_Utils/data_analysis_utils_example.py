@@ -4,7 +4,6 @@ import paperplot as pp
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats
 
 print(f"--- Running Example: {__file__} ---")
 
@@ -22,60 +21,40 @@ df_bin = pd.DataFrame({'x': x_bin, 'y': y_bin})
 
 # --- 2. 创建绘图 ---
 try:
-    plotter = pp.Plotter(layout=(1, 2), figsize=(12, 5))
-    plotter.set_suptitle("Data Analysis Utilities", fontsize=16, weight='bold')
+    # 使用新的 API 进行绘图和修饰
+    (
+        pp.Plotter(layout=(1, 2), figsize=(12, 5))
+        .set_suptitle("Data Analysis Utilities (New API)", fontsize=16, weight='bold')
 
-    # --- 3. 左图: 分布拟合 ---
-    ax_dist = plotter.get_ax_by_name('ax00')
-    plotter.tag_to_ax['dist'] = ax_dist # 手动关联tag
+        # --- 左图: 分布拟合 ---
+        .add_hist(df_dist, x='value', tag='dist', bins=30, density=True, alpha=0.6, color='skyblue', label='Data Histogram')
+        .add_distribution_fit(df_dist['value'], dist_name='norm', color='red', linestyle='--', lw=2, tag='dist')
+        .set_title("add_distribution_fit() Example", tag='dist')
+        .set_xlabel("Value", tag='dist')
+        .set_ylabel("Density", tag='dist')
+        .set_legend(tag='dist')
 
-    # 绘制直方图
-    ax_dist.hist(df_dist['value'], bins=30, density=True, alpha=0.6, color='skyblue', label='Data Histogram')
-    
-    # 拟合并绘制正态分布
-    pp.utils.fit_and_plot_distribution(
-        ax=ax_dist,
-        data_series=df_dist['value'],
-        dist_name='norm',
-        color='red',
-        linestyle='--',
-        lw=2
+        # --- 右图: 数据分箱 ---
+        .add_scatter(df_bin, x='x', y='y', tag='bin', alpha=0.3, label='Raw Data')
+        .add_binned_plot(df_bin, x='x', y='y', bins=5, plot_type='errorbar',
+                         color='green', fmt='-o', capsize=5, label='Binned Data (Mean ± Std)', tag='bin')
+        .set_title("add_binned_plot() Example", tag='bin')
+        .set_xlabel("X Value", tag='bin')
+        .set_ylabel("Y Value", tag='bin')
+        .set_legend(tag='bin')
+
+        # --- 清理和保存 ---
+        .cleanup()
+        .save("data_analysis_utils_example.png")
     )
-    
-    plotter.set_title('dist', 'fit_and_plot_distribution() Example')
-    plotter.set_xlabel('dist', 'Value')
-    plotter.set_ylabel('dist', 'Density')
-    plotter.set_legend('dist')
-
-    # --- 4. 右图: 数据分箱 ---
-    ax_bin = plotter.get_ax_by_name('ax01')
-    plotter.tag_to_ax['bin'] = ax_bin
-
-    # 绘制原始散点图
-    ax_bin.scatter(df_bin['x'], df_bin['y'], alpha=0.3, label='Raw Data')
-
-    # 分箱数据
-    binned_df = pp.utils.bin_data(df_bin, x='x', y='y', bins=5)
-    
-    # 绘制分箱后的结果（带误差棒的线图）
-    ax_bin.errorbar(binned_df['bin_center'], binned_df['y_agg'], 
-                     yerr=binned_df['y_error'], fmt='-o', color='green', 
-                     capsize=5, label='Binned Data (Mean ± Std)')
-
-    plotter.set_title('bin', 'bin_data() Example')
-    plotter.set_xlabel('bin', 'X Value')
-    plotter.set_ylabel('bin', 'Y Value')
-    plotter.set_legend('bin')
-
-
-    # --- 5. 清理和保存 ---
-    plotter.cleanup()
-    plotter.save("data_analysis_utils_example.png")
 
 except Exception as e:
     print(f"An unexpected error occurred: {e}")
+    # 在调试时，取消下面的注释可以打印更详细的错误信息
+    # import traceback
+    # traceback.print_exc()
 finally:
     plt.close('all')
 
 print(f"\n--- Finished Example: {__file__} ---")
-print("A new file 'data_analysis_utils_example.png' was generated.")
+print("A new file 'data_analysis_utils_example.png' was generated with the new API.")

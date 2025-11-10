@@ -41,19 +41,27 @@ try:
     ax_sers = plotter.get_ax_by_name('SERS_Spectra')
     # 在同一个 Axes 上绘制两条光谱
     plotter.add_line(data=df1, x='wavenumber', y='intensity', ax=ax_sers, tag='spectra_A', label='Sample A')
-    plotter.add_line(data=df2, x='wavenumber', y='intensity', ax=ax_sers, tag='spectra_B', label='Sample B')
-    plotter.set_title('spectra_A', 'SERS Spectra of Samples') # tag 'spectra_A' 和 'spectra_B' 都指向同一个 ax
-    plotter.set_xlabel('spectra_A', 'Wavenumber (cm⁻¹)')
-    plotter.set_ylabel('spectra_A', 'Intensity (a.u.)')
-    plotter.set_legend('spectra_A')
+    plotter.add_line(data=df2, x='wavenumber', y='intensity', ax=ax_sers, tag='spectra_B', label='Sample B'
+    ).set_title('SERS Spectra of Samples'  # The last plot call sets the active context
+    ).set_xlabel('Wavenumber (cm⁻¹)'
+    ).set_ylabel('Intensity (a.u.)'
+    ).set_legend()
 
     # --- 4. 在 SERS 图上嵌入占位符图片 ---
     print("Adding an inset image to the 'SERS_Spectra' plot...")
-    plotter.add_inset_image(
-        host_tag='spectra_A', 
-        image_path='./examples/Features_Customization/resources/placeholder_image.png',
-        rect=[0.7, 0.65, 0.28, 0.28] # [x, y, width, height] in relative coordinates
-    )
+    try:
+        # 给run_all_examples.py的专用路径，防止报错找不到插入的图片
+        plotter.add_inset_image(
+            host_tag='spectra_A',
+            image_path='./examples/Features_Customization/resources/placeholder_image.png',
+            rect=[0.7, 0.65, 0.28, 0.28] # [x, y, width, height] in relative coordinates
+        )
+    except:
+        plotter.add_inset_image(
+            host_tag='spectra_A',
+            image_path='./resources/placeholder_image.png',
+            rect=[0.7, 0.65, 0.28, 0.28]  # [x, y, width, height] in relative coordinates
+        )
 
     # --- 5. 在 PCA 图区域绘图 ---
     ax_pca = plotter.get_ax_by_name('PCA_Result')
@@ -67,10 +75,9 @@ try:
         hue='cluster',
         ax=ax_pca, 
         tag='pca'
-    )
-    plotter.set_title('pca', 'PCA of Spectral Data')
-    plotter.set_xlabel('pca', 'Principal Component 1')
-    plotter.set_ylabel('pca', 'Principal Component 2')
+    ).set_title('PCA of Spectral Data'
+    ).set_xlabel('Principal Component 1'
+    ).set_ylabel('Principal Component 2')
 
     # --- 6. 清理和保存 ---
     plotter.cleanup(align_labels=True)

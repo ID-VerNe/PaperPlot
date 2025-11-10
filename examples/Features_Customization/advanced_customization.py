@@ -39,7 +39,11 @@ try:
     print("Registering custom cleanup template named 'gray_grid'...")
     # plotter.register_cleanup_template('gray_grid', custom_template)
 
-    plotter.add_scatter(data=df, x='x', y='y', tag='gumbel_dist')
+    plotter.add_scatter(
+        data=df, x='x', y='y', tag='gumbel_dist'
+    ).set_title('Gumbel Distribution with Ellipse'
+    ).set_xlabel('X value'
+    ).set_ylabel('Y value')
 
     # --- 4. 使用 "逃生舱口" get_ax() 进行高级定制 ---
     print("Using get_ax() for advanced customization...")
@@ -51,11 +55,6 @@ try:
                       facecolor='none', edgecolor='red', linestyle='--', lw=2)
     ax.add_patch(ellipse)
     
-    # 设置标题和标签
-    plotter.set_title('gumbel_dist', 'Gumbel Distribution with Ellipse')
-    plotter.set_xlabel('gumbel_dist', 'X value')
-    plotter.set_ylabel('gumbel_dist', 'Y value')
-
     # --- 5. 使用自定义模板进行美化并保存 ---
     plotter.cleanup()
     plotter.save("advanced_customization_figure.png")

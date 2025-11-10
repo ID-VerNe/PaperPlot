@@ -33,11 +33,12 @@ try:
 
     # --- 左侧子图：双Y轴示例 ---
     # 1. 绘制主Y轴（温度）
-    plotter.add_line(data=df_temp, x='time', y='temperature', tag='weather_plot', label='Temperature (°C)', color='red')
-    plotter.set_title('weather_plot', 'Hourly Weather Data')
-    plotter.set_xlabel('weather_plot', 'Time (hours)')
-    plotter.set_ylabel('weather_plot', 'Temperature (°C)', color='red')
-    plotter.tick_params('weather_plot', axis='y', labelcolor='red')
+    plotter.add_line(
+        data=df_temp, x='time', y='temperature', tag='weather_plot', label='Temperature (°C)', color='red'
+    ).set_title('Hourly Weather Data'
+    ).set_xlabel('Time (hours)'
+    ).set_ylabel('Temperature (°C)', color='red'
+    ).tick_params(axis='y', labelcolor='red')
 
     # 2. 创建twinx轴并绘制次Y轴（降雨量）
     ax2 = plotter.add_twinx('weather_plot')
@@ -46,20 +47,21 @@ try:
     ax2.tick_params(axis='y', labelcolor='blue')
 
     # 3. 添加参考线和文本
-    plotter.add_hline('weather_plot', y=25, linestyle='--', color='red', label='Avg Temp')
-    plotter.add_text('weather_plot', x=12, y=26, text='High Temp Zone', color='red', ha='center')
+    plotter.add_hline(y=25, linestyle='--', color='red', label='Avg Temp', tag='weather_plot')
+    plotter.add_text(x=12, y=26, text='High Temp Zone', color='red', ha='center', tag='weather_plot')
 
     # 4. 添加一个Patch (例如，一个表示夜间的矩形)
     night_rect = Rectangle((20, 0), 4, 30, facecolor='gray', alpha=0.2, transform=plotter.get_ax('weather_plot').transData)
-    plotter.add_patch('weather_plot', night_rect)
+    plotter.add_patch(night_rect, tag='weather_plot')
 
     # --- 右侧子图：回归图示例 ---
-    plotter.add_regplot(data=df_scatter, x='x_val', y='y_val', tag='reg_plot', color='green', scatter_kws={'alpha':0.6})
-    plotter.set_title('reg_plot', 'Regression Analysis')
-    plotter.set_xlabel('reg_plot', 'Independent Variable')
-    plotter.set_ylabel('reg_plot', 'Dependent Variable')
-    plotter.add_vline('reg_plot', x=5, linestyle=':', color='gray', label='Threshold')
-    plotter.add_text('reg_plot', x=5, y=25, text='Critical Point', color='gray', ha='left', va='bottom')
+    plotter.add_regplot(
+        data=df_scatter, x='x_val', y='y_val', tag='reg_plot', color='green', scatter_kws={'alpha':0.6}
+    ).set_title('Regression Analysis'
+    ).set_xlabel('Independent Variable'
+    ).set_ylabel('Dependent Variable'
+    ).add_vline(x=5, linestyle=':', color='gray', label='Threshold'
+    ).add_text(x=5, y=25, text='Critical Point', color='gray', ha='left', va='bottom')
 
     # --- 全局美化 ---
     plotter.set_suptitle("Advanced Plotting Features Demonstration", fontsize=16, weight='bold', y=1.02)

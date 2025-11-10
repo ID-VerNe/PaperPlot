@@ -35,31 +35,22 @@ df_bifurcation = pd.DataFrame({
 })
 
 
-# --- 2. 创建绘图 ---
+# --- 2. 创建绘图 (使用新API) ---
 try:
-    plotter = pp.Plotter(layout=(1, 1), figsize=(8, 6))
-    # 使用 plotter.add_scatter 直接绘图，并指定 tag=1
-    # 这会自动处理坐标轴的获取和标签的注册
-    plotter.add_scatter(
-        data=df_bifurcation,
-        x='r',
-        y='x',
-        tag=1,  # 显式指定 tag
-        s=0.001,
-        alpha=0.2,
-        marker='.',
-        rasterized=True  # 对于有大量数据点的图，设为True可以提高渲染性能
+    (
+        pp.Plotter(layout=(1, 1), figsize=(8, 6))
+        .add_bifurcation_diagram(
+            data=df_bifurcation,
+            x='r',
+            y='x',
+            s=0.001, # 调小点的大小以获得更好的视觉效果
+            alpha=0.2
+        )
+        .set_title('Bifurcation Diagram of the Logistic Map')
+        .set_xlabel('Parameter r')
+        .set_ylabel('State x')
+        .save("bifurcation_diagram_example.png")
     )
-    
-    # --- 3. 设置标题和标签 ---
-    # 现在 tag=1 已经被正确注册，可以安全使用
-    plotter.set_title(1, 'Bifurcation Diagram of the Logistic Map')
-    plotter.set_xlabel(1, 'Parameter r')
-    plotter.set_ylabel(1, 'State x')
-
-    # --- 4. 清理和保存 ---
-    plotter.cleanup()
-    plotter.save("bifurcation_diagram_example.png")
 
 except Exception as e:
     print(f"An unexpected error occurred: {e}")

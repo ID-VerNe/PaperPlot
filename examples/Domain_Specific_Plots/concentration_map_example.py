@@ -28,15 +28,16 @@ df_concentration = pd.DataFrame(concentration, index=y_coords, columns=x_coords)
 try:
     plotter = pp.Plotter(layout=(1, 1), figsize=(7, 6))
     
-    # 使用新的 add_concentration_map 方法
-    plotter.add_concentration_map(
-        data=df_concentration,
-        tag='sers_map',
-        cbar_kws={'label': 'Concentration (a.u.)'} # 自定义颜色条标签
+    # 使用新的 add_concentration_map 方法，并链式调用 set_title
+    (
+        plotter.add_concentration_map(
+            data=df_concentration,
+            tag='sers_map',
+            cbar_kws={'label': 'Concentration (a.u.)'} # 自定义颜色条标签
+        )
+        .set_title('SERS Concentration Map Example')
     )
     
-    # --- 3. 设置标题和标签 ---
-    plotter.set_title('sers_map', 'SERS Concentration Map Example')
     # X, Y 轴标签已由 add_concentration_map 默认设置，但可以覆盖
     # plotter.set_xlabel('sers_map', 'Position X (µm)')
     # plotter.set_ylabel('sers_map', 'Position Y (µm)')

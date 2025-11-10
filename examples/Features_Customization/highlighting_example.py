@@ -16,11 +16,11 @@ try:
     y = np.sin(x) * np.exp(-x / 4)
     df = pd.DataFrame({'x': x, 'y': y})
 
-    plotter.add_line(data=df, x='x', y='y', tag='main_plot', label='Damped Sine Wave')
-    plotter.set_title('main_plot', 'Highlighting Data Regions and Figure Boundary')
-    plotter.set_xlabel('main_plot', 'Time')
-    plotter.set_ylabel('main_plot', 'Amplitude')
-    plotter.set_legend('main_plot')
+    plotter.add_line(data=df, x='x', y='y', tag='main_plot', label='Damped Sine Wave'
+    ).set_title('Highlighting Data Regions and Figure Boundary'
+    ).set_xlabel('Time'
+    ).set_ylabel('Amplitude'
+    ).set_legend()
 
     # 3. Use add_highlight_box to highlight a specific data region
     # Highlight the first peak of the wave
@@ -31,8 +31,7 @@ try:
         facecolor='orange',
         alpha=0.3,
         label='First Peak Region' # Note: label won't show by default, but can be used with legends
-    )
-    plotter.add_text('main_plot', 1.5, 0.6, 'First Peak', ha='center', va='center', fontsize=10)
+    ).add_text(1.5, 0.6, 'First Peak', ha='center', va='center', fontsize=10)
 
     # Highlight the region where the wave decays
     plotter.add_highlight_box(
@@ -41,8 +40,7 @@ try:
         y_range=(-0.2, 0.2),
         facecolor='lightblue',
         alpha=0.4
-    )
-    plotter.add_text('main_plot', 5, 0, 'Decay Region', ha='center', va='center', fontsize=10)
+    ).add_text(5, 0, 'Decay Region', ha='center', va='center', fontsize=10)
 
     # 4. Use fig_add_boundary_box to draw a border around the axes area
 

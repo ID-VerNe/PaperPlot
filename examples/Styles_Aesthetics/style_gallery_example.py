@@ -27,14 +27,12 @@ def create_plot_for_style(style_name: str):
 
         # 在图上绘制两条线
         plotter.add_line(data=df_demo, x='x', y='y1', tag='demo', label='Sine-like', marker='o')
-        ax = plotter.get_ax('demo')
-        plotter.add_line(data=df_demo, x='x', y='y2', ax=ax, label='Cosine-like', marker='^')
-
-        # 设置标题和标签
-        plotter.set_title('demo', f"Style: '{style_name}'")
-        plotter.set_xlabel('demo', 'X-axis')
-        plotter.set_ylabel('demo', 'Y-axis')
-        plotter.set_legend('demo')
+        ax = plotter.get_ax('demo') # Get the ax for the first line
+        plotter.add_line(data=df_demo, x='x', y='y2', ax=ax, label='Cosine-like', marker='^'
+        ).set_title(f"Style: '{style_name}'"
+        ).set_xlabel('X-axis'
+        ).set_ylabel('Y-axis'
+        ).set_legend()
 
         # 保存图像
         filename = f"style_gallery_{style_name}.png"

@@ -45,35 +45,31 @@ try:
     plotter.add_scatter(
         data=df_scatter, x='x_val', y='y_val', s='size', 
         tag='scatter', alpha=0.6
-    ).add_bar(
+    ).set_title('Scatter Plot'
+    ).set_xlabel('X Value'
+    ).set_ylabel('Y Value')
+
+    plotter.add_bar(
         data=df_bar, x='category', y='mean', y_err='std',
         tag='bar_chart', capsize=5
-    ).add_line(
+    ).set_title('Bar Chart'
+    ).set_xlabel('Category'
+    ).set_ylabel('Mean Value')
+
+    plotter.add_line(
         data=df_line, x='time', y='signal',
         tag='time_series'
-    ).add_heatmap(
+    ).set_title('Time Series'
+    ).set_xlabel('Time (s)'
+    ).set_ylabel('Signal')
+
+    plotter.add_heatmap(
         data=df_heatmap,
         tag='heatmap'
-    )
-
-    # --- 4. 对部分图表进行单独设置 ---
-    print("Customizing individual plots...")
-    plotter.set_title('scatter', 'Scatter Plot')
-    plotter.set_xlabel('scatter', 'X Value')
-    plotter.set_ylabel('scatter', 'Y Value')
-
-    plotter.set_title('bar_chart', 'Bar Chart')
-    plotter.set_xlabel('bar_chart', 'Category')
-    plotter.set_ylabel('bar_chart', 'Mean Value')
-
-    plotter.set_title('time_series', 'Time Series')
-    plotter.set_xlabel('time_series', 'Time (s)')
-    plotter.set_ylabel('time_series', 'Signal')
-
-    plotter.set_title('heatmap', 'Heatmap')
-    plotter.set_xlabel('heatmap', 'Column')
-    plotter.set_ylabel('heatmap', 'Row')
-    plotter.tick_params('heatmap', axis='x', rotation=90)
+    ).set_title('Heatmap'
+    ).set_xlabel('Column'
+    ).set_ylabel('Row'
+    ).tick_params(axis='x', rotation=90)
 
     # --- 5. 应用默认美化并保存 ---
     # print("Applying cleanup for shared axes and saving...")
