@@ -48,17 +48,21 @@ df_scatter = pd.DataFrame({
 (
     pp.Plotter(layout=(1, 2), figsize=(10, 4))
     
-    # --- 绘制左图 ---
+    # --- 绘制并修饰左图 ---
+    # add_line 将 'time_series' 设为活动tag
     .add_line(data=df_line, x='time', y='signal', tag='time_series')
-    .set_title('Time Series Data', tag='time_series')
-    .set_xlabel('Time (s)', tag='time_series')
-    .set_ylabel('Signal', tag='time_series')
+    # 后续的修饰器会自动应用到 'time_series' 上
+    .set_title('Time Series Data')
+    .set_xlabel('Time (s)')
+    .set_ylabel('Signal')
     
-    # --- 绘制右图 ---
+    # --- 绘制并修饰右图 ---
+    # add_scatter 将 'scatter_plot' 设为新的活动tag
     .add_scatter(data=df_scatter, x='x', y='y', tag='scatter_plot')
-    .set_title('Scatter Plot', tag='scatter_plot')
-    .set_xlabel('X Value', tag='scatter_plot')
-    .set_ylabel('Y Value', tag='scatter_plot')
+    # 后续的修饰器会自动应用到 'scatter_plot' 上
+    .set_title('Scatter Plot')
+    .set_xlabel('X Value')
+    .set_ylabel('Y Value')
     
     # --- 保存图像 ---
     .save("quick_start_figure.png")
