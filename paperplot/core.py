@@ -23,6 +23,7 @@ class Plotter(GenericPlotsMixin, ModifiersMixin, DomainSpecificPlotsMixin):
                  figsize: Optional[Tuple[float, float]] = None, 
                  subplot_aspect: Optional[Tuple[float, float]] = None,
                  ax_configs: Optional[Dict[Union[str, Tuple[int, int]], Dict]] = None,
+                 layout_engine: Optional[str] = 'constrained',
                  **fig_kwargs):
         """
         初始化一个绘图管理器，创建画布和子图网格。
@@ -32,6 +33,7 @@ class Plotter(GenericPlotsMixin, ModifiersMixin, DomainSpecificPlotsMixin):
                 定义子图布局。
                 - 如果是 `(n_rows, n_cols)` 元组，将创建一个简单的 `n_rows` 行 `n_cols` 列的网格。
                 - 如果是 `List[List[str]]` (马赛克布局)，则允许创建复杂、跨行/跨列的布局。
+                - 如果是 `Dict`，则允许创建复杂、嵌套的布局。
             style (str, optional): 要应用的Matplotlib样式名称。默认为 'publication'。
             figsize (Optional[Tuple[float, float]], optional): 整个画布的尺寸 (宽度, 高度) 英寸。
                                                                与 `subplot_aspect` 互斥。
@@ -43,12 +45,16 @@ class Plotter(GenericPlotsMixin, ModifiersMixin, DomainSpecificPlotsMixin):
                 一个字典，键是子图的tag（对于马赛克布局）或`(row, col)`元组（对于简单网格），
                 值是传递给 `fig.add_subplot` 的关键字参数字典（例如 `{'projection': 'polar'}`）。
                 默认为None。
+            layout_engine (Optional[str], optional): 布局引擎。默认为 'constrained'。
             **fig_kwargs: 其他传递给 `matplotlib.pyplot.figure` 的关键字参数。
 
         Raises:
             ValueError: 如果布局定义无效，或者 `figsize` 和 `subplot_aspect` 被同时指定。
         """
         super().__init__()
+
+        if layout_engine:
+            fig_kwargs.setdefault('layout', layout_engine)
 
         if figsize is not None and subplot_aspect is not None:
             raise ValueError("Cannot specify both 'figsize' and 'subplot_aspect'. Choose one.")

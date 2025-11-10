@@ -393,15 +393,56 @@ class ModifiersMixin:
 
         return self
 
-    def hide_axes(self, x: bool = False, y: bool = False) -> 'Plotter':
+    def hide_axes(self, tag: Union[str, int],
+                  x_axis=False, y_axis=False,
+                  x_ticks=False, y_ticks=False,
+                  x_tick_labels=False, y_tick_labels=False,
+                  x_label=False, y_label=False,
+                  spines: List[str] = None) -> 'Plotter':
         """
-        隐藏所有子图的X轴或Y轴。
+        精细化地隐藏指定子图的坐标轴元素。
+
+        Args:
+            tag (Union[str, int]): 目标子图的 tag。
+            x_axis (bool): 如果为 True，隐藏整个 X 轴（包括标签、刻度等）。
+            y_axis (bool): 如果为 True，隐藏整个 Y 轴。
+            x_ticks (bool): 如果为 True，仅隐藏 X 轴的刻度线。
+            y_ticks (bool): 如果为 True，仅隐藏 Y 轴的刻度线。
+            x_tick_labels (bool): 如果为 True，仅隐藏 X 轴的刻度标签。
+            y_tick_labels (bool): 如果为 True，仅隐藏 Y 轴的刻度标签。
+            x_label (bool): 如果为 True，仅隐藏 X 轴的标签文本。
+            y_label (bool): 如果为 True，仅隐藏 Y 轴的标签文本。
+            spines (List[str]): 一个包含 'top', 'bottom', 'left', 'right' 的列表，
+                                 指定要隐藏的轴线。
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
-        for ax in self.axes:
-            if x:
-                ax.get_xaxis().set_visible(False)
-            if y:
-                ax.get_yaxis().set_visible(False)
+        ax = self._get_ax_by_tag(tag)
+
+        if x_axis:
+            ax.get_xaxis().set_visible(False)
+        if y_axis:
+            ax.get_yaxis().set_visible(False)
+
+        if x_ticks:
+            ax.tick_params(axis='x', bottom=False)
+        if y_ticks:
+            ax.tick_params(axis='y', left=False)
+
+        if x_tick_labels:
+            ax.tick_params(axis='x', labelbottom=False)
+        if y_tick_labels:
+            ax.tick_params(axis='y', labelleft=False)
+
+        if x_label:
+            ax.xaxis.label.set_visible(False)
+        if y_label:
+            ax.yaxis.label.set_visible(False)
+
+        if spines:
+            for spine in spines:
+                ax.spines[spine].set_visible(False)
+
         return self
 
     def cleanup(self, share_y_on_rows: list[int] = None, share_x_on_cols: list[int] = None, align_labels: bool = True, auto_share: Union[bool, str] = False):

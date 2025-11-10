@@ -71,10 +71,10 @@ try:
     # a. 只在最顶部的子图上添加标题
     plotter.set_title('heatmap_group.nh2_map', 'Nested Heatmap Group', fontsize=14)
 
-    # b. 隐藏不需要的 X 轴刻度标签，实现共享X轴的效果
-    #    (这里我们假设您已经实现了更精细的 hide_axes 或 tick_params)
-    plotter.tick_params('heatmap_group.nh2_map', axis='x', labelbottom=False)
-    plotter.tick_params('heatmap_group.cnc_map', axis='x', labelbottom=False)
+    # b. 同时隐藏X轴、Y轴刻度线、Y轴刻度数字
+    plotter.hide_axes('heatmap_group.nh2_map', x_axis=True, y_ticks=True, y_tick_labels=True)
+    plotter.hide_axes('heatmap_group.cnc_map', x_axis=True, y_ticks=True, y_tick_labels=True)
+    plotter.hide_axes('heatmap_group.ring_map', x_axis=True, y_ticks=True, y_tick_labels=True)
 
     # c. 只在最底部的子图上添加 X 轴标签
     plotter.set_xlabel('heatmap_group.ring_map', 'Time (min)', fontsize=14, weight='bold')
