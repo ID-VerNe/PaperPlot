@@ -136,29 +136,21 @@ class GenericPlotsMixin:
         """
 
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
-            # 智能匹配 cmap 的逻辑
+            # 1. 智能匹配 cmap 的逻辑
             if 'cmap' not in p_kwargs:
                 try:
-                    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-                    if colors:
-                        def get_lightness(hex_color):
-                            try:
-                                hex_color = hex_color.lstrip('#')
-                                if len(hex_color) == 3:
-                                    hex_color = "".join([c * 2 for c in hex_color])
-                                rgb_normalized = tuple(int(hex_color[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
-                                return colorsys.rgb_to_hls(*rgb_normalized)[1]
-                            except Exception:
-                                return 0
-
-                        sorted_colors = sorted(colors, key=get_lightness)
-
-                        custom_cmap = LinearSegmentedColormap.from_list(
-                            "custom_style_cmap_sorted", sorted_colors
-                        )
-                        p_kwargs['cmap'] = custom_cmap
+                    # 1a. 获取当前样式颜色循环中的第一个颜色作为主色
+                    primary_color = plt.rcParams['axes.prop_cycle'].by_key()['color'][0]
+                    
+                    # 1b. 使用 seaborn 的 light_palette 基于主色创建一个平滑的连续色图
+                    #      这是一个从浅(白)到深(主色)的渐变
+                    custom_cmap = sns.light_palette(primary_color, as_cmap=True)
+                    
+                    p_kwargs['cmap'] = custom_cmap
                 except (KeyError, IndexError):
-                    pass
+                    # 1c. 如果获取主色失败（例如，样式文件中没有定义颜色循环），
+                    #     则优雅地回退到一个标准的、高质量的色图
+                    p_kwargs.setdefault('cmap', 'viridis')
 
             # --- 错误修正：将以下代码块移入 plot_logic 函数内部 ---
             create_cbar = p_kwargs.pop('cbar', True)
