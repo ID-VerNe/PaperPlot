@@ -17,6 +17,175 @@ class ModifiersMixin:
         super().__init__(*args, **kwargs) #确保调用父类的__init__
         self._draw_on_save_queue = []
 
+    def _to_roman(self, number: int) -> str:
+        """将整数转换为罗马数字。"""
+        if not 0 < number < 4000:
+            # 对于超出范围的数字，可以返回空字符串或原始数字的字符串形式
+            return str(number)
+        val = [
+            1000, 900, 500, 400,
+            100, 90, 50, 40,
+            10, 9, 5, 4,
+            1
+        ]
+        syb = [
+            "M", "CM", "D", "CD",
+            "C", "XC", "L", "XL",
+            "I", "IX", "V", "IV",
+            "I"
+        ]
+        roman_num = ''
+        i = 0
+        while number > 0:
+            for _ in range(number // val[i]):
+                roman_num += syb[i]
+                number -= val[i]
+            i += 1
+        return roman_num
+
+    def _draw_subplot_label(self, fig: plt.Figure, ax: plt.Axes, text: str, position: Tuple[float, float], **kwargs):
+        """
+        [私有] 实际执行在子图上添加标签的逻辑。
+        此方法在 .save() 期间被调用。
+        """
+        # 获取子图在画布坐标系中的最终位置
+        transform = ax.transAxes + fig.transFigure.inverted()
+
+        # 使用这个变换来计算标签在画布上的最终位置
+        label_x, label_y = transform.transform(position)
+
+        # 使用 fig.text 在计算出的画布坐标上绘制文本
+        fig.text(label_x, label_y, text, **kwargs)
+
+    def add_subplot_labels(
+        self,
+        tags: Optional[List[Union[str, int]]] = None,
+        label_style: str = 'alpha',
+        case: str = 'lower',
+        template: str = '({label})',
+        position: Tuple[float, float] = (-0.01, 1.01),
+        start_at: int = 0,
+        **text_kwargs
+    ) -> 'Plotter':
+        """
+        为子图添加自动编号标签，如 (a), (b), (c)。
+        注意：实际的绘制操作将延迟到调用 .save() 方法时执行，以确保布局计算的准确性。
+        """
+        # 1. 确定标注目标
+        target_tags_or_names = []
+        if tags is not None:
+            target_tags_or_names = tags
+        else:
+            if isinstance(self.layout, dict):
+                main_layout_def = self.layout.get('main', [])
+                if main_layout_def:
+                    unique_top_level_tags = OrderedDict.fromkeys(
+                        tag for row in main_layout_def for tag in row if tag != '.'
+                    )
+                    target_tags_or_names = list(unique_top_level_tags.keys())
+            elif isinstance(self.layout, list):
+                unique_tags = OrderedDict()
+                for r, row_list in enumerate(self.layout):
+                    for c, tag in enumerate(row_list):
+                        if tag != '.' and tag not in unique_tags:
+                            unique_tags[tag] = (r, c)
+                target_tags_or_names = list(unique_tags.keys())
+            else:
+                target_tags_or_names = list(self.axes_dict.keys())
+
+        target_axes = []
+        for tag in target_tags_or_names:
+            try:
+                ax = self._get_ax_by_tag(tag)
+                if tags is None and ax not in self.plotted_axes:
+                    continue
+                target_axes.append(ax)
+            except Exception:
+                continue
+        
+        if not target_axes:
+            logger.warning("No plotted axes found to label in auto mode.")
+            return self
+
+        # 2. 生成标签序列
+        labels = []
+        for i in range(len(target_axes)):
+            num = i + start_at
+            if label_style == 'alpha':
+                label = chr(ord('a') + num)
+            elif label_style == 'numeric':
+                label = str(num + 1)
+            elif label_style == 'roman':
+                label = self._to_roman(num + 1)
+            else:
+                raise ValueError("label_style must be 'alpha', 'numeric', or 'roman'")
+            
+            if case == 'upper':
+                label = label.upper()
+            labels.append(label)
+
+        # 3. 设置默认文本样式并与用户输入合并
+        final_kwargs = {
+            'fontsize': 14, 'weight': 'bold', 'ha': 'right', 'va': 'bottom',
+        }
+        final_kwargs.update(text_kwargs)
+
+        # 4. 将绘图操作添加到队列
+        for i, ax in enumerate(target_axes):
+            label_text = template.format(label=labels[i])
+            draw_kwargs = {
+                'fig': self.fig,
+                'ax': ax,
+                'text': label_text,
+                'position': position,
+                **final_kwargs
+            }
+            self._draw_on_save_queue.append(
+                {'func': self._draw_subplot_label, 'kwargs': draw_kwargs}
+            )
+
+        return self
+
+    def add_grouped_labels(
+        self,
+        groups: "Dict[str, List[Union[str, int]]]",
+        position: str = 'top_left',
+        padding: float = 0.01,
+        **text_kwargs
+    ) -> 'Plotter':
+        """
+        为逻辑上分组的子图添加统一的标签。
+
+        此方法利用 `fig_add_label` 的能力，计算多个子图的组合边界框，
+        并将标签放置在该边界框的相对位置。
+
+        Args:
+            groups (Dict[str, List[Union[str, int]]]): 
+                一个字典，其中键是标签文本（例如 `'(a)'`），
+                值是属于该组的子图 `tag` 列表（例如 `['ax00', 'ax01']`）。
+            position (str, optional): 
+                标签相对于组合边界框的相对位置。
+                默认为 'top_left'。
+            padding (float, optional): 
+                标签与组合边界框之间的间距。默认为 0.01。
+            **text_kwargs: 
+                其他传递给底层 `fig.text` 的关键字参数，
+                用于定制文本样式，如 `fontsize`, `weight`, `color` 等。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        for label_text, tags_in_group in groups.items():
+            self.fig_add_label(
+                tags=tags_in_group,
+                text=label_text,
+                position=position,
+                padding=padding,
+                **text_kwargs
+            )
+        return self
+
+
     def set_title(self, label: str, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
         为指定或当前活动的子图设置标题。
@@ -330,9 +499,56 @@ class ModifiersMixin:
         )
         return self
 
+    def _draw_fig_label(self, tags: Union[str, int, List[Union[str, int]]], text: str, position: str, padding: float, **kwargs):
+        """
+        [私有] 实际执行在画布上添加标签的逻辑。
+        此方法在 .save() 期间被调用。
+        """
+        if not isinstance(tags, list):
+            tags = [tags]
+
+        min_x, min_y, max_x, max_y = 1.0, 1.0, 0.0, 0.0
+
+        for tag in tags:
+            ax = self._get_ax_by_tag(tag)
+            bbox = ax.get_position()
+
+            min_x = min(min_x, bbox.x0)
+            min_y = min(min_y, bbox.y0)
+            max_x = max(max_x, bbox.x1)
+            max_y = max(max_y, bbox.y1)
+        
+        center_x, center_y = (min_x + max_x) / 2, (min_y + max_y) / 2
+        x, y, ha, va = center_x, center_y, 'center', 'center'
+
+        position_map = {
+            'top_left': (min_x - padding, max_y + padding, 'right', 'bottom'),
+            'top_right': (max_x + padding, max_y + padding, 'left', 'bottom'),
+            'bottom_left': (min_x - padding, min_y - padding, 'right', 'top'),
+            'bottom_right': (max_x + padding, min_y - padding, 'left', 'top'),
+            'top_center': (center_x, max_y + padding, 'center', 'bottom'),
+            'bottom_center': (center_x, min_y - padding, 'center', 'top'),
+            'left_center': (min_x - padding, center_y, 'right', 'center'),
+            'right_center': (max_x + padding, center_y, 'left', 'center'),
+            'center': (center_x, center_y, 'center', 'center')
+        }
+        
+        if position in position_map:
+            x, y, ha, va = position_map[position]
+        else:
+            raise ValueError(f"Invalid position: {position}.")
+
+        kwargs.setdefault('ha', ha)
+        kwargs.setdefault('va', va)
+        kwargs.setdefault('fontsize', 12)
+        kwargs.setdefault('weight', 'bold')
+
+        self.fig.text(x, y, text, **kwargs)
+
     def fig_add_label(self, tags: Union[str, int, List[Union[str, int]]], text: str, position: str = 'top_left', padding: float = 0.01, **kwargs) -> 'Plotter':
         """
         在整个画布（Figure）上，相对于一个或多个指定的子图放置一个文本标签。
+        注意：实际的绘制操作将延迟到调用 .save() 方法时执行，以确保布局计算的准确性。
 
         Args:
             tags (Union[str, int, List[Union[str, int]]]): 
@@ -349,60 +565,17 @@ class ModifiersMixin:
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
-
-        Raises:
-            TagNotFoundError: 如果指定的tag未找到。
-            ValueError: 如果`position`参数无效。
         """
-        self.fig.canvas.draw() # 强制重绘以获取准确的坐标
-
-        if not isinstance(tags, list):
-            tags = [tags]
-
-        min_x, min_y, max_x, max_y = 1.0, 1.0, 0.0, 0.0
-
-        for tag in tags:
-            ax = self._get_ax_by_tag(tag)
-            bbox = ax.get_position() # Bounding box in figure coordinates
-
-            min_x = min(min_x, bbox.x0)
-            min_y = min(min_y, bbox.y0)
-            max_x = max(max_x, bbox.x1)
-            max_y = max(max_y, bbox.y1)
-        
-        # Calculate center and corners of the combined bounding box
-        center_x = (min_x + max_x) / 2
-        center_y = (min_y + max_y) / 2
-
-        x, y, ha, va = center_x, center_y, 'center', 'center' # Default to center
-
-        if position == 'top_left':
-            x, y, ha, va = min_x - padding, max_y + padding, 'right', 'bottom'
-        elif position == 'top_right':
-            x, y, ha, va = max_x + padding, max_y + padding, 'left', 'bottom'
-        elif position == 'bottom_left':
-            x, y, ha, va = min_x - padding, min_y - padding, 'right', 'top'
-        elif position == 'bottom_right':
-            x, y, ha, va = max_x + padding, min_y - padding, 'left', 'top'
-        elif position == 'top_center':
-            x, y, ha, va = center_x, max_y + padding, 'center', 'bottom'
-        elif position == 'bottom_center':
-            x, y, ha, va = center_x, min_y - padding, 'center', 'top'
-        elif position == 'left_center':
-            x, y, ha, va = min_x - padding, center_y, 'right', 'center'
-        elif position == 'right_center':
-            x, y, ha, va = max_x + padding, center_y, 'left', 'center'
-        elif position == 'center':
-            pass # Already default
-        else:
-            raise ValueError(f"Invalid position: {position}. Must be one of 'top_left', 'top_right', 'bottom_left', 'bottom_right', 'center', 'top_center', 'bottom_center', 'left_center', 'right_center'.")
-
-        kwargs.setdefault('ha', ha)
-        kwargs.setdefault('va', va)
-        kwargs.setdefault('fontsize', 12)
-        kwargs.setdefault('weight', 'bold')
-
-        self.fig.text(x, y, text, **kwargs)
+        draw_kwargs = {
+            'tags': tags,
+            'text': text,
+            'position': position,
+            'padding': padding,
+            **kwargs
+        }
+        self._draw_on_save_queue.append(
+            {'func': self._draw_fig_label, 'kwargs': draw_kwargs}
+        )
         return self
 
     def add_global_legend(self, tags: list = None, remove_sub_legends: bool = True, **kwargs):
@@ -940,6 +1113,9 @@ class ModifiersMixin:
         将当前图形保存到文件。
         在保存前，会先执行所有通过 `_draw_on_save_queue` 队列请求的延迟绘图操作。
         """
+        # 强制执行一次绘图，以确保所有布局都已最终确定
+        self.fig.canvas.draw()
+
         # 执行所有延迟的绘图操作
         for task in self._draw_on_save_queue:
             task['func'](**task['kwargs'])

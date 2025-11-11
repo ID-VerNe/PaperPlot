@@ -102,7 +102,7 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
 
         # 根据布局类型创建布局
         if isinstance(layout, dict):
-            self._create_nested_layout(layout)
+            self._create_nested_layout(layout, parent_spec=None, prefix='')
         elif isinstance(layout, tuple) and len(layout) == 2:
             n_rows, n_cols = layout
             for r in range(n_rows):
@@ -158,38 +158,64 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         }
         return defaults.get(plot_type, {}).copy() # 返回副本以防外部修改
 
-    def _create_nested_layout(self, layout_def: Dict):
+    def _create_nested_layout(self, layout_def: Dict, parent_spec=None, prefix=''):
         """
         [私有] 根据声明式定义，递归创建嵌套布局。
         """
-        main_layout_list = layout_def['main']
+        main_layout_list = layout_def.get('main')
+        if main_layout_list is None:
+            raise ValueError("Nested layout definition must include a 'main' key.")
+            
         subgrids_def = layout_def.get('subgrids', {})
 
         parsed_main_layout, (n_rows, n_cols) = utils.parse_mosaic_layout(main_layout_list)
-        main_gs = self.fig.add_gridspec(n_rows, n_cols)
+        
+        if parent_spec:
+            gs = GridSpecFromSubplotSpec(n_rows, n_cols, subplot_spec=parent_spec)
+        else:
+            gs = self.fig.add_gridspec(n_rows, n_cols)
 
         for name, spec in parsed_main_layout.items():
+            hierarchical_name = f"{prefix}{name}"
+            current_spec = gs[spec['row_start']:spec['row_start'] + spec['row_span'],
+                              spec['col_start']:spec['col_start'] + spec['col_span']]
+
             if name in subgrids_def:
                 subgrid_info = subgrids_def[name]
-                sub_layout_list = subgrid_info['layout']
+                sub_layout = subgrid_info['layout']
+                
+                # Pass any extra kwargs (like hspace) to the sub-grid creation
                 subgrid_kwargs = {k: v for k, v in subgrid_info.items() if k != 'layout'}
 
-                main_subplot_spec = main_gs[spec['row_start']:spec['row_start'] + spec['row_span'],
-                                    spec['col_start']:spec['col_start'] + spec['col_span']]
-
-                parsed_sub_layout, (sub_rows, sub_cols) = utils.parse_mosaic_layout(sub_layout_list)
-                sub_gs = GridSpecFromSubplotSpec(sub_rows, sub_cols, subplot_spec=main_subplot_spec, **subgrid_kwargs)
-
-                for sub_name, sub_spec in parsed_sub_layout.items():
-                    hierarchical_name = f"{name}.{sub_name}"
-                    ax = self.fig.add_subplot(sub_gs[sub_spec['row_start']:sub_spec['row_start'] + sub_spec['row_span'],
-                                              sub_spec['col_start']:sub_spec['col_start'] + sub_spec['col_span']])
-                    self.axes_dict[hierarchical_name] = ax
-                    self.axes.append(ax)
+                if isinstance(sub_layout, dict):
+                    # Recursive call for deeper nesting
+                    self._create_nested_layout(sub_layout, parent_spec=current_spec, prefix=f"{hierarchical_name}.")
+                elif isinstance(sub_layout, tuple) and len(sub_layout) == 2:
+                    # Sub-layout is a simple grid
+                    sub_rows, sub_cols = sub_layout
+                    sub_gs = GridSpecFromSubplotSpec(sub_rows, sub_cols, subplot_spec=current_spec, **subgrid_kwargs)
+                    for r in range(sub_rows):
+                        for c in range(sub_cols):
+                            sub_hierarchical_name = f"{hierarchical_name}.ax{r}{c}"
+                            ax = self.fig.add_subplot(sub_gs[r, c])
+                            self.axes_dict[sub_hierarchical_name] = ax
+                            self.axes.append(ax)
+                elif isinstance(sub_layout, list):
+                    # Sub-layout is a mosaic
+                    parsed_sub_layout, (sub_rows, sub_cols) = utils.parse_mosaic_layout(sub_layout)
+                    sub_gs = GridSpecFromSubplotSpec(sub_rows, sub_cols, subplot_spec=current_spec, **subgrid_kwargs)
+                    for sub_name, sub_spec_item in parsed_sub_layout.items():
+                        sub_hierarchical_name = f"{hierarchical_name}.{sub_name}"
+                        ax = self.fig.add_subplot(sub_gs[sub_spec_item['row_start']:sub_spec_item['row_start'] + sub_spec_item['row_span'],
+                                                  sub_spec_item['col_start']:sub_spec_item['col_start'] + sub_spec_item['col_span']])
+                        self.axes_dict[sub_hierarchical_name] = ax
+                        self.axes.append(ax)
+                else:
+                    raise TypeError(f"Unsupported subgrid layout type for '{hierarchical_name}': {type(sub_layout)}. "
+                                    "Must be a (rows, cols) tuple, a list of lists (mosaic), or a dict (nested layout).")
             else:
-                ax = self.fig.add_subplot(main_gs[spec['row_start']:spec['row_start'] + spec['row_span'],
-                                          spec['col_start']:spec['col_start'] + spec['col_span']])
-                self.axes_dict[name] = ax
+                ax = self.fig.add_subplot(current_spec)
+                self.axes_dict[hierarchical_name] = ax
                 self.axes.append(ax)
 
     def _get_ax_by_tag(self, tag: Union[str, int]) -> plt.Axes:
