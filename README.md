@@ -14,9 +14,9 @@
 *   **🧩 强大的布局系统**: 无论是简单的 `(行, 列)` 网格，还是使用 `mosaic` 实现的跨行跨列复杂布局，都能轻松定义。
 *   **🧱 声明式嵌套布局**: 通过一个字典即可一次性定义包含子网格的复杂层级布局，并使用 `'容器.子图'` 这样的直观路径进行引用，完美实现“图中图”。
 *   **📐 数据驱动的尺寸控制**: 除了传统的 `figsize`，还可以通过 `subplot_aspect` 指定子图单元格的宽高比，让 `PaperPlot` 自动计算最合适的画布尺寸，确保图表比例的专业性。
-*   **✨ 内置科研主题与调色板**: 提供多种专业美观的内置样式（如 `publication`）和调色板（如 `seaborn_deep`），一键切换图表风格和颜色方案，保证全局一致性。
+*   **✨ 内置科研主题与调色板**: 提供多种专业美观的内置样式（如 `publication`）和丰富的动漫游戏主题调色板，一键切换图表风格和颜色方案，保证全局一致性。
 *   **🌐 全局图层级标注**: 提供了在整个画布（Figure）上添加文本、线条、方框和标签的 API，非常适合添加全局注释或高亮一组图表。
-*   **🔢 子图自动编号**: 通过 `add_subplot_labels()` 方法，可以一键为所有子图添加 `(a)`, `(b)`, `(c)`... 等学术论文中常见的编号，并支持高度定制化。
+*   **🔢 子图自动编号与分组**: 通过 `add_subplot_labels()` 和 `add_grouped_labels()` 方法，可以一键为子图添加 `(a)`, `(b)`... 等学术编号，或为逻辑分组添加共享标签，并支持高度定制化。
 *   **🔗 优雅的双Y轴（Twin-Axis）**: 彻底解决了 Matplotlib 双Y轴操作繁琐的问题。通过 `add_twinx()` 进入孪生轴上下文，然后可以继续使用链式调用进行绘图和修饰，最后通过 `target_primary()` 切回主轴。
 *   **🔬 丰富的领域专用图表**: 内置了科研中常用的图表类型，如光谱图、混淆矩阵、ROC 曲线、学习曲线、分岔图、相量图等。
 *   **🔧 智能美化工具**: `cleanup()` 方法可以智能地共享坐标轴、对齐标签；`cleanup_heatmaps()` 可以为多个热图创建共享的颜色条。
@@ -85,13 +85,13 @@ df_scatter = pd.DataFrame({
 | **高级布局 (块跨越)**<br/> `Layout/block_span_example.py` | 创建一个图表，其中某个子图同时跨越多行和多列。 | `layout=[['A', 'A', 'B'], ['A', 'A', 'C']]` |
 | **固定子图宽高比**<br/> `Layout/aspect_ratio_example.py` | 通过 `subplot_aspect` 保证每个子图单元格的宽高比，Plotter 会自动计算画布大小，无需指定 `figsize`。 | `subplot_aspect=(16, 9)` |
 | **组合图与内嵌图**<br/> `Features_Customization/composite_figure_example.py` | 创建一个 L 型的复杂图表（使用 `.` 作为空白占位符），并在其中一个子图内部嵌入一张图片。 | `layout=[['A', 'A'], ['B', '.']]`<br/>`add_inset_image()` |
+| **双Y轴 (Twin-Axis)**<br/> `Layout/twinx_chaining_example.py` | 演示如何通过上下文切换，流畅地在主轴和孪生轴上进行绘图和修饰。 | `add_twinx()`, `target_primary()`, `target_twin()` |
 
 ### 功能与定制化 (Features & Customization)
 
 | 示例 | 描述 | 关键功能 |
 | :--- | :--- | :--- |
 | **多图网格**<br/> `Features_Customization/multi_plot_grid.py` | 在一个网格中通过链式调用混合绘制不同类型的图表。 | `plotter.add_...().add_...()` |
-| **双Y轴 (Twin-Axis)**<br/> `Features_Customization/feature_expansion_example.py` | 演示如何通过上下文切换，流畅地在主轴和孪生轴上进行绘图和修饰。 | `add_twinx()`, `target_primary()`, `target_twin()` |
 | **缩放嵌入图 (Zoom Inset)**<br/> `Features_Customization/zoom_inset_example.py` | 在主图上创建一个放大特定区域的嵌入式子图，并自动添加连接线。 | `add_zoom_inset()` |
 | **共享颜色条**<br/> `Features_Customization/heatmap_colorbar_example.py` | 为多个热图创建一个共享的、能反映全局数据范围的颜色条。 | `add_heatmap(cbar=False)`, `cleanup_heatmaps()` |
 | **高级定制**<br/> `Features_Customization/advanced_customization.py` | 演示如何使用 `get_ax()` "逃生舱口" 来获取原生的 Matplotlib `Axes` 对象，并添加任意 `Patch`（如椭圆）。 | `get_ax()`, `add_patch()` |
@@ -99,10 +99,14 @@ df_scatter = pd.DataFrame({
 | **智能清理**<br/> `Features_Customization/cleanup_demonstration.py` | 演示 `cleanup()` 函数如何动态地为指定行/列的子图共享 X/Y 轴，并自动隐藏多余的刻度标签。 | `cleanup(auto_share=True)` |
 | **错误处理**<br/> `Features_Customization/error_handling_test.py` | 展示 `PaperPlot` 的自定义异常，如 `DuplicateTagError`, `TagNotFoundError`, `PlottingSpaceError`。 | `try...except pp.PaperPlotError` |
 
-### 标注与高亮 (Annotation & Highlighting)
+### 标注、高亮与标签 (Annotation, Highlighting & Labeling)
 
 | 示例 | 描述 | 关键功能 |
 | :--- | :--- | :--- |
+| **自动子图标签 (马赛克)**<br/>`Labeling/example_1_auto_mosaic.py` | 自动为马赛克布局中所有已绘制的子图添加 `(a)`, `(b)` 等顺序标签。 | `add_subplot_labels()` |
+| **分组标签**<br/>`Labeling/example_2_grouped.py` | 为一组逻辑子图添加一个共享标签，并将其放置在组合边界框的外部。 | `add_grouped_labels()` |
+| **嵌套布局标签**<br/>`Labeling/example_3_nested.py` | 演示如何在复杂的嵌套布局中，为顶层和子网格内部添加不同层级的标签。 | `add_grouped_labels()`, `add_subplot_labels(tags=...)` |
+| **高度自定义标签**<br/>`Labeling/example_4_custom.py` | 展示子图标签的丰富定制选项，包括样式、模板、颜色、字体和位置。 | `add_subplot_labels(...)` |
 | **画布级标注**<br/>`Features_Customization/fig_annotation_example.py`| 演示添加跨越多个子图的画布级注解，如方框、标签和线条。| `fig_add_box()`, `fig_add_label()`, `fig_add_line()`, `fig_add_text()`|
 | **区域高亮**<br/>`Features_Customization/highlighting_example.py` | 展示如何在子图内部高亮特定的数据区域，并为整个图表添加边框。| `add_highlight_box()`, `fig_add_boundary_box()` |
 | **通用工具函数**<br/> `Data_Analysis_Utils/utility_functions_example.py` | 展示更多通用的修饰函数，如在高光谱上高亮特征峰和在时间序列上标记事件。 | `add_peak_highlights()`, `add_event_markers()` |
