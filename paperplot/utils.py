@@ -1,7 +1,8 @@
 # paperplot/utils.py
 
 import os
-from typing import Optional, Union
+import glob
+from typing import Optional, Union, List
 import pandas as pd
 
 
@@ -26,6 +27,27 @@ def get_style_path(style_name: str) -> str:
         except (ImportError, FileNotFoundError):
             raise FileNotFoundError(f"Style '{style_name}' not found as a file or package resource.")
     return style_path
+
+
+def list_available_styles() -> List[str]:
+    """
+    列出 paperplot/styles 目录下所有可用的样式名称。
+
+    Returns:
+        List[str]: 样式名称列表 (不包含 .mplstyle 扩展名)。
+    """
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    styles_dir = os.path.join(current_dir, 'styles')
+    
+    styles = []
+    # 使用 glob 查找所有 .mplstyle 文件
+    # 注意：这里使用 os.path.join 来构建路径，确保跨平台兼容性
+    for style_file in glob.glob(os.path.join(styles_dir, '*.mplstyle')):
+        # 获取文件名，并移除 .mplstyle 扩展名
+        style_name = os.path.basename(style_file).replace('.mplstyle', '')
+        styles.append(style_name)
+        
+    return styles
 
 
 def parse_mosaic_layout(layout: list[list[str]]) -> tuple[dict, tuple[int, int]]:

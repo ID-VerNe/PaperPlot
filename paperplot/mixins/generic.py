@@ -1,10 +1,12 @@
 # paperplot/mixins/generic.py
-
+import colorsys
 from typing import Optional, Union, List, Callable
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.colors import LinearSegmentedColormap
+
 from ..exceptions import DuplicateTagError
 from ..utils import _data_to_dataframe
 
@@ -127,21 +129,51 @@ class GenericPlotsMixin:
     def add_heatmap(self, **kwargs) -> 'Plotter':
         """
         在子图上绘制热图 (封装 `seaborn.heatmap`)。
-        此方法要求输入为DataFrame。
+        此方法会自动检测当前样式中的调色板，并用其创建一个匹配的
+        连续色图(Colormap)，除非用户手动指定了 `cmap` 参数。
+        新的版本会自动将调色板中的颜色按亮度排序，以创建
+        一个视觉上更直观的颜色梯度。
         """
+
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            # 智能匹配 cmap 的逻辑
+            if 'cmap' not in p_kwargs:
+                try:
+                    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+                    if colors:
+                        def get_lightness(hex_color):
+                            try:
+                                hex_color = hex_color.lstrip('#')
+                                if len(hex_color) == 3:
+                                    hex_color = "".join([c * 2 for c in hex_color])
+                                rgb_normalized = tuple(int(hex_color[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+                                return colorsys.rgb_to_hls(*rgb_normalized)[1]
+                            except Exception:
+                                return 0
+
+                        sorted_colors = sorted(colors, key=get_lightness)
+
+                        custom_cmap = LinearSegmentedColormap.from_list(
+                            "custom_style_cmap_sorted", sorted_colors
+                        )
+                        p_kwargs['cmap'] = custom_cmap
+                except (KeyError, IndexError):
+                    pass
+
+            # --- 错误修正：将以下代码块移入 plot_logic 函数内部 ---
             create_cbar = p_kwargs.pop('cbar', True)
             sns.heatmap(cache_df, ax=ax, cbar=create_cbar, **p_kwargs)
 
             if hasattr(ax, 'collections') and ax.collections:
                 return ax.collections[0]
             return None
+            # --- 修正结束 ---
 
-        # 对于 heatmap, data_keys 是空的，因为我们直接使用传入的 data DataFrame
+        # _execute_plot 的调用保持不变
         return self._execute_plot(
             plot_func=plot_logic,
             data_keys=[],
-            plot_defaults_key=None, # 热图有自己的样式逻辑
+            plot_defaults_key=None,
             **kwargs
         )
 

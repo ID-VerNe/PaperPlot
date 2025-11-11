@@ -25,7 +25,7 @@ from .mixins.stats_modifiers import StatsModifiersMixin
 class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, MachineLearningPlotsMixin, 
               DataAnalysisPlotsMixin, StatsPlotsMixin, StatsModifiersMixin, ModifiersMixin):
     def __init__(self, layout: Union[Tuple[int, int], List[List[str]]],
-                 style: str = 'publication',
+                 style: str = 'marin_kitagawa',
                  figsize: Optional[Tuple[float, float]] = None,
                  subplot_aspect: Optional[Tuple[float, float]] = None,
                  ax_configs: Optional[Dict[Union[str, Tuple[int, int]], Dict]] = None,
