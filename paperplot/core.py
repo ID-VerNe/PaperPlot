@@ -135,6 +135,11 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         self.last_active_tag: Optional[Union[str, int]] = None
         # 用于缓存每个子图使用的数据
         self.data_cache: Dict[Union[str, int], pd.DataFrame] = {}
+        
+        # 存储已创建的孪生轴
+        self.twin_axes: Dict[Union[str, int], plt.Axes] = {}
+        # 标记当前的活动目标是主轴还是孪生轴
+        self.active_target: str = 'primary' # 默认是 'primary'
 
         self.plotted_axes: set[plt.Axes] = set()
 
@@ -223,6 +228,16 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         active_tag = tag if tag is not None else self.last_active_tag
         if active_tag is None:
             raise ValueError("操作失败。之前没有任何绘图操作，且未指定'tag'。")
+        
+        # 新增: 检查是否处于孪生轴上下文
+        if self.active_target == 'twin':
+            if active_tag in self.twin_axes:
+                return self.twin_axes[active_tag]
+            else:
+                # 如果用户尝试在没有孪生轴的图上操作，给出清晰的错误提示
+                raise ValueError(f"No twin axis found for tag '{active_tag}'. Did you call add_twinx() first?")
+        
+        # 如果 active_target 不是 'twin'，则执行原有逻辑
         return self._get_ax_by_tag(active_tag)
 
     def _resolve_ax_and_tag(self, tag: Optional[Union[str, int]] = None, ax: Optional[plt.Axes] = None) -> Tuple[plt.Axes, Union[str, int]]:
@@ -249,6 +264,36 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
             DuplicateTagError: 如果提供的新`tag`已存在但未在优先级2中被解析
                                (例如，在顺序模式下)。
         """
+        # 检查是否处于孪生轴上下文
+        if self.active_target == 'twin':
+            # 在孪生轴模式下，绘图总是发生在“最后一个活动主轴”对应的孪生轴上
+            active_primary_tag = self.last_active_tag
+            if active_primary_tag is None:
+                raise ValueError("Twin mode is active, but no primary plot context is set. Please plot on a primary axis first.")
+            
+            if active_primary_tag not in self.twin_axes:
+                raise ValueError(f"Twin mode is active for tag '{active_primary_tag}', but no twin axis exists. Did you call add_twinx()?")
+
+            # 获取孪生轴对象
+            _ax = self.twin_axes[active_primary_tag]
+            
+            # 决定此图的 tag：优先使用用户传入的 tag，否则复用主轴的 tag
+            resolved_tag = tag if tag is not None else active_primary_tag
+
+            # 如果用户提供了新的 tag，必须检查它是否已存在，并进行注册
+            if tag is not None:
+                if tag in self.tag_to_ax and self.tag_to_ax[tag] is not _ax:
+                    # 如果 tag 已存在且指向的不是当前这个孪生轴，则为重复
+                    raise DuplicateTagError(tag)
+                
+                # 将新 tag 与这个孪生轴关联起来
+                self.tag_to_ax[tag] = _ax
+            
+            # 将这个孪生轴标记为已绘图（如果需要）
+            self.plotted_axes.add(_ax)
+            
+            return _ax, resolved_tag
+
         _ax: plt.Axes
         resolved_tag: Union[str, int]
 

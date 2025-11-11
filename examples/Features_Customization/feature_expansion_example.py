@@ -33,22 +33,30 @@ try:
 
     # --- 左侧子图：双Y轴示例 ---
     # 1. 绘制主Y轴（温度）
-    plotter.add_line(
-        data=df_temp, x='time', y='temperature', tag='weather_plot', label='Temperature (°C)', color='red'
-    ).set_title('Hourly Weather Data'
-    ).set_xlabel('Time (hours)'
-    ).set_ylabel('Temperature (°C)', color='red'
-    ).tick_params(axis='y', labelcolor='red')
+    (
+        plotter.add_line(
+        data=df_temp, x='time', y='temperature', tag='weather_plot', label='Temperature (°C)', color='red')
+     .set_title('Hourly Weather Data')
+     .set_xlabel('Time (hours)')
+     .set_ylabel('Temperature (°C)', color='red')
+     .tick_params(axis='y', labelcolor='red')
 
-    # 2. 创建twinx轴并绘制次Y轴（降雨量）
-    ax2 = plotter.add_twinx('weather_plot')
-    ax2.bar(df_rain['time'], df_rain['rainfall'], width=0.8, alpha=0.3, color='blue', label='Rainfall (mm)')
-    ax2.set_ylabel('Rainfall (mm)', color='blue')
-    ax2.tick_params(axis='y', labelcolor='blue')
+     # --- 切换到孪生轴上下文 ---
+     .add_twinx()  # 从这里开始，所有命令都作用于孪生轴
 
-    # 3. 添加参考线和文本
-    plotter.add_hline(y=25, linestyle='--', color='red', label='Avg Temp', tag='weather_plot')
-    plotter.add_text(x=12, y=26, text='High Temp Zone', color='red', ha='center', tag='weather_plot')
+     # --- 在孪生轴上绘图和设置 ---
+     .add_bar(x=df_rain['time'], y=df_rain['rainfall'], width=0.8, alpha=0.3, color='blue', label='Rainfall (mm)')
+     .set_ylabel('Rainfall (mm)', color='blue')
+     .tick_params(axis='y', labelcolor='blue')
+
+     # --- 关键步骤：切回主轴上下文 ---
+     .target_primary()
+
+     # --- 现在可以在主轴上继续添加修饰 ---
+     .add_hline(y=25, linestyle='--', color='red', label='Avg Temp')
+     .add_text(x=22, y=26, text='High Temp Zone', color='red', ha='center')
+     )  # 链式调用在这里结束
+
 
     # 4. 添加一个Patch (例如，一个表示夜间的矩形)
     night_rect = Rectangle((20, 0), 4, 30, facecolor='gray', alpha=0.2, transform=plotter.get_ax('weather_plot').transData)

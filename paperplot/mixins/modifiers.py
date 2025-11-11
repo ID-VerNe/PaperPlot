@@ -6,6 +6,7 @@ import matplotlib.image as mpimg
 import logging
 import numpy as np
 from adjustText import adjust_text
+from collections import OrderedDict
 logger = logging.getLogger(__name__)
 
 class ModifiersMixin:
@@ -151,6 +152,7 @@ class ModifiersMixin:
     def set_legend(self, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
         为指定或当前活动的子图添加图例。
+        此方法能够自动处理双Y轴（twinx）图，合并主轴和孪生轴的图例项。
 
         Args:
             tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
@@ -159,8 +161,33 @@ class ModifiersMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        ax = self._get_active_ax(tag)
-        ax.legend(**kwargs)
+        active_tag = tag if tag is not None else self.last_active_tag
+        if active_tag is None:
+            raise ValueError("No active plot to add a legend to. Please plot something first or specify a 'tag'.")
+
+        # 1. 获取主轴并收集其图例项
+        ax_primary = self._get_ax_by_tag(active_tag)
+        h1, l1 = ax_primary.get_legend_handles_labels()
+
+        # 2. 检查是否存在孪生轴，并收集其图例项
+        h2, l2 = [], []
+        if active_tag in self.twin_axes:
+            ax_twin = self.twin_axes[active_tag]
+            h2, l2 = ax_twin.get_legend_handles_labels()
+            if ax_twin.get_legend():
+                ax_twin.get_legend().remove() # 清理孪生轴上可能存在的旧图例
+
+        # 3. 合并并使用 OrderedDict 去重
+        handles = h1 + h2
+        labels = l1 + l2
+        if not handles: # 如果没有任何图例项，直接返回
+            return self
+            
+        by_label = OrderedDict(zip(labels, handles))
+        
+        # 4. 在主轴上创建统一的图例
+        ax_primary.legend(by_label.values(), by_label.keys(), **kwargs)
+        
         return self
 
     def set_suptitle(self, title: str, **kwargs):
@@ -408,20 +435,91 @@ class ModifiersMixin:
         
         return self
 
-    def add_twinx(self, tag: Optional[Union[str, int]] = None, **kwargs) -> plt.Axes:
+    def add_twinx(self, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
-        为指定或当前活动的子图创建一个共享X轴但拥有独立Y轴的“双Y轴”图。
+        为指定或当前活动的子图创建一个共享X轴但拥有独立Y轴的“双Y轴”图，
+        并切换Plotter的活动目标到新创建的孪生轴，以支持链式调用。
 
         Args:
             tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
             **kwargs: 传递给 `ax.twinx` 的其他参数。
 
         Returns:
-            plt.Axes: 返回新创建的孪生Axes对象，可用于后续绘图。
+            Plotter: 返回Plotter实例以支持链式调用。
+
+        Warning:
+            调用此方法后，Plotter会进入“孪生轴模式”。所有后续的绘图和修饰
+            命令都将作用于新创建的孪生轴。若要返回操作主轴或切换到其他
+            子图，必须显式调用 :meth:`target_primary` 方法。
         """
-        ax1 = self._get_active_ax(tag)
+        active_tag = tag if tag is not None else self.last_active_tag
+        if active_tag is None:
+            raise ValueError("Cannot create twin axis: No active plot found.")
+            
+        if active_tag in self.twin_axes:
+            raise ValueError(f"Tag '{active_tag}' already has a twin axis. Cannot create another one.")
+
+        # 始终获取主轴，避免在孪生轴上创建孪生轴的错误
+        ax1 = self._get_ax_by_tag(active_tag)
         ax2 = ax1.twinx(**kwargs)
-        return ax2
+        
+        # 存储孪生轴并切换上下文
+        self.twin_axes[active_tag] = ax2
+        self.active_target = 'twin'
+        
+        return self
+
+    def target_primary(self, tag: Optional[Union[str, int]] = None) -> 'Plotter':
+        """
+        将后续操作的目标切换回主坐标轴（primary axis）。
+
+        Args:
+            tag (Optional[Union[str, int]], optional): 
+                如果提供，将确保 `last_active_tag` 指向该主轴，并切换上下文。
+                如果为None，则只切换上下文到 'primary'。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        self.active_target = 'primary'
+        if tag is not None:
+            # 确保 last_active_tag 指向的是我们想操作的主轴
+            # _get_ax_by_tag 会隐式校验tag存在性
+            _ = self._get_ax_by_tag(tag) 
+            self.last_active_tag = tag
+        return self
+
+    def target_twin(self, tag: Optional[Union[str, int]] = None) -> 'Plotter':
+        """
+        将后续操作的目标切换到孪生坐标轴（twin axis）。
+
+        Args:
+            tag (Optional[Union[str, int]], optional): 
+                如果提供，将确保 `last_active_tag` 指向该主轴，并切换上下文。
+                如果为None，则只切换上下文到 'twin'，使用当前的 `last_active_tag`。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+
+        Raises:
+            ValueError: 如果在没有孪生轴的子图上尝试切换到 'twin' 模式。
+        """
+        self.active_target = 'twin'
+        
+        active_tag = tag if tag is not None else self.last_active_tag
+        if active_tag is None:
+            raise ValueError("Cannot switch to twin mode: No active plot found and no tag specified.")
+
+        if active_tag not in self.twin_axes:
+            raise ValueError(f"Cannot switch to twin mode for tag '{active_tag}': No twin axis found. Did you call add_twinx() first?")
+
+        # 如果提供了 tag，更新 last_active_tag
+        if tag is not None:
+            # 确保 tag 对应的主轴存在
+            _ = self._get_ax_by_tag(tag)
+            self.last_active_tag = tag
+            
+        return self
 
     def add_hline(self, y: float, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
         """
