@@ -10,65 +10,62 @@ class StatsPlotsMixin:
     """
     包含基于Seaborn的统计绘图方法的 Mixin 类。
     """
-    def add_violin(self, data: pd.DataFrame, x: str, y: str,
-                   tag: Optional[Union[str, int]] = None, ax: Optional[plt.Axes] = None, **kwargs) -> 'Plotter':
+    def add_violin(self, **kwargs) -> 'Plotter':
         """
-        在子图上绘制小提琴图。
-
-        Args:
-            data (pd.DataFrame): 包含绘图数据的数据框。
-            x (str): X轴数据的列名。
-            y (str): Y轴数据的列名。
-            tag (Optional[Union[str, int]], optional): 目标子图的tag。默认为None。
-            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象进行绘图。默认为None。
-            **kwargs: 其他传递给 `seaborn.violinplot` 的关键字参数。
+        在子图上绘制小提琴图 (封装 `seaborn.violinplot`)。
+        所有参数通过 `kwargs` 传入。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        _ax, resolved_tag = self._resolve_ax_and_tag(tag, ax)
-        sns.violinplot(data=data, x=x, y=y, ax=_ax, **kwargs)
-        self.data_cache[resolved_tag] = data
-        self.last_active_tag = resolved_tag
-        return self
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            hue_col = data_names.get('hue') 
+            sns.violinplot(data=cache_df, x=data_names['x'], y=data_names['y'], hue=hue_col, ax=ax, **p_kwargs)
+            return None # 小提琴图不返回 mappable
 
-    def add_swarm(self, data: pd.DataFrame, x: str, y: str,
-                  tag: Optional[Union[str, int]] = None, ax: Optional[plt.Axes] = None, **kwargs) -> 'Plotter':
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=['x', 'y', 'hue'],
+            plot_defaults_key=None,
+            **kwargs
+        )
+
+    def add_swarm(self, **kwargs) -> 'Plotter':
         """
-        在子图上绘制蜂群图。
-
-        Args:
-            data (pd.DataFrame): 包含绘图数据的数据框。
-            x (str): X轴数据的列名。
-            y (str): Y轴数据的列名。
-            tag (Optional[Union[str, int]], optional): 目标子图的tag。默认为None。
-            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象进行绘图。默认为None。
-            **kwargs: 其他传递给 `seaborn.swarmplot` 的关键字参数。
+        在子图上绘制蜂群图 (封装 `seaborn.swarmplot`)。
+        所有参数通过 `kwargs` 传入。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        _ax, resolved_tag = self._resolve_ax_and_tag(tag, ax)
-        sns.swarmplot(data=data, x=x, y=y, ax=_ax, **kwargs)
-        self.data_cache[resolved_tag] = data
-        self.last_active_tag = resolved_tag
-        return self
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            hue_col = data_names.get('hue')
+            sns.swarmplot(data=cache_df, x=data_names['x'], y=data_names['y'], hue=hue_col, ax=ax, **p_kwargs)
+            return None
 
-    def add_joint(self, data: pd.DataFrame, x: str, y: str, **kwargs) -> 'Plotter':
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=['x', 'y', 'hue'],
+            plot_defaults_key=None,
+            **kwargs
+        )
+
+    def add_joint(self, **kwargs) -> 'Plotter':
         """
         绘制一个联合分布图，它会占据整个画布。
+        所有参数通过 `kwargs` 传入。
         
         警告：此方法会清除画布上所有现有的子图。
 
-        Args:
-            data (pd.DataFrame): 包含绘图数据的数据框。
-            x (str): X轴数据的列名。
-            y (str): Y轴数据的列名。
-            **kwargs: 其他传递给 `seaborn.jointplot` 的关键字参数。
+        必需参数: `data`, `x`, `y`。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
+        data = kwargs.pop('data')
+        x = kwargs.pop('x')
+        y = kwargs.pop('y')
+
         if self.axes:
             self.fig.clf() # 清除整个画布
             self.axes.clear()
@@ -88,19 +85,20 @@ class StatsPlotsMixin:
         
         return self
 
-    def add_pair(self, data: pd.DataFrame, **kwargs) -> 'Plotter':
+    def add_pair(self, **kwargs) -> 'Plotter':
         """
         绘制一个展示数据集中成对关系图，它会占据整个画布。
+        所有参数通过 `kwargs` 传入。
 
         警告：此方法会清除画布上所有现有的子图。
 
-        Args:
-            data (pd.DataFrame): 包含绘图数据的数据框。
-            **kwargs: 其他传递给 `seaborn.pairplot` 的关键字参数。
+        必需参数: `data`。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
+        data = kwargs.pop('data')
+
         if self.axes:
             self.fig.clf()
             self.axes.clear()

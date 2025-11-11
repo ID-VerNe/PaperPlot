@@ -33,7 +33,7 @@ finally:
 print("\n--- Test 2: Catching TagNotFoundError ---")
 try:
     plotter = pp.Plotter(layout=(1, 1))
-    plotter.add_line(pd.DataFrame({'t': [0], 'v': [0]}), x='t', y='v', tag='actual_tag')
+    plotter.add_line(data=pd.DataFrame({'t': [0], 'v': [0]}), x='t', y='v', tag='actual_tag')
     print("Plot with tag 'actual_tag' added successfully.")
     
     # 故意使用一个不存在的tag

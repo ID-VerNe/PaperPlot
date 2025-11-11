@@ -48,7 +48,7 @@ try:
         .set_suptitle("3D Plotting Demonstration", fontsize=16, weight='bold')
 
         # --- 左图: 3D线图 ---
-        .add_line3d(df_lorenz, x='x', y='y', z='z', tag='lorenz', alpha=0.7)
+        .add_line3d(data=df_lorenz, x='x', y='y', z='z', tag='lorenz', alpha=0.7)
         .set_title("3D Line Plot (Lorenz Attractor)")
         .set_xlabel("X Axis")
         .set_ylabel("Y Axis")
@@ -56,7 +56,7 @@ try:
         .view_init(elev=20, azim=-60) # 设置观察角度
 
         # --- 右图: 3D表面图 ---
-        .add_surface(X, Y, Z, tag='surface', cmap='viridis')
+        .add_surface(X=X, Y=Y, Z=Z, tag='surface', cmap='viridis')
         .set_title("3D Surface Plot")
         .set_xlabel("X")
         .set_ylabel("Y")

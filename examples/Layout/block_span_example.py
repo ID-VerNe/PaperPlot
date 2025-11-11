@@ -87,4 +87,4 @@ finally:
     plt.close('all')
 
 print(f"\n--- Finished Example: {__file__} ---")
-print("A new file 'block_span_figure_fixed.png' was generated.")
+print("A new file 'block_span_figure.png' was generated.")

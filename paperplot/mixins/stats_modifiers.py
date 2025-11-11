@@ -21,12 +21,7 @@ class StatsModifiersMixin:
     """
     包含用于在图表上添加统计标注的 Mixin 类。
     """
-    def add_stat_test(self, x: str, y: str, group1: str, group2: str,
-                      test: str = 't-test_ind', 
-                      text_offset: float = 0.1, 
-                      y_level: Optional[float] = None,
-                      tag: Optional[Union[str, int]] = None,
-                      **kwargs) -> 'Plotter':
+    def add_stat_test(self, **kwargs) -> 'Plotter':
         """
         在两组数据之间自动进行统计检验，并在图上标注显著性。
         此方法会自动从缓存中获取当前子图使用的数据。
@@ -48,6 +43,16 @@ class StatsModifiersMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
+        # 从 kwargs 中提取参数
+        x = kwargs.pop('x')
+        y = kwargs.pop('y')
+        group1 = kwargs.pop('group1')
+        group2 = kwargs.pop('group2')
+        test = kwargs.pop('test', 't-test_ind')
+        text_offset = kwargs.pop('text_offset', 0.1)
+        y_level = kwargs.pop('y_level', None)
+        tag = kwargs.pop('tag', None)
+
         ax = self._get_active_ax(tag)
         active_tag = tag if tag is not None else self.last_active_tag
         
@@ -58,6 +63,32 @@ class StatsModifiersMixin:
 
         group1_str = str(group1)
         group2_str = str(group2)
+
+        # 提前构建标签到位置的映射和前置校验 (Bug 2 修复)
+        # Get the positions of the categories on the x-axis
+        # This is more robust for categorical axes than relying on xtick_labels.index
+        x_tick_positions = ax.get_xticks()
+        x_tick_labels_obj = ax.get_xticklabels()
+        
+        # Create a mapping from label text to its numerical position
+        label_to_pos = {}
+        for label, pos in zip(x_tick_labels_obj, x_tick_positions):
+            text = str(label.get_text()) # Explicitly convert to string to ensure hashability
+            label_to_pos[text] = pos
+
+        # 显式的前置校验
+        if group1_str not in label_to_pos:
+            raise ValueError(
+                f"组 '{group1_str}' 在X轴刻度标签中未找到。可用标签: {list(label_to_pos.keys())}"
+            )
+        if group2_str not in label_to_pos:
+            raise ValueError(
+                f"组 '{group2_str}' 在X轴刻度标签中未找到。可用标签: {list(label_to_pos.keys())}"
+            )
+
+        # 直接获取位置 (因为我们已经确认它们存在)
+        x1_pos = label_to_pos[group1_str]
+        x2_pos = label_to_pos[group2_str]
 
         # Ensure the column used for comparison is of a hashable type (e.g., string or category)
         # This is a defensive measure against potential issues with object dtypes containing lists
@@ -76,23 +107,6 @@ class StatsModifiersMixin:
         p_text = _p_to_stars(p_value)
         if not p_text or p_text == 'ns':
             return self
-
-        # Get the positions of the categories on the x-axis
-        # This is more robust for categorical axes than relying on xtick_labels.index
-        x_tick_positions = ax.get_xticks()
-        x_tick_labels_obj = ax.get_xticklabels()
-        
-        # Create a mapping from label text to its numerical position
-        label_to_pos = {}
-        for label, pos in zip(x_tick_labels_obj, x_tick_positions):
-            text = str(label.get_text()) # Explicitly convert to string to ensure hashability
-            label_to_pos[text] = pos
-
-        try:
-            x1_pos = label_to_pos[group1_str]
-            x2_pos = label_to_pos[group2_str]
-        except KeyError:
-            raise ValueError(f"组 '{group1_str}' 或 '{group2_str}' 在X轴刻度标签中未找到。可用标签: {list(label_to_pos.keys())}")
 
         if y_level is None:
             y_max = max(data1.max(), data2.max())
@@ -116,13 +130,10 @@ class StatsModifiersMixin:
         
         return self
 
-    def add_pairwise_tests(self, x: str, y: str, comparisons: list[tuple],
-                           test: str = 't-test_ind', 
-                           text_offset_factor: float = 0.05,
-                           tag: Optional[Union[str, int]] = None,
-                           **kwargs) -> 'Plotter':
+    def add_pairwise_tests(self, **kwargs) -> 'Plotter':
         """
         执行多组统计比较，并在图上标注显著性，智能堆叠标注线。
+        所有参数通过 `kwargs` 传入。
 
         Args:
             x (str): 分组变量的列名。
@@ -136,6 +147,17 @@ class StatsModifiersMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
+        # 从 kwargs 中提取参数
+        x = kwargs.pop('x')
+        y = kwargs.pop('y')
+        comparisons = kwargs.pop('comparisons')
+        test = kwargs.pop('test', 't-test_ind')
+        text_offset_factor = kwargs.pop('text_offset_factor', 0.05)
+        tag = kwargs.pop('tag', None)
+        
+        # 复制剩余的 kwargs，因为它们需要传递给 add_stat_test
+        stat_test_kwargs = kwargs.copy()
+
         ax = self._get_active_ax(tag)
         active_tag = tag if tag is not None else self.last_active_tag
         
@@ -150,14 +172,18 @@ class StatsModifiersMixin:
         current_y_level = all_groups_max_y + y_range * text_offset_factor
 
         for group1, group2 in comparisons:
-            self.add_stat_test(
-                x=x, y=y,
-                group1=group1, group2=group2,
-                test=test,
-                y_level=current_y_level,
-                tag=active_tag,
-                **kwargs
-            )
+            # 准备传递给 add_stat_test 的参数
+            stat_test_params = {
+                'x': x, 'y': y,
+                'group1': group1, 'group2': group2,
+                'test': test,
+                'y_level': current_y_level,
+                'tag': active_tag,
+                **stat_test_kwargs
+            }
+            
+            self.add_stat_test(**stat_test_params)
+            
             # 更新下一个标注的Y位置
             if hasattr(self, '_last_stat_y'):
                 current_y_level = self._last_stat_y + y_range * text_offset_factor

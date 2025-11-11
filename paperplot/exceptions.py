@@ -1,5 +1,7 @@
 # paperplot/exceptions.py
 
+from typing import Optional
+
 class PaperPlotError(Exception):
     """PaperPlot 库的基础异常。"""
     pass
@@ -15,13 +17,14 @@ class TagNotFoundError(PaperPlotError):
         super().__init__(message)
 
 class DuplicateTagError(PaperPlotError):
-    """当尝试使用一个已经存在的 tag 时抛出。"""
-    def __init__(self, tag):
-        message = (
-            f"Tag '{tag}' is already in use. \n"
-            f"Error Cause: You tried to assign a tag to a new plot, but that tag is already associated with another plot. \n"
-            f"How to fix: Tags must be unique. Please choose a different tag."
-        )
+    """当尝试使用一个已经存在的 tag 或子图位置已被占用时抛出。"""
+    def __init__(self, tag, message: Optional[str] = None):
+        if message is None:
+            message = (
+                f"Tag '{tag}' is already in use. \n"
+                f"Error Cause: You tried to assign a tag to a new plot, but that tag is already associated with another plot. \n"
+                f"How to fix: Tags must be unique. Please choose a different tag."
+            )
         super().__init__(message)
 
 class PlottingSpaceError(PaperPlotError):

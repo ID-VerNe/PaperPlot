@@ -23,6 +23,7 @@ df_scatter = pd.DataFrame({
 })
 # 定义高亮条件：p-value < 0.05
 highlight_condition = df_scatter['p_value'] < 0.05
+df_scatter['is_significant'] = highlight_condition
 
 
 # --- 2. 创建绘图 ---
@@ -54,7 +55,7 @@ try:
         data=df_scatter,
         x='x',
         y='y',
-        condition=highlight_condition,
+        condition='is_significant',
         tag='highlight',
         ax=plotter.get_ax_by_name('ax01'),
         label_normal='p >= 0.05',

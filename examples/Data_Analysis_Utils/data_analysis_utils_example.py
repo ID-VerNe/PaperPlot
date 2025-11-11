@@ -27,16 +27,16 @@ try:
         .set_suptitle("Data Analysis Utilities (New API)", fontsize=16, weight='bold')
 
         # --- 左图: 分布拟合 ---
-        .add_hist(df_dist, x='value', tag='dist', bins=30, density=True, alpha=0.6, color='skyblue', label='Data Histogram')
-        .add_distribution_fit(df_dist['value'], dist_name='norm', color='red', linestyle='--', lw=2, tag='dist')
+        .add_hist(data=df_dist, x='value', tag='dist', bins=30, density=True, alpha=0.6, color='skyblue', label='Data Histogram')
+        .add_distribution_fit(data=df_dist, x='value', dist_name='norm', color='red', linestyle='--', lw=2, tag='dist')
         .set_title("add_distribution_fit() Example", tag='dist')
         .set_xlabel("Value", tag='dist')
         .set_ylabel("Density", tag='dist')
         .set_legend(tag='dist')
 
         # --- 右图: 数据分箱 ---
-        .add_scatter(df_bin, x='x', y='y', tag='bin', alpha=0.3, label='Raw Data')
-        .add_binned_plot(df_bin, x='x', y='y', bins=5, plot_type='errorbar',
+        .add_scatter(data=df_bin, x='x', y='y', tag='bin', alpha=0.3, label='Raw Data')
+        .add_binned_plot(data=df_bin, x='x', y='y', bins=5, plot_type='errorbar',
                          color='green', fmt='-o', capsize=5, label='Binned Data (Mean ± Std)', tag='bin')
         .set_title("add_binned_plot() Example", tag='bin')
         .set_xlabel("X Value", tag='bin')

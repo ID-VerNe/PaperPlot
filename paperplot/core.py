@@ -270,9 +270,10 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
                     self.next_default_tag += 1
 
         # 模式2: 提供了已存在的tag (无论是来自布局还是动态创建)
-        elif tag is not None and tag in self.tag_to_ax:  # <--- 这是关键的修正！
+        elif tag is not None and tag in self.tag_to_ax:
             _ax = self.tag_to_ax[tag]
             resolved_tag = tag
+            # 移除对已存在 tag 的子图占用检查，允许叠加绘图。
 
         # 模式3: 顺序模式 (寻找下一个未被占用的ax)
         else:
@@ -335,7 +336,12 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
             
             # 创建一个仅包含所需列的DataFrame用于缓存
             used_columns = list(kwargs.values())
-            cache_df = data[used_columns]
+            
+            if used_columns:
+                cache_df = data[used_columns]
+            else:
+                # 如果没有指定数据列（例如 add_heatmap），则缓存整个 DataFrame
+                cache_df = data
             
             return data_series, cache_df
             
@@ -348,6 +354,71 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
             
         else:
             raise TypeError(f"The 'data' argument must be a pandas DataFrame or None, but got {type(data)}.")
+
+    def _execute_plot(self, plot_func: Callable, data_keys: List[str], 
+                        plot_defaults_key: Optional[str], **kwargs):
+        """
+        [私有] 封装和执行标准绘图工作流的核心方法。
+
+        该方法负责处理所有绘图方法共有的重复逻辑，包括：
+        1. 解析目标子图 (`_resolve_ax_and_tag`)。
+        2. 从用户参数中分离出数据列名/数据系列。
+        3. 准备数据 (`_prepare_data`)，统一为 `data_map` 和 `cache_df`。
+        4. 合并默认样式和用户自定义样式。
+        5. 调用具体的绘图逻辑 (`plot_func`)。
+        6. 缓存 Mappable 对象和数据。
+        7. 更新活动状态。
+
+        Args:
+            plot_func (Callable): 具体的绘图函数。签名必须为 
+                                  `plot_func(ax, data_map, cache_df, data_names, **p_kwargs)`，
+                                  并返回一个 `mappable` 对象或 `None`。
+            data_keys (List[str]): 需要从用户参数中提取并准备的数据键列表 (例如 ['x', 'y', 'hue'])。
+            plot_defaults_key (Optional[str]): 用于获取默认样式的键 (例如 'line', 'scatter')。
+            **kwargs: 转发自调用方法的全部关键字参数，包括 `data`, `tag`, `ax` 和绘图样式。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        # 从 kwargs 中提取核心参数
+        data = kwargs.pop('data', None)
+        tag = kwargs.pop('tag', None)
+        ax = kwargs.pop('ax', None)
+
+        # 步骤 1: 解析子图
+        _ax, resolved_tag = self._resolve_ax_and_tag(tag, ax)
+
+        # 步骤 2: 分离数据准备参数
+        data_prep_kwargs = {}
+        for key in data_keys:
+            if key in kwargs:
+                data_prep_kwargs[key] = kwargs.pop(key)
+        
+        # 步骤 3: 准备数据
+        data_map, cache_df = self._prepare_data(data=data, **data_prep_kwargs)
+
+        # 步骤 4: 合并样式
+        final_kwargs = kwargs
+        if plot_defaults_key:
+            defaults = self._get_plot_defaults(plot_defaults_key)
+            final_kwargs = {**defaults, **kwargs}
+
+        # 步骤 5: 执行绘图
+        mappable = plot_func(_ax, data_map, cache_df, data_prep_kwargs, **final_kwargs)
+
+        # 步骤 6: 缓存 Mappable
+        if mappable is not None:
+            self.tag_to_mappable[resolved_tag] = mappable
+
+        # 步骤 7: 缓存数据
+        if cache_df is not None and not cache_df.empty:
+            self.data_cache[resolved_tag] = cache_df
+
+        # 步骤 8: 更新状态
+        self.last_active_tag = resolved_tag
+
+        # 步骤 9: 返回实例
+        return self
 
     def get_ax(self, tag: Union[str, int]) -> plt.Axes:
         """
