@@ -24,7 +24,7 @@ groups = {
 plotter.add_grouped_labels(groups=groups, position='top_left', fontsize=16)
 
 # 5. 添加标题并保存
-plotter.set_suptitle("FR3: Logically Grouped Labels", fontsize=16, weight='bold')
+# plotter.set_suptitle("FR3: Logically Grouped Labels", fontsize=16, weight='bold')
 plotter.save("example_2_grouped.png")
 
 print("Generated example_2_grouped.png")
