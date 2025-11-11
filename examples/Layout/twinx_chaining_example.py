@@ -52,12 +52,10 @@ plotter = pp.Plotter(layout=(1, 1), figsize=(8, 5))
     .target_primary(tag='weather_plot') # 切换回主轴
     # --- 5. 收尾工作 ---
     # set_legend 会自动收集主轴和孪生轴的图例项并合并
-    .set_legend(loc='upper left') 
-
+    .set_legend(loc='upper left')
 )
 
 night_rect = Rectangle((20, 0), 4, 30, facecolor='gray', alpha=0.2, transform=plotter.get_ax('weather_plot').transData)
 plotter.add_patch(night_rect, tag='weather_plot').save("twinx_chaining_example.png")
 
-
-print("examples/Layout/twinx_chaining_example.py executed successfully.")
+print("twinx_chaining_example.py executed successfully.")
