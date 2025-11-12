@@ -7,14 +7,10 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 class DataAnalysisPlotsMixin:
-    """
-    包含数据分析相关绘图方法的 Mixin 类。
-    """
+    """包含数据分析相关绘图方法的 Mixin 类。"""
     def _bin_data(self, data: pd.DataFrame, x: str, y: str, bins: Union[int, list] = 10, 
                   agg_func: str = 'mean', error_func: Optional[str] = 'std') -> pd.DataFrame:
-        """
-        [私有] 将数据按X轴分箱，并计算每个箱内Y值的聚合统计量和误差。
-        """
+        """[私有] 将数据按X轴分箱，并计算每个箱内Y值的聚合统计量和误差。"""
         data_plot = data.copy()
         data_plot['bin'] = pd.cut(data_plot[x], bins=bins)
         
@@ -35,12 +31,26 @@ class DataAnalysisPlotsMixin:
         return result_df.dropna()
 
     def add_binned_plot(self, **kwargs) -> 'Plotter':
-        """
-        对数据进行分箱、聚合，并绘制聚合后的结果（如误差条图）。
-        所有参数通过 `kwargs` 传入。
+        """对数据进行分箱、聚合，并绘制聚合后的结果。
 
-        必需参数: `data`, `x`, `y`。
-        可选参数: `bins`, `agg_func`, `error_func`, `plot_type`, `tag`, `ax` 等。
+        此方法首先将数据沿X轴分箱，然后对每个箱内的Y值进行聚合
+        （例如计算均值和标准差），最后将聚合结果以误差条图的形式绘制出来。
+
+        Args:
+            data (pd.DataFrame): 包含绘图数据的DataFrame。
+            x (str): `data` 中要进行分箱的数值列的列名。
+            y (str): `data` 中要进行聚合的数值列的列名。
+            bins (int or list, optional): 分箱的数量或自定义的箱体边界。
+                默认为 10。
+            agg_func (str, optional): 用于聚合Y值的函数名（例如 'mean', 'median'）。
+                默认为 'mean'。
+            error_func (str, optional): 用于计算误差的函数名（例如 'std', 'sem'）。
+                如果为 `None`，则不绘制误差条。默认为 'std'。
+            plot_type (str, optional): 最终的绘图类型。目前仅支持 'errorbar'。
+                默认为 'errorbar'。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `ax.errorbar` 的关键字参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -78,11 +88,21 @@ class DataAnalysisPlotsMixin:
         )
 
     def add_distribution_fit(self, **kwargs) -> 'Plotter':
-        """
-        在现有直方图上，拟合数据到指定分布并绘制其概率密度函数 (PDF) 曲线。
-        所有参数通过 `kwargs` 传入。
+        """在现有直方图上，拟合数据到指定分布并绘制其概率密度函数(PDF)。
 
-        必需参数: `data_series` (pd.Series 或 array-like)。
+        此方法从数据中估计指定概率分布的参数（例如正态分布的均值和
+        标准差），然后在图上绘制拟合的PDF曲线。通常在调用 `add_hist`
+        之后使用。
+
+        Args:
+            x (str or array-like): 要拟合的数据或 `data` 中的列名。
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            dist_name (str, optional): 要拟合的 `scipy.stats` 中的分布名称。
+                默认为 'norm' (正态分布)。
+            tag (Optional[Union[str, int]], optional): 目标子图的标签。
+                如果为 `None`，则使用最后一次绘图的子图。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `ax.plot` (用于绘制PDF曲线) 的关键字参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。

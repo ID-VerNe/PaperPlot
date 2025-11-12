@@ -1,6 +1,6 @@
 # paperplot/mixins/stats_modifiers.py
 
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 import pandas as pd
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -18,30 +18,37 @@ def _p_to_stars(p_value: float) -> str:
     return ''
 
 class StatsModifiersMixin:
-    """
-    包含用于在图表上添加统计标注的 Mixin 类。
-    """
+    """包含用于在图表上添加统计标注的 Mixin 类。"""
     def add_stat_test(self, **kwargs) -> 'Plotter':
-        """
-        在两组数据之间自动进行统计检验，并在图上标注显著性。
-        此方法会自动从缓存中获取当前子图使用的数据。
+        """在两组数据之间自动进行统计检验，并在图上标注显著性。
+
+        此方法会从当前子图的缓存数据中提取两组数据进行比较，
+        并在图上绘制一条横线和显著性星号（例如, '*', '**', '***'）。
 
         Args:
-            x (str): 分组变量的列名。
-            y (str): 数值变量的列名。
-            group1 (str): 第一个组的名称。
-            group2 (str): 第二个组的名称。
+            x (str): 用于分组的分类变量的列名。
+            y (str): 用于比较的数值变量的列名。
+            group1 (str): `x` 列中表示第一个组的值。
+            group2 (str): `x` 列中表示第二个组的值。
             test (str, optional): 要执行的统计检验。
-                                  可选值为 't-test_ind' (独立样本t检验) 
+                                  可选值为 't-test_ind' (独立样本t检验)
                                   和 'mannwhitneyu' (Mann-Whitney U检验)。
                                   默认为 't-test_ind'。
-            text_offset (float, optional): 标注线与数据最高点之间的垂直距离比例。默认为 0.1。
-            y_level (Optional[float], optional): 如果提供，则强制标注线和文本的y轴位置。
-            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
-            **kwargs: 传递给 `ax.plot` 和 `ax.text` 的额外参数。
+            text_offset (float, optional): 标注线与数据最高点之间的垂直距离
+                占Y轴范围的比例。仅在 `y_level` 未指定时生效。默认为 0.1。
+            y_level (Optional[float], optional): 如果提供，则强制指定标注线
+                和文本的绝对y轴位置。默认为 None。
+            tag (Optional[Union[str, int]], optional): 目标子图的标签。
+                如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `ax.plot` (用于绘制横线) 和 `ax.text`
+                      (用于绘制星号) 的额外关键字参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
+
+        Raises:
+            ValueError: 如果找不到缓存数据，或者 `group1`/`group2`
+                        在X轴标签中不存在。
         """
         # 从 kwargs 中提取参数
         x = kwargs.pop('x')
@@ -136,21 +143,30 @@ class StatsModifiersMixin:
         return self
 
     def add_pairwise_tests(self, **kwargs) -> 'Plotter':
-        """
-        执行多组统计比较，并在图上标注显著性，智能堆叠标注线。
-        所有参数通过 `kwargs` 传入。
+        """执行多组数据的成对统计比较，并在图上智能堆叠标注显著性。
+
+        此方法循环调用 `add_stat_test` 来处理一系列的比较，并自动调整
+        每个比较标注的垂直位置以避免重叠。
 
         Args:
-            x (str): 分组变量的列名。
-            y (str): 数值变量的列名。
-            comparisons (list[tuple]): 一个列表，每个元素是一个包含两个组名的元组，例如 [('A', 'B'), ('A', 'C')]。
-            test (str, optional): 要执行的统计检验。默认为 't-test_ind'。
-            text_offset_factor (float, optional): 每层标注线之间的垂直间距比例。默认为 0.05。
-            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
-            **kwargs: 传递给 `add_stat_test` 的额外参数。
-        
+            x (str): 用于分组的分类变量的列名。
+            y (str): 用于比较的数值变量的列名。
+            comparisons (List[Tuple[str, str]]): 一个比较列表，其中每个元素
+                是一个包含两个组名字符串的元组。
+                例如: `[('A', 'B'), ('A', 'C')]`。
+            test (str, optional): 要对每对执行的统计检验。默认为 't-test_ind'。
+            text_offset_factor (float, optional): 每层标注线之间的垂直间距
+                占Y轴范围的比例。默认为 0.05。
+            tag (Optional[Union[str, int]], optional): 目标子图的标签。
+                如果为None，则使用最后一次绘图的子图。
+            **kwargs: 传递给 `add_stat_test` 的额外关键字参数，最终会应用到
+                      `ax.plot` 和 `ax.text`。
+
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
+
+        Raises:
+            ValueError: 如果找不到缓存数据。
         """
         # 从 kwargs 中提取参数
         x = kwargs.pop('x')

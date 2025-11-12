@@ -31,8 +31,7 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
                  ax_configs: Optional[Dict[Union[str, Tuple[int, int]], Dict]] = None,
                  layout_engine: Optional[str] = 'constrained',
                  **fig_kwargs):
-        """
-        初始化一个绘图管理器，创建画布和子图网格。
+        """初始化一个绘图管理器，创建画布和子图网格。
 
         Args:
             layout (Union[Tuple[int, int], List[List[str]]]):
@@ -43,7 +42,7 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
             style (str, optional): 要应用的Matplotlib样式名称。默认为 'publication'。
             figsize (Optional[Tuple[float, float]], optional): 整个画布的尺寸 (宽度, 高度) 英寸。
                                                                与 `subplot_aspect` 互斥。
-            subplot_aspect (Optional[Tuple[float, float]], optional): 
+            subplot_aspect (Optional[Tuple[float, float]], optional):
                 单个子图单元的宽高比 (宽, 高)，例如 (16, 9)。
                 如果提供此参数，`figsize` 将被自动计算以保证子图比例。
                 与 `figsize` 互斥。
@@ -145,8 +144,17 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
 
 
     def _get_plot_defaults(self, plot_type: str) -> dict:
-        """
-        [私有] 根据绘图类型获取默认的样式参数。
+        """[私有] 根据绘图类型获取默认的样式参数。
+
+        此方法为不同的绘图类型提供了一组预定义的、一致的样式关键字参数。
+        返回一个字典的副本，以防止在外部修改默认值。
+
+        Args:
+            plot_type (str): 绘图类型的标识符，例如 'scatter', 'line'。
+
+        Returns:
+            dict: 包含适用于该绘图类型的默认关键字参数的字典。
+                  如果绘图类型未找到，则返回一个空字典。
         """
         defaults = {
             'scatter': {'s': 30, 'alpha': 0.7},
@@ -159,8 +167,27 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         return defaults.get(plot_type, {}).copy() # 返回副本以防外部修改
 
     def _create_nested_layout(self, layout_def: Dict, parent_spec=None, prefix=''):
-        """
-        [私有] 根据声明式定义，递归创建嵌套布局。
+        """[私有] 根据声明式定义，递归创建嵌套布局。
+
+        此方法能够解析一个包含 'main' 布局和可选 'subgrids' 的字典，
+        从而构建出复杂的、可以无限嵌套的子图网格。
+
+        Args:
+            layout_def (Dict):
+                定义布局的字典。必须包含一个 'main' 键，其值为一个
+                马赛克布局列表（`List[List[str]]`）。可以包含一个可选的
+                'subgrids' 键，其值为一个字典，将 'main' 布局中的名称
+                映射到更深层次的子布局定义。
+            parent_spec (GridSpecFromSubplotSpec, optional):
+                父级 GridSpec，用于将当前布局嵌入到更大的网格中。
+                在递归调用时使用。默认为 None，表示顶级布局。
+            prefix (str, optional):
+                用于构建层级式子图名称的前缀。在递归调用时，会将父级
+                名称添加为前缀。默认为空字符串。
+
+        Raises:
+            ValueError: 如果 `layout_def` 字典中缺少 'main' 键。
+            TypeError: 如果为子网格指定了不支持的布局类型。
         """
         main_layout_list = layout_def.get('main')
         if main_layout_list is None:
@@ -219,8 +246,7 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
                 self.axes.append(ax)
 
     def _get_ax_by_tag(self, tag: Union[str, int]) -> plt.Axes:
-        """
-        通过tag获取对应的Axes对象。
+        """通过tag获取对应的Axes对象。
 
         Args:
             tag (Union[str, int]): 子图的唯一标识符。
@@ -236,8 +262,7 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         return self.tag_to_ax[tag]
 
     def _get_active_ax(self, tag: Optional[Union[str, int]] = None) -> plt.Axes:
-        """
-        根据提供的tag或最后一个活动的tag获取当前的Axes对象。
+        """根据提供的tag或最后一个活动的tag获取当前的Axes对象。
 
         这使得修饰器方法可以在绘图方法之后被调用，而无需显式传递`tag`。
 
@@ -267,8 +292,7 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         return self._get_ax_by_tag(active_tag)
 
     def _resolve_ax_and_tag(self, tag: Optional[Union[str, int]] = None, ax: Optional[plt.Axes] = None) -> Tuple[plt.Axes, Union[str, int]]:
-        """
-        [私有] 智能解析并返回正确的Axes对象及其最终的tag。
+        """[私有] 智能解析并返回正确的Axes对象及其最终的tag。
 
         这是将绘图操作与子图(Axes)关联的核心逻辑。
         解析优先级如下:
@@ -375,8 +399,7 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         return _ax, resolved_tag
 
     def _prepare_data(self, data: Optional[pd.DataFrame] = None, **kwargs: dict) -> Tuple[dict, pd.DataFrame]:
-        """
-        [私有] 准备绘图数据，将多种输入格式统一为可用的数据系列和用于缓存的DataFrame。
+        """[私有] 准备绘图数据，将多种输入格式统一为可用的数据系列和用于缓存的DataFrame。
 
         支持两种主要模式:
         1. `data` 是一个DataFrame, `kwargs` 的值是列名 (str)。
@@ -428,8 +451,7 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
 
     def _execute_plot(self, plot_func: Callable, data_keys: List[str], 
                         plot_defaults_key: Optional[str], **kwargs):
-        """
-        [私有] 封装和执行标准绘图工作流的核心方法。
+        """[私有] 封装和执行标准绘图工作流的核心方法。
 
         该方法负责处理所有绘图方法共有的重复逻辑，包括：
         1. 解析目标子图 (`_resolve_ax_and_tag`)。
@@ -441,7 +463,7 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         7. 更新活动状态。
 
         Args:
-            plot_func (Callable): 具体的绘图函数。签名必须为 
+            plot_func (Callable): 具体的绘图函数。签名必须为
                                   `plot_func(ax, data_map, cache_df, data_names, **p_kwargs)`，
                                   并返回一个 `mappable` 对象或 `None`。
             data_keys (List[str]): 需要从用户参数中提取并准备的数据键列表 (例如 ['x', 'y', 'hue'])。
@@ -492,14 +514,34 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         return self
 
     def get_ax(self, tag: Union[str, int]) -> plt.Axes:
-        """
-        通过tag获取对应的Axes对象。
+        """通过提供的标签（tag）获取对应的Matplotlib Axes对象。
+
+        这是 `_get_ax_by_tag` 方法的一个公共接口。
+
+        Args:
+            tag (Union[str, int]): 要获取的子图的唯一标识符。
+
+        Returns:
+            plt.Axes: 与标签对应的Matplotlib Axes对象。
+
+        Raises:
+            TagNotFoundError: 如果在绘图仪中找不到指定的标签。
         """
         return self._get_ax_by_tag(tag)
 
     def get_ax_by_name(self, name: str) -> plt.Axes:
-        """
-        通过布局时定义的名字获取对应的Axes对象。
+        """通过在布局时定义的名称获取对应的Matplotlib Axes对象。
+
+        这对于在马赛克布局或嵌套布局中按名称引用子图特别有用。
+
+        Args:
+            name (str): 在布局定义中为子图指定的名称。
+
+        Returns:
+            plt.Axes: 与名称对应的Matplotlib Axes对象。
+
+        Raises:
+            ValueError: 如果布局中不存在指定的名称。
         """
         if not isinstance(self.axes_dict, dict) or name not in self.axes_dict:
             available_names = list(self.axes_dict.keys()) if isinstance(self.axes_dict, dict) else []

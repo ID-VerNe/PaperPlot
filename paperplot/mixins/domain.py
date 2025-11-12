@@ -10,16 +10,22 @@ from ..exceptions import DuplicateTagError
 from ..utils import _data_to_dataframe
 
 class DomainSpecificPlotsMixin:
-    """
-    包含领域专用绘图方法的 Mixin 类。
-    """
+    """包含领域专用绘图方法的 Mixin 类。"""
     def add_spectra(self, **kwargs) -> 'Plotter':
-        """
-        在同一个子图上绘制多条带垂直偏移的光谱。
-        支持灵活的数据输入。
-        所有参数通过 `kwargs` 传入。
+        """在同一个子图上绘制多条带垂直偏移的光谱。
 
-        必需参数: `x`, `y_cols`。
+        此方法用于并排比较多条光谱数据（例如拉曼光谱、红外光谱），
+        通过垂直偏移避免谱线重叠。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含光谱数据的DataFrame。
+            x (str or array-like): x轴数据（如波数、波长）或 `data` 中的列名。
+            y_cols (List[str] or List[array-like]):
+                一个列表，包含y轴数据（强度）或 `data` 中的多个列名。
+            offset (float, optional): 每条光谱之间的垂直偏移量。默认为 0。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给每条线的 `ax.plot` 的关键字参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -64,13 +70,19 @@ class DomainSpecificPlotsMixin:
         return self
 
     def add_concentration_map(self, **kwargs) -> 'Plotter':
-        """
-        绘制 SERS Mapping 图像，本质上是一个带有专业颜色映射和坐标轴的热图。
-        此方法要求输入为DataFrame。
+        """绘制浓度图或SERS Mapping图。
+
+        本质上是一个带有特定预设（如 'inferno' colormap）的热图，
+        常用于可视化表面增强拉曼散射（SERS）的 mapping 数据。
 
         Args:
-            **kwargs: 包含 `data` (pd.DataFrame) 和其他传递给 `seaborn.heatmap` 的参数。
-                      必需参数: `data`。
+            data (pd.DataFrame): 用于绘制热图的二维矩形数据。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            cbar (bool, optional): 是否绘制颜色条。默认为 `True`。
+            xlabel (str, optional): X轴标签。默认为 'X (μm)'。
+            ylabel (str, optional): Y轴标签。默认为 'Y (μm)'。
+            **kwargs: 其他传递给 `seaborn.heatmap` 的关键字参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -99,11 +111,19 @@ class DomainSpecificPlotsMixin:
         )
 
     def add_confusion_matrix(self, **kwargs) -> 'Plotter':
-        """
-        可视化分类模型的混淆矩阵。
-        所有参数通过 `kwargs` 传入。
+        """可视化分类模型的混淆矩阵。
 
-        必需参数: `matrix`, `class_names`。
+        此方法使用带有计数的着色热图来表示分类模型的性能。
+
+        Args:
+            matrix (array-like): 混淆矩阵，形状为 `(n_classes, n_classes)`。
+            class_names (List[str]): 类别名称列表，用于矩阵的行和列标签。
+            normalize (bool, optional): 如果为 `True`，则将矩阵按行归一化
+                以显示百分比。默认为 `False`。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `seaborn.heatmap` 的关键字参数，
+                      例如 `cmap`, `annot`, `fmt`。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -139,11 +159,18 @@ class DomainSpecificPlotsMixin:
         return self
 
     def add_roc_curve(self, **kwargs) -> 'Plotter':
-        """
-        绘制多分类或单分类的ROC曲线。
-        所有参数通过 `kwargs` 传入。
+        """绘制一个或多个分类的ROC（接收者操作特征）曲线。
 
-        必需参数: `fpr`, `tpr`, `roc_auc` (均为字典)。
+        Args:
+            fpr (Dict[str, np.ndarray]):
+                一个字典，键是类别名，值是该类别的假正率（False Positive Rate）数组。
+            tpr (Dict[str, np.ndarray]):
+                一个字典，键是类别名，值是该类别的真正率（True Positive Rate）数组。
+            roc_auc (Dict[str, float]):
+                一个字典，键是类别名，值是该类别的AUC（曲线下面积）得分。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给每个ROC曲线的 `ax.plot` 的关键字参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -175,9 +202,22 @@ class DomainSpecificPlotsMixin:
         return self
 
     def add_pca_scatter(self, **kwargs) -> 'Plotter':
-        """
-        绘制PCA降维结果的散点图，并可根据类别进行着色。
-        所有参数通过 `kwargs` 传入。
+        """绘制PCA降维结果的散点图。
+
+        此方法是 `seaborn.scatterplot` 的一个包装器，专门用于可视化
+        主成分分析（PCA）的结果。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x_pc (str or array-like): x轴数据（通常是第一主成分）或 `data` 中的列名。
+            y_pc (str or array-like): y轴数据（通常是第二主成分）或 `data` 中的列名。
+            hue (str, optional): 用于产生不同颜色点的分类变量的列名。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `seaborn.scatterplot` 的关键字参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             hue_col = data_names.get('hue')
@@ -194,11 +234,20 @@ class DomainSpecificPlotsMixin:
         )
 
     def add_power_timeseries(self, **kwargs) -> 'Plotter':
-        """
-        绘制电力系统动态仿真结果，并可选择性地标记事件。
+        """绘制电力系统动态仿真结果的时间序列图。
+
+        此方法用于可视化一个或多个变量随时间的变化，并可选择性地
+        在图上标记重要的事件点。
 
         Args:
-            **kwargs: 包含 `data`, `x`, `y_cols`, `events` 等参数。
+            data (pd.DataFrame): 包含仿真结果的DataFrame。
+            x (str): `data` 中表示时间轴的列名。
+            y_cols (List[str]): `data` 中要绘制的一个或多个变量的列名列表。
+            events (Dict[str, float], optional): 一个字典，键是事件的描述性
+                标签，值是事件发生的x轴（时间）位置。默认为 `None`。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `ax.plot` 的关键字参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -245,15 +294,26 @@ class DomainSpecificPlotsMixin:
         return self
 
     def add_phasor_diagram(self, **kwargs) -> 'Plotter':
-        """
-        在指定子图上绘制相量图。
-        此方法要求目标子图必须是极坐标投影。
-        所有参数通过 `kwargs` 传入。
+        """在极坐标子图上绘制相量图。
 
-        必需参数: `magnitudes`, `angles`。
+        此方法用于可视化电力系统中的电压、电流等相量。
+
+        Args:
+            magnitudes (List[float]): 相量幅值的列表。
+            angles (List[float]): 相量角度的列表。
+            labels (List[str], optional): 每个相量的标签列表。
+            angle_unit (str, optional): 角度的单位 ('degrees' 或 'radians')。
+                默认为 'degrees'。
+            tag (Optional[Union[str, int]], optional): 目标子图的标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给标签文本 `ax.text` 的关键字参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
+
+        Raises:
+            ValueError: 如果 `magnitudes` 和 `angles` 列表长度不匹配，
+                        或者目标子图不是极坐标投影。
         """
         # 从 kwargs 中提取参数
         magnitudes = kwargs.pop('magnitudes')
@@ -312,10 +372,19 @@ class DomainSpecificPlotsMixin:
         return self
 
     def add_bifurcation_diagram(self, **kwargs) -> 'Plotter':
-        """
-        绘制电力系统稳定性分析中的分岔图。
-        所有参数通过 `kwargs` 传入，支持 `data`, `x`, `y`, `tag`, `ax` 以及
-        所有 `matplotlib.axes.Axes.scatter` 的参数。
+        """绘制电力系统稳定性分析中的分岔图。
+
+        这本质上是一个散点图，用于显示系统状态变量如何随某个
+        分岔参数的变化而变化。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x (str or array-like): x轴数据（分岔参数）或 `data` 中的列名。
+            y (str or array-like): y轴数据（状态变量）或 `data` 中的列名。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `ax.scatter` 的关键字参数。
+                      默认使用 'bifurcation' 样式（小、半透明的黑点）。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。

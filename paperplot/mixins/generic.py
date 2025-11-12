@@ -11,16 +11,22 @@ from ..exceptions import DuplicateTagError
 from ..utils import _data_to_dataframe
 
 class GenericPlotsMixin:
-    """
-    包含通用绘图方法的 Mixin 类。
-    这些方法是常见图表类型（如线图、散点图、柱状图等）的直接封装。
-    """
+    """包含通用绘图方法的 Mixin 类。 这些方法是常见图表类型（如线图、散点图、柱状图等）的直接封装。"""
 
     def add_line(self, **kwargs) -> 'Plotter':
-        """
-        在子图上绘制线图。
-        所有参数通过 `kwargs` 传入，支持 `data`, `x`, `y`, `tag`, `ax` 以及
-        所有 `matplotlib.axes.Axes.plot` 的参数。
+        """在子图上绘制线图 (封装 `matplotlib.axes.Axes.plot`)。
+
+        此方法是 `_execute_plot` 的一个包装器，用于处理线图的通用逻辑。
+        数据可以通过 `data` DataFrame 和列名或直接作为关键字参数传入。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x (str or array-like): x轴数据或 `data` 中的列名。
+            y (str or array-like): y轴数据或 `data` 中的列名。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `matplotlib.axes.Axes.plot` 的关键字参数，
+                      例如 `color`, `linestyle`, `marker`, `label` 等。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -35,16 +41,24 @@ class GenericPlotsMixin:
         )
 
     def add_bar(self, **kwargs) -> 'Plotter':
-        """
-        在子图上绘制条形图 (封装 `matplotlib.axes.Axes.bar`)。
-        所有参数通过 `kwargs` 传入。
+        """在子图上绘制条形图 (封装 `matplotlib.axes.Axes.bar`)。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x (str or array-like): x轴数据或 `data` 中的列名 (类别)。
+            y (str or array-like): y轴数据或 `data` 中的列名 (高度)。
+            y_err (str or array-like, optional): y轴的误差条。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `matplotlib.axes.Axes.bar` 的关键字参数，
+                      例如 `color`, `width`, `align`, `label` 等。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
-            y_err = p_kwargs.pop('y_err', None)
-            ax.bar(data_map['x'], data_map['y'], yerr=y_err, **p_kwargs)
+            y_err_data = data_map.get('y_err')
+            ax.bar(data_map['x'], data_map['y'], yerr=y_err_data, **p_kwargs)
             return None
 
         return self._execute_plot(
@@ -55,11 +69,21 @@ class GenericPlotsMixin:
         )
 
     def add_scatter(self, **kwargs) -> 'Plotter':
-        """
-        在子图上绘制散点图。
-        所有参数通过 `kwargs` 传入，支持 `data`, `x`, `y`, `s`, `c`, `tag`, `ax` 以及
-        所有 `matplotlib.axes.Axes.scatter` 的参数。
-        如果 `s` 或 `c` 的值是字符串，它们将被解释为 `data` DataFrame 中的列名。
+        """在子图上绘制散点图 (封装 `matplotlib.axes.Axes.scatter`)。
+
+        如果 `s` (size) 或 `c` (color) 的值是字符串，它们将被解释为
+        `data` DataFrame 中的列名，从而实现按数据列控制点的大小或颜色。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x (str or array-like): x轴数据或 `data` 中的列名。
+            y (str or array-like): y轴数据或 `data` 中的列名。
+            s (str or array-like, optional): 点的大小或 `data` 中的列名。
+            c (str or array-like, optional): 点的颜色或 `data` 中的列名。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `matplotlib.axes.Axes.scatter` 的关键字参数，
+                      例如 `cmap`, `alpha`, `marker`, `label` 等。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -89,10 +113,15 @@ class GenericPlotsMixin:
         )
 
     def add_hist(self, **kwargs) -> 'Plotter':
-        """
-        在子图上绘制直方图。
-        所有参数通过 `kwargs` 传入，支持 `data`, `x`, `tag`, `ax` 以及
-        所有 `matplotlib.axes.Axes.hist` 的参数。
+        """在子图上绘制直方图 (封装 `matplotlib.axes.Axes.hist`)。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x (str or array-like): 用于绘制直方图的数据或 `data` 中的列名。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `matplotlib.axes.Axes.hist` 的关键字参数，
+                      例如 `bins`, `range`, `density`, `color` 等。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -107,16 +136,24 @@ class GenericPlotsMixin:
         )
 
     def add_box(self, **kwargs) -> 'Plotter':
-        """
-        在子图上绘制箱线图 (封装 `seaborn.boxplot`)。
-        所有参数通过 `kwargs` 传入。
+        """在子图上绘制箱线图 (封装 `seaborn.boxplot`)。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x (str or array-like): x轴数据或 `data` 中的列名，通常是分类变量。
+            y (str or array-like): y轴数据或 `data` 中的列名，通常是数值变量。
+            hue (str, optional): 用于产生不同颜色箱体的分类变量的列名。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `seaborn.boxplot` 的关键字参数，
+                      例如 `order`, `palette`, `linewidth` 等。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             hue_col = data_names.get('hue')
-            sns.boxplot(data=cache_df, x=data_names['x'], y=data_names['y'], hue=hue_col, ax=ax, **p_kwargs)
+            sns.boxplot(data=cache_df, x=data_names.get('x'), y=data_names.get('y'), hue=hue_col, ax=ax, **p_kwargs)
             return None
 
         return self._execute_plot(
@@ -127,12 +164,23 @@ class GenericPlotsMixin:
         )
 
     def add_heatmap(self, **kwargs) -> 'Plotter':
-        """
-        在子图上绘制热图 (封装 `seaborn.heatmap`)。
+        """在子图上绘制热图 (封装 `seaborn.heatmap`)。
+
         此方法会自动检测当前样式中的调色板，并用其创建一个匹配的
         连续色图(Colormap)，除非用户手动指定了 `cmap` 参数。
-        新的版本会自动将调色板中的颜色按亮度排序，以创建
-        一个视觉上更直观的颜色梯度。
+        新的版本会自动将调色板中的颜色按亮度排序，以创建一个
+        视觉上更直观的颜色梯度。
+
+        Args:
+            data (pd.DataFrame): 用于绘制热图的二维矩形数据。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            cbar (bool, optional): 是否绘制颜色条。默认为 `True`。
+            **kwargs: 其他传递给 `seaborn.heatmap` 的关键字参数，
+                      例如 `cmap`, `annot`, `fmt`, `linewidths` 等。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
 
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
@@ -170,8 +218,27 @@ class GenericPlotsMixin:
         )
 
     def add_seaborn(self, **kwargs) -> 'Plotter':
-        """
-        在子图上使用指定的Seaborn函数进行绘图。
+        """在子图上使用任意指定的Seaborn函数进行绘图。
+
+        这是一个灵活的接口，允许用户调用任何接受 `data` 和 `ax` 参数的
+        Seaborn绘图函数。
+
+        Args:
+            plot_func (Callable): 要使用的Seaborn绘图函数，
+                例如 `sns.violinplot`。
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x (str or array-like, optional): x轴数据或 `data` 中的列名。
+            y (str or array-like, optional): y轴数据或 `data` 中的列名。
+            hue (str, optional): 用于分组的色调变量或 `data` 中的列名。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 `plot_func` 的关键字参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+
+        Raises:
+            ValueError: 如果没有提供 `plot_func` 参数。
         """
         plot_func = kwargs.pop('plot_func', None)
         if plot_func is None:
@@ -196,8 +263,7 @@ class GenericPlotsMixin:
         )
 
     def add_blank(self, tag: Optional[Union[str, int]] = None) -> 'Plotter':
-        """
-        在指定或下一个可用的子图位置创建一个空白区域并关闭坐标轴。
+        """在指定或下一个可用的子图位置创建一个空白区域并关闭坐标轴。
 
         Args:
             tag (Optional[Union[str, int]], optional): 目标子图的tag。默认为None。
@@ -211,9 +277,21 @@ class GenericPlotsMixin:
         return self
 
     def add_regplot(self, **kwargs) -> 'Plotter':
-        """
-        在子图上绘制散点图和线性回归模型拟合 (封装 `seaborn.regplot`)。
-        所有参数通过 `kwargs` 传入。
+        """在子图上绘制散点图和线性回归模型拟合 (封装 `seaborn.regplot`)。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x (str or array-like): x轴数据或 `data` 中的列名。
+            y (str or array-like): y轴数据或 `data` 中的列名。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            scatter_kws (dict, optional): 传递给底层散点图的关键字参数。
+            line_kws (dict, optional): 传递给回归线的关键字参数。
+            **kwargs: 其他传递给 `seaborn.regplot` 的关键字参数，
+                      例如 `color`, `marker`, `order` (用于多项式回归) 等。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             scatter_kws = p_kwargs.pop('scatter_kws', {})
@@ -234,11 +312,30 @@ class GenericPlotsMixin:
         )
 
     def add_conditional_scatter(self, **kwargs) -> 'Plotter':
-        """
-        在散点图上根据条件突出显示特定的数据点。
-        所有参数通过 `kwargs` 传入。
+        """根据条件在散点图上突出显示特定的数据点。
 
-        必需参数: `x`, `y`, `condition` (布尔 Series 或列名)。
+        此方法绘制两组散点：一组是满足条件的点（高亮），另一组是不满足
+        条件的点（普通）。
+
+        Args:
+            data (Optional[pd.DataFrame], optional): 包含绘图数据的DataFrame。
+            x (str or array-like): x轴数据或 `data` 中的列名。
+            y (str or array-like): y轴数据或 `data` 中的列名。
+            condition (str or bool Series): 布尔序列或 `data` 中包含布尔值的列名。
+            tag (Optional[Union[str, int]], optional): 用于绘图的子图标签。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            s_normal (float, optional): 普通点的大小。
+            c_normal (str, optional): 普通点的颜色。
+            alpha_normal (float, optional): 普通点的透明度。
+            label_normal (str, optional): 普通点的图例标签。
+            s_highlight (float, optional): 高亮的大小。
+            c_highlight (str, optional): 高亮点的颜色。
+            alpha_highlight (float, optional): 高亮点的透明度。
+            label_highlight (str, optional): 高亮点的图例标签。
+            **kwargs: 其他通用的 `scatter` 关键字参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             x_col = data_names['x']

@@ -2,19 +2,24 @@
 
 import os
 import glob
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict, Tuple
 import pandas as pd
 
 
 def get_style_path(style_name: str) -> str:
-    """
-    获取预定义样式文件的绝对路径。
-    
+    """获取预定义样式文件的绝对路径。
+
+    首先在 `paperplot/styles` 目录中查找样式文件，如果找不到，
+    则尝试作为包资源进行回退查找。
+
     Args:
-        style_name (str): 样式名称 (例如 'publication').
+        style_name (str): 样式名称 (例如 'publication')，不带扩展名。
 
     Returns:
-        str: .mplstyle 文件的路径。
+        str: 找到的 `.mplstyle` 文件的绝对路径。
+
+    Raises:
+        FileNotFoundError: 如果在任何位置都找不到指定的样式文件。
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     style_path = os.path.join(current_dir, 'styles', f'{style_name}.mplstyle')
@@ -30,8 +35,7 @@ def get_style_path(style_name: str) -> str:
 
 
 def list_available_styles() -> List[str]:
-    """
-    列出 paperplot/styles 目录下所有可用的样式名称。
+    """列出 paperplot/styles 目录下所有可用的样式名称。
 
     Returns:
         List[str]: 样式名称列表 (不包含 .mplstyle 扩展名)。
@@ -50,20 +54,29 @@ def list_available_styles() -> List[str]:
     return styles
 
 
-def parse_mosaic_layout(layout: list[list[str]]) -> tuple[dict, tuple[int, int]]:
-    """
-    解析马赛克布局定义，返回每个命名区域的跨度信息和总网格尺寸。
+def parse_mosaic_layout(layout: List[List[str]]) -> Tuple[Dict, Tuple[int, int]]:
+    """解析ASCII艺术风格的马赛克布局定义。
+
+    该函数接收一个由字符串组成的列表的列表，并将其转换为一个结构化的
+    字典，其中包含每个命名区域的位置和尺寸信息，以及整个网格的尺寸。
+
+    例如:
+        [['A', 'A', 'B'],
+         ['C', 'C', 'B']]
+    将被解析以确定'A', 'B', 'C'各自占据的单元格。
 
     Args:
-        layout (list[list[str]]): 用户定义的马赛克布局。
+        layout (List[List[str]]): 用户定义的马赛克布局，
+            其中每个字符串是子图的名称，'.'表示空白区域。
 
     Returns:
-        tuple[dict, tuple[int, int]]:
-            - 一个字典，键是唯一的子图名称，值是包含其起始位置和跨度的字典。
-            - 一个元组，包含总行数和总列数。
-    
+        Tuple[Dict, Tuple[int, int]]:
+            - 一个字典，键是唯一的子图名称，值是包含其起始行/列和
+              行/列跨度的字典。
+            - 一个元组，包含布局的总行数和总列数。
+
     Raises:
-        ValueError: 如果布局中的某个区域不是矩形。
+        ValueError: 如果布局为空、格式不正确，或者某个区域不是矩形。
     """
     if not layout or not isinstance(layout, list) or not isinstance(layout[0], list):
         raise ValueError("Layout must be a list of lists.")
@@ -112,8 +125,7 @@ def parse_mosaic_layout(layout: list[list[str]]) -> tuple[dict, tuple[int, int]]
 
 
 def moving_average(data_series: pd.Series, window_size: int) -> pd.Series:
-    """
-    计算数据序列的移动平均值。
+    """计算数据序列的移动平均值。
 
     Args:
         data_series (pd.Series): 输入的数据序列。
@@ -124,20 +136,27 @@ def moving_average(data_series: pd.Series, window_size: int) -> pd.Series:
     """
     return data_series.rolling(window=window_size, center=True).mean()
 
-def _data_to_dataframe(data: Optional[pd.DataFrame] = None, **kwargs: dict) -> pd.DataFrame:
-    """
-    将各种输入格式统一转换为Pandas DataFrame。
+def _data_to_dataframe(data: Optional[pd.DataFrame] = None, **kwargs) -> pd.DataFrame:
+    """[私有] 将多种数据输入格式统一转换为Pandas DataFrame。
+
+    此函数处理两种输入情况：
+    1. 如果提供了 `data` 参数且其为 DataFrame，则直接返回该 DataFrame。
+    2. 如果 `data` 为 None，则将 `kwargs` 中的键值对转换为 DataFrame。
+
+    注意：如果同时提供了 `data` DataFrame 和 `kwargs`，`kwargs` 将被忽略。
 
     Args:
-        data (Optional[pd.DataFrame]): 如果是DataFrame，直接返回。
-        **kwargs: 键值对，其中键是列名，值是类似列表的数据 (list, np.array, pd.Series)。
-                  例如 x=[1, 2, 3], y=[4, 5, 6]。
+        data (Optional[pd.DataFrame]): 如果传入的是一个DataFrame，则直接返回它。
+        **kwargs: 数据列的键值对，例如 `x=[1, 2, 3], y=[4, 5, 6]`。
+                  所有列的长度必须一致。
 
     Returns:
-        pd.DataFrame: 转换后的DataFrame。
-    
+        pd.DataFrame: 根据输入数据创建的DataFrame。
+
     Raises:
-        ValueError: 如果`data`不是DataFrame且没有提供其他数据，或者提供的列长度不一致。
+        TypeError: 如果 `data` 参数不是 `pd.DataFrame` 也不是 `None`。
+        ValueError: 如果 `data` 为 `None` 且没有提供 `kwargs`，或者
+                    `kwargs` 中的数据列长度不一致。
     """
     if data is not None:
         if isinstance(data, pd.DataFrame):

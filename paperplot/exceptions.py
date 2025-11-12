@@ -1,14 +1,14 @@
 # paperplot/exceptions.py
 
-from typing import Optional
+from typing import List, Union, Optional
 
 class PaperPlotError(Exception):
-    """PaperPlot 库的基础异常。"""
+    """PaperPlot 库的基础异常类。"""
     pass
 
 class TagNotFoundError(PaperPlotError):
-    """当指定的 tag 未找到时抛出。"""
-    def __init__(self, tag, available_tags):
+    """当在绘图仪实例中找不到指定的子图标签（tag）时引发。"""
+    def __init__(self, tag: Union[str, int], available_tags: List[Union[str, int]]):
         message = (
             f"Tag '{tag}' not found. \n"
             f"Error Cause: You tried to modify a plot using a tag that does not exist. \n"
@@ -17,8 +17,8 @@ class TagNotFoundError(PaperPlotError):
         super().__init__(message)
 
 class DuplicateTagError(PaperPlotError):
-    """当尝试使用一个已经存在的 tag 或子图位置已被占用时抛出。"""
-    def __init__(self, tag, message: Optional[str] = None):
+    """当尝试分配一个已经被使用的子图标签（tag）时引发。"""
+    def __init__(self, tag: Union[str, int], message: Optional[str] = None):
         if message is None:
             message = (
                 f"Tag '{tag}' is already in use. \n"
@@ -28,8 +28,8 @@ class DuplicateTagError(PaperPlotError):
         super().__init__(message)
 
 class PlottingSpaceError(PaperPlotError):
-    """当没有更多可用子图空间时抛出。"""
-    def __init__(self, max_plots):
+    """当没有可用的子图空间来创建新图时引发。"""
+    def __init__(self, max_plots: int):
         message = (
             f"Cannot add more plots. All {max_plots} subplots are occupied. \n"
             f"Error Cause: You tried to add a new plot, but the grid you initialized is full. \n"
@@ -39,6 +39,6 @@ class PlottingSpaceError(PaperPlotError):
 
 
 class PlottingError(PaperPlotError):
-    """当发生绘图错误时抛出。"""
-    def __init__(self, message):
+    """表示在绘图操作期间发生的一般性错误。"""
+    def __init__(self, message: str):
         super().__init__(message)

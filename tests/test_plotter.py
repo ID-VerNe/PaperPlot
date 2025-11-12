@@ -10,9 +10,7 @@ import numpy as np
 import seaborn as sns
 
 def test_plotter_init_simple_grid():
-    """
-    测试Plotter使用简单网格布局的初始化。
-    """
+    """测试Plotter使用简单网格布局的初始化。"""
     plotter = Plotter(layout=(1, 2))
     assert plotter.fig is not None
     assert len(plotter.axes) == 2
@@ -21,9 +19,7 @@ def test_plotter_init_simple_grid():
     plt.close(plotter.fig)
 
 def test_plotter_init_mosaic_layout():
-    """
-    测试Plotter使用马赛克布局的初始化。
-    """
+    """测试Plotter使用马赛克布局的初始化。"""
     layout = [['A', 'B'], ['C', 'C']]
     plotter = Plotter(layout=layout)
     assert plotter.fig is not None
@@ -35,17 +31,13 @@ def test_plotter_init_mosaic_layout():
     plt.close(plotter.fig)
 
 def test_generate_grid_layout():
-    """
-    测试generate_grid_layout函数。
-    """
+    """测试generate_grid_layout函数。"""
     layout = generate_grid_layout(2, 2)
     expected_layout = [['(0,0)', '(0,1)'], ['(1,0)', '(1,1)']]
     assert layout == expected_layout
 
 def test_get_ax_by_tag_and_name():
-    """
-    测试_get_ax_by_tag和get_ax_by_name方法。
-    """
+    """测试_get_ax_by_tag和get_ax_by_name方法。"""
     layout = [['A', 'B'], ['C', 'C']]
     plotter = Plotter(layout=layout)
 
@@ -67,9 +59,7 @@ def test_get_ax_by_tag_and_name():
     plt.close(plotter.fig)
 
 def test_add_line():
-    """
-    测试add_line方法。
-    """
+    """测试add_line方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2,3], 'y':[4,5,6]})
     plotter.add_line(data=test_df, x='x', y='y', tag='my_line')
@@ -78,9 +68,7 @@ def test_add_line():
     plt.close(plotter.fig)
 
 def test_add_spectra():
-    """
-    测试add_spectra方法。
-    """
+    """测试add_spectra方法。"""
     import pandas as pd
     plotter = Plotter(layout=(1,1))
     data = pd.DataFrame({'x': [1,2,3], 'y1': [4,5,6], 'y2': [5,6,7]})
@@ -93,9 +81,7 @@ def test_add_spectra():
     plt.close(plotter.fig)
 
 def test_add_bar():
-    """
-    测试add_bar方法。
-    """
+    """测试add_bar方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':['A','B'], 'y':[10,20]})
     plotter.add_bar(data=test_df, x='x', y='y', tag='my_bar')
@@ -104,9 +90,7 @@ def test_add_bar():
     plt.close(plotter.fig)
 
 def test_add_confusion_matrix():
-    """
-    测试add_confusion_matrix方法。
-    """
+    """测试add_confusion_matrix方法。"""
     import numpy as np
     plotter = Plotter(layout=(1,1))
     matrix = np.array([[10, 1], [2, 15]])
@@ -119,9 +103,7 @@ def test_add_confusion_matrix():
     plt.close(plotter.fig)
 
 def test_add_roc_curve():
-    """
-    测试add_roc_curve方法。
-    """
+    """测试add_roc_curve方法。"""
     import numpy as np
     fpr = {'class1': np.array([0, 0.5, 1]), 'class2': np.array([0, 0.2, 1])}
     tpr = {'class1': np.array([0, 0.8, 1]), 'class2': np.array([0, 0.9, 1])}
@@ -136,9 +118,7 @@ def test_add_roc_curve():
     plt.close(plotter.fig)
 
 def test_add_pca_scatter():
-    """
-    测试add_pca_scatter方法。
-    """
+    """测试add_pca_scatter方法。"""
     import pandas as pd
     plotter = Plotter(layout=(1,1))
     data = pd.DataFrame({'PC1': [1,2,3], 'PC2': [4,5,6], 'label': ['A','A','B']})
@@ -149,9 +129,7 @@ def test_add_pca_scatter():
     plt.close(plotter.fig)
 
 def test_add_power_timeseries():
-    """
-    测试add_power_timeseries方法。
-    """
+    """测试add_power_timeseries方法。"""
     import pandas as pd
     plotter = Plotter(layout=(1,1))
     data = pd.DataFrame({'time': [1,2,3], 'signal1': [4,5,6], 'signal2': [7,8,9]})
@@ -165,9 +143,7 @@ def test_add_power_timeseries():
     plt.close(plotter.fig)
 
 def test_add_concentration_map():
-    """
-    测试add_concentration_map方法。
-    """
+    """测试add_concentration_map方法。"""
     import pandas as pd
     plotter = Plotter(layout=(1,1))
     data = pd.DataFrame([[1,2],[3,4]])
@@ -179,9 +155,7 @@ def test_add_concentration_map():
     plt.close(plotter.fig)
 
 def test_add_scatter():
-    """
-    测试add_scatter方法。
-    """
+    """测试add_scatter方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2,3], 'y':[4,5,6]})
     plotter.add_scatter(data=test_df, x='x', y='y', tag='my_scatter')
@@ -191,9 +165,7 @@ def test_add_scatter():
 
 # --- Tests for utils.py functions ---
 def test_highlight_peaks():
-    """
-    测试utils.highlight_peaks函数。
-    """
+    """测试utils.highlight_peaks函数。"""
     import pandas as pd
     import numpy as np
     fig, ax = plt.subplots()
@@ -206,9 +178,7 @@ def test_highlight_peaks():
     plt.close(fig)
 
 def test_add_event_markers():
-    """
-    测试utils.add_event_markers函数。
-    """
+    """测试utils.add_event_markers函数。"""
     import pandas as pd
     import numpy as np
     fig, ax = plt.subplots()
@@ -221,9 +191,7 @@ def test_add_event_markers():
     plt.close(fig)
 
 def test_add_stat_test():
-    """
-    测试utils.add_stat_test函数。
-    """
+    """测试utils.add_stat_test函数。"""
     import pandas as pd
     import numpy as np
     fig, ax = plt.subplots()
@@ -241,9 +209,7 @@ def test_add_stat_test():
     plt.close(fig)
 
 def test_add_pairwise_tests():
-    """
-    测试utils.add_pairwise_tests函数。
-    """
+    """测试utils.add_pairwise_tests函数。"""
     import pandas as pd
     import numpy as np
     fig, ax = plt.subplots()
@@ -261,9 +227,7 @@ def test_add_pairwise_tests():
     plt.close(fig)
 
 def test_plot_learning_curve():
-    """
-    测试utils.plot_learning_curve函数。
-    """
+    """测试utils.plot_learning_curve函数。"""
     import numpy as np
     fig, ax = plt.subplots()
     train_sizes = np.array([10, 20, 30])
@@ -278,9 +242,7 @@ def test_plot_learning_curve():
     plt.close(fig)
 
 def test_moving_average():
-    """
-    测试utils.moving_average函数。
-    """
+    """测试utils.moving_average函数。"""
     import pandas as pd
     data = pd.Series([1, 2, 3, 4, 5])
     smoothed = pp.utils.moving_average(data, window_size=3)
@@ -292,9 +254,7 @@ def test_moving_average():
     assert pd.isna(smoothed.iloc[4])
 
 def test_highlight_points():
-    """
-    测试utils.highlight_points函数。
-    """
+    """测试utils.highlight_points函数。"""
     import pandas as pd
     import numpy as np
     fig, ax = plt.subplots()
@@ -305,9 +265,7 @@ def test_highlight_points():
     plt.close(fig)
 
 def test_plot_bifurcation_diagram():
-    """
-    测试utils.plot_bifurcation_diagram函数。
-    """
+    """测试utils.plot_bifurcation_diagram函数。"""
     import pandas as pd
     import numpy as np
     fig, ax = plt.subplots()
@@ -319,9 +277,7 @@ def test_plot_bifurcation_diagram():
     plt.close(fig)
 
 def test_fit_and_plot_distribution():
-    """
-    测试utils.fit_and_plot_distribution函数。
-    """
+    """测试utils.fit_and_plot_distribution函数。"""
     import pandas as pd
     import numpy as np
     fig, ax = plt.subplots()
@@ -332,9 +288,7 @@ def test_fit_and_plot_distribution():
     plt.close(fig)
 
 def test_bin_data():
-    """
-    测试utils.bin_data函数。
-    """
+    """测试utils.bin_data函数。"""
     import pandas as pd
     import numpy as np
     df = pd.DataFrame({'x': np.linspace(0, 10, 100), 'y': np.random.rand(100)})
@@ -345,9 +299,7 @@ def test_bin_data():
     assert len(binned_df) == 5 # 5 bins
     
 def test_add_hist():
-    """
-    测试add_hist方法。
-    """
+    """测试add_hist方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,1,2,3,3,3]})
     plotter.add_hist(data=test_df, x='x', tag='my_hist')
@@ -356,9 +308,7 @@ def test_add_hist():
     plt.close(plotter.fig)
 
 def test_add_box():
-    """
-    测试add_box方法。
-    """
+    """测试add_box方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'group':['A']*5, 'value':[1,2,3,4,5]})
     plotter.add_box(data=test_df, x='group', y='value', tag='my_box')
@@ -367,9 +317,7 @@ def test_add_box():
     plt.close(plotter.fig)
 
 def test_add_heatmap():
-    """
-    测试add_heatmap方法。
-    """
+    """测试add_heatmap方法。"""
     import pandas as pd
     plotter = Plotter(layout=(1,1))
     data = pd.DataFrame([[1,2],[3,4]])
@@ -379,9 +327,7 @@ def test_add_heatmap():
     plt.close(plotter.fig)
 
 def test_add_seaborn():
-    """
-    测试add_seaborn方法。
-    """
+    """测试add_seaborn方法。"""
     import seaborn as sns
     import pandas as pd
     plotter = Plotter(layout=(1,1))
@@ -392,9 +338,7 @@ def test_add_seaborn():
     plt.close(plotter.fig)
 
 def test_set_title():
-    """
-    测试set_title方法。
-    """
+    """测试set_title方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2], 'y':[1,2]})
     plotter.add_line(data=test_df, x='x', y='y', tag='ax1')
@@ -404,9 +348,7 @@ def test_set_title():
     plt.close(plotter.fig)
 
 def test_set_xlabel_ylabel():
-    """
-    测试set_xlabel和set_ylabel方法。
-    """
+    """测试set_xlabel和set_ylabel方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2], 'y':[1,2]})
     plotter.add_line(data=test_df, x='x', y='y', tag='ax1')
@@ -417,9 +359,7 @@ def test_set_xlabel_ylabel():
     plt.close(plotter.fig)
 
 def test_set_xlim_ylim():
-    """
-    测试set_xlim和set_ylim方法。
-    """
+    """测试set_xlim和set_ylim方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2], 'y':[1,2]})
     plotter.add_line(data=test_df, x='x', y='y', tag='ax1')
@@ -430,9 +370,7 @@ def test_set_xlim_ylim():
     plt.close(plotter.fig)
 
 def test_tick_params():
-    """
-    测试tick_params方法。
-    """
+    """测试tick_params方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':np.arange(1,11), 'y':np.arange(1,11)}) # Wider range
     plotter.add_line(data=test_df, x='x', y='y', tag='ax1')
@@ -449,9 +387,7 @@ def test_tick_params():
     plt.close(plotter.fig)
 
 def test_set_legend():
-    """
-    测试set_legend方法。
-    """
+    """测试set_legend方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2], 'y':[1,2]})
     plotter.add_line(data=test_df, x='x', y='y', tag='ax1', label='My Line')
@@ -461,18 +397,14 @@ def test_set_legend():
     plt.close(plotter.fig)
 
 def test_set_suptitle():
-    """
-    测试set_suptitle方法。
-    """
+    """测试set_suptitle方法。"""
     plotter = Plotter(layout=(1,1))
     plotter.set_suptitle('Global Title')
     assert plotter.fig._suptitle.get_text() == 'Global Title'
     plt.close(plotter.fig)
 
 def test_add_global_legend():
-    """
-    测试add_global_legend方法。
-    """
+    """测试add_global_legend方法。"""
     plotter = Plotter(layout=(1,2))
     test_df1 = pd.DataFrame({'x':[1,2], 'y':[1,2]})
     test_df2 = pd.DataFrame({'x':[1,2], 'y':[2,1]})
@@ -483,9 +415,7 @@ def test_add_global_legend():
     plt.close(plotter.fig)
 
 def test_add_twinx():
-    """
-    测试add_twinx方法。
-    """
+    """测试add_twinx方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2], 'y':[1,2]})
     plotter.add_line(data=test_df, x='x', y='y', tag='ax1')
@@ -495,9 +425,7 @@ def test_add_twinx():
     plt.close(plotter.fig)
 
 def test_add_regplot():
-    """
-    测试add_regplot方法。
-    """
+    """测试add_regplot方法。"""
     plotter = Plotter(layout=(1,1))
     data = pd.DataFrame({'x': [1,2,3], 'y': [4,5,6]})
     plotter.add_regplot(data=data, x='x', y='y', tag='my_regplot')
@@ -507,9 +435,7 @@ def test_add_regplot():
     plt.close(plotter.fig)
 
 def test_add_hline_vline():
-    """
-    测试add_hline和add_vline方法。
-    """
+    """测试add_hline和add_vline方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2], 'y':[1,2]})
     plotter.add_line(data=test_df, x='x', y='y', tag='ax1')
@@ -519,9 +445,7 @@ def test_add_hline_vline():
     plt.close(plotter.fig)
 
 def test_add_text():
-    """
-    测试add_text方法。
-    """
+    """测试add_text方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2], 'y':[1,2]})
     plotter.add_line(data=test_df, x='x', y='y', tag='ax1')
@@ -532,9 +456,7 @@ def test_add_text():
     plt.close(plotter.fig)
 
 def test_add_patch():
-    """
-    测试add_patch方法。
-    """
+    """测试add_patch方法。"""
     from matplotlib.patches import Rectangle
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2], 'y':[1,2]})
@@ -546,9 +468,7 @@ def test_add_patch():
     plt.close(plotter.fig)
 
 def test_cleanup_heatmaps():
-    """
-    测试cleanup_heatmaps方法。
-    """
+    """测试cleanup_heatmaps方法。"""
     plotter = Plotter(layout=(1,2))
     data1 = pd.DataFrame([[1,2],[3,4]])
     data2 = pd.DataFrame([[5,6],[7,8]])
@@ -559,9 +479,7 @@ def test_cleanup_heatmaps():
     plt.close(plotter.fig)
 
 def test_save_method(tmp_path):
-    """
-    测试save方法。
-    """
+    """测试save方法。"""
     plotter = Plotter(layout=(1,1))
     test_df = pd.DataFrame({'x':[1,2], 'y':[1,2]})
     plotter.add_line(data=test_df, x='x', y='y', tag='ax1')
@@ -571,9 +489,7 @@ def test_save_method(tmp_path):
     plt.close(plotter.fig)
 
 def test_cleanup_axis_sharing():
-    """
-    测试cleanup方法中的轴共享功能。
-    """
+    """测试cleanup方法中的轴共享功能。"""
     plotter = Plotter(layout=(2,2))
     test_df_00 = pd.DataFrame({'x':np.arange(1,11), 'y':np.arange(1,11)})
     test_df_01 = pd.DataFrame({'x':np.arange(1,11), 'y':np.arange(3,13)})
