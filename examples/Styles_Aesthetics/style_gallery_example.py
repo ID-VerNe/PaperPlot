@@ -100,6 +100,9 @@ def create_plot_for_style(style_name: str, df_line, df_bar, df_dist, df_heatmap)
                             ha='center', va='center', style='italic')
             ax_palette.axis('off')
 
+        # --- 自动编号 ---
+        plotter.add_subplot_labels()
+
         # --- 保存图像 ---
         filename = f"style_gallery_{style_name}.png"
         plotter.save(filename)

@@ -595,6 +595,15 @@ class ModifiersMixin:
                 labels.extend(l)
                 ax_to_process.append(ax)
 
+            # 检查是否存在孪生轴 (Twin Axis)，并收集其图例
+            if tag in self.twin_axes:
+                twin_ax = self.twin_axes[tag]
+                h_twin, l_twin = twin_ax.get_legend_handles_labels()
+                if h_twin and l_twin:
+                    handles.extend(h_twin)
+                    labels.extend(l_twin)
+                    ax_to_process.append(twin_ax)
+
         from collections import OrderedDict
         by_label = OrderedDict(zip(labels, handles))
 

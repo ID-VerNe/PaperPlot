@@ -64,7 +64,12 @@ class StatsModifiersMixin:
         group1_str = str(group1)
         group2_str = str(group2)
 
-        # 提前构建标签到位置的映射和前置校验 (Bug 2 修复)
+        # 强制画布绘制，确保刻度标签（Tick Labels）被填充文本
+        # 如果不这样做，ax.get_xticklabels() 可能会返回空字符串
+        if hasattr(self, 'fig') and self.fig.canvas:
+            self.fig.canvas.draw()
+
+        # 提前构建标签到位置的映射和前置校验
         # Get the positions of the categories on the x-axis
         # This is more robust for categorical axes than relying on xtick_labels.index
         x_tick_positions = ax.get_xticks()
