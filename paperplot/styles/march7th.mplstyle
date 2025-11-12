@@ -1,0 +1,47 @@
+# styles/march7th.mplstyle
+# A theme inspired by the Honkai: Star Rail "March 7th" character color scheme.
+# It uses a bright, cheerful palette of blues and pinks for a vibrant and friendly look.
+
+# Font (Clean sans-serif for a modern, energetic feel)
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (A fully themed look with the palette's own indigo for text)
+axes.facecolor      : "#F8F8FC"  # A very light, cool off-white
+axes.edgecolor      : "#4D4D8A"  # Indigo from the palette
+axes.labelcolor     : "#4D4D8A"
+axes.titlecolor     : "#4D4D8A"
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#4D4D8A"
+ytick.color         : "#4D4D8A"
+
+# Grid
+grid.color          : "#EAEAF2"  # A light, cool-toned gray for the grid
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white
+figure.dpi          : 300
+
+# Legend
+legend.frameon      : False
+legend.labelcolor   : "#4D4D8A"
+
+# Color Cycle (The core of the March 7th theme, alternating between blues and purples)
+# Colors: #6F9DEC (Cornflower Blue), #BA8CC3 (Mauve), #90DBF2 (Light Sky Blue), #F4CDF9 (Sakura Pink)
+axes.prop_cycle: cycler(color=["#6F9DEC", "#BA8CC3", "#90DBF2", "#F4CDF9"])

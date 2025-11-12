@@ -1,9 +1,10 @@
 # paperplot/utils.py
-
 import os
 import glob
 from typing import Optional, Union, List, Dict, Tuple
 import pandas as pd
+import matplotlib.pyplot as plt
+from cycler import cycler
 
 
 def get_style_path(style_name: str) -> str:
@@ -42,7 +43,7 @@ def list_available_styles() -> List[str]:
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     styles_dir = os.path.join(current_dir, 'styles')
-    
+
     styles = []
     # 使用 glob 查找所有 .mplstyle 文件
     # 注意：这里使用 os.path.join 来构建路径，确保跨平台兼容性
@@ -50,7 +51,7 @@ def list_available_styles() -> List[str]:
         # 获取文件名，并移除 .mplstyle 扩展名
         style_name = os.path.basename(style_file).replace('.mplstyle', '')
         styles.append(style_name)
-        
+
     return styles
 
 
@@ -136,6 +137,7 @@ def moving_average(data_series: pd.Series, window_size: int) -> pd.Series:
     """
     return data_series.rolling(window=window_size, center=True).mean()
 
+
 def _data_to_dataframe(data: Optional[pd.DataFrame] = None, **kwargs) -> pd.DataFrame:
     """[私有] 将多种数据输入格式统一转换为Pandas DataFrame。
 
@@ -165,7 +167,8 @@ def _data_to_dataframe(data: Optional[pd.DataFrame] = None, **kwargs) -> pd.Data
             raise TypeError(f"The 'data' argument must be a pandas DataFrame, but got {type(data)}.")
 
     if not kwargs:
-        raise ValueError("If 'data' is not provided, you must supply data as keyword arguments (e.g., x=[...], y=[...]).")
+        raise ValueError(
+            "If 'data' is not provided, you must supply data as keyword arguments (e.g., x=[...], y=[...]).")
 
     # 检查所有输入数据的长度是否一致
     lengths = {key: len(value) for key, value in kwargs.items() if hasattr(value, '__len__')}
@@ -173,3 +176,60 @@ def _data_to_dataframe(data: Optional[pd.DataFrame] = None, **kwargs) -> pd.Data
         raise ValueError(f"All data columns must have the same length. Found lengths: {lengths}")
 
     return pd.DataFrame(kwargs)
+
+# --- 在文件末尾添加以下新类 ---
+
+class ColorManager:
+    """
+    一个用于在多个子图中维护系列颜色一致性的管理器。
+
+    这个类会自动从 Matplotlib 的当前样式配置中加载颜色循环。
+    当第一次请求一个系列名称的颜色时，它会从循环中分配一个
+    新颜色并缓存起来。后续对同一系列名称的请求将返回缓存的颜色。
+    """
+    def __init__(self):
+        """初始化颜色管理器。"""
+        self._color_map: Dict[str, str] = {}
+        try:
+            # 1. 尝试从 Matplotlib 的当前配置中加载默认的颜色循环
+            default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+            self._color_cycler = cycler(color=default_colors)
+        except (KeyError, IndexError):
+            # 2. 如果加载失败（例如样式文件没有定义颜色），则使用一个健壮的备用颜色列表
+            self._color_cycler = cycler(color=[
+                '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', 
+                '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', 
+                '#bcbd22', '#17becf'
+            ])
+        
+        # 3. 创建一个可迭代对象，用于按顺序提供颜色
+        self._cycler_iterator = iter(self._color_cycler)
+
+    def get_color(self, series_name: str) -> str:
+        """
+        获取指定系列的颜色。
+
+        如果该系列已有预设颜色，则返回该颜色。
+        否则，从颜色循环中分配一个新颜色，并为该系列注册它。
+
+        Args:
+            series_name (str): 系列的名称 (通常是图例标签)。
+
+        Returns:
+            str: 代表颜色的十六进制字符串或名称。
+        """
+        # 1. 检查缓存中是否已有该系列的颜色
+        if series_name in self._color_map:
+            return self._color_map[series_name]
+        
+        # 2. 如果是新系列，从颜色循环器中动态分配一个新颜色
+        try:
+            new_color = next(self._cycler_iterator)['color']
+        except StopIteration:
+            # 3. 如果颜色循环用尽，重置迭代器并再次获取，实现“循环”
+            self._cycler_iterator = iter(self._color_cycler)
+            new_color = next(self._cycler_iterator)['color']
+        
+        # 4. 缓存新分配的颜色，供将来使用
+        self._color_map[series_name] = new_color
+        return new_color

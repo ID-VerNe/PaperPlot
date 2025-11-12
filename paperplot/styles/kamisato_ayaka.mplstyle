@@ -1,0 +1,47 @@
+# styles/kamisato_ayaka.mplstyle
+# A theme inspired by the Genshin Impact "Kamisato Ayaka" character color scheme.
+# It embodies elegance and serenity with a palette of blues and muted roses.
+
+# Font (A clean serif or sans-serif can work; sans-serif is more versatile)
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (An elegant, high-contrast design using the palette's own colors)
+axes.facecolor      : "#F1EFEC"  # Soft off-white, like snow or fine paper
+axes.edgecolor      : "#47558E"  # Indigo from the palette
+axes.labelcolor     : "#47558E"
+axes.titlecolor     : "#47558E"
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#47558E"
+ytick.color         : "#47558E"
+
+# Grid
+grid.color          : "#E0E0E6"  # A very light, cool-toned gray grid
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white
+figure.dpi          : 300
+
+# Legend
+legend.frameon      : False
+legend.labelcolor   : "#47558E"
+
+# Color Cycle (The core of the Ayaka theme, balanced between cool and warm accents)
+# Colors: #822D4A (Deep Magenta), #6982B9 (Slate Blue), #AE6B81 (Muted Rose), #BCCAE0 (Light Steel Blue)
+axes.prop_cycle: cycler(color=["#822D4A", "#6982B9", "#AE6B81", "#BCCAE0"])

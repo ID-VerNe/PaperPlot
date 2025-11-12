@@ -1,0 +1,45 @@
+# styles/skirk.mplstyle
+# A theme inspired by the Genshin Impact "Skirk" character color scheme.
+# Designed for clarity and aesthetic appeal in scientific publications.
+
+# Font (Clean sans-serif for modern look)
+font.family         : sans-serif
+font.sans-serif     : Helvetica, Arial, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (Dark text on a light background for high contrast)
+axes.facecolor      : "#f5f5f5"  # Very light gray for the plot area
+axes.edgecolor      : "#333333"
+axes.labelcolor     : "#0D0D0D"  # Near-black from the palette
+axes.titlecolor     : "#0D0D0D"  # Near-black from the palette
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#333333"
+ytick.color         : "#333333"
+
+# Grid
+grid.color          : "#dcdcdc"  # Light gray grid lines
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white      # White background for print-friendliness
+figure.dpi          : 300        # High resolution for publication
+
+# Legend
+legend.frameon      : False
+
+# Color Cycle (The core of the Skirk theme)
+axes.prop_cycle: cycler(color=["#6FC9FD", "#AE88FD", "#A52A4C", "#FBE7B8", "#3498db"])

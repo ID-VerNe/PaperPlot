@@ -1,0 +1,47 @@
+# styles/furina.mplstyle
+# A theme inspired by the Genshin Impact "Furina" character color scheme.
+# It projects an elegant, authoritative, and high-contrast aesthetic.
+
+# Font (Clean sans-serif for a formal yet modern appearance)
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (A fully themed look using the palette's own colors)
+axes.facecolor      : "#DAE2ED"  # Light steel blue from the palette
+axes.edgecolor      : "#141521"  # Near-black indigo from the palette
+axes.labelcolor     : "#141521"  # Near-black indigo from the palette
+axes.titlecolor     : "#141521"  # Near-black indigo from the palette
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#141521"
+ytick.color         : "#141521"
+
+# Grid
+grid.color          : white      # White grid lines offer clean separation on the blue background
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white
+figure.dpi          : 300
+
+# Legend
+legend.frameon      : False
+legend.labelcolor   : "#141521"
+
+# Color Cycle (The core of the Furina theme)
+# Colors: #2D3C81 (Deep Royal Blue), #4EA4EF (Sky Blue), #937562 (Taupe)
+axes.prop_cycle: cycler(color=["#2D3C81", "#4EA4EF", "#937562"])

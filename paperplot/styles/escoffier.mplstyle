@@ -1,0 +1,46 @@
+# styles/escoffier.mplstyle
+# A theme inspired by the Genshin Impact "Escoffier" character color scheme.
+# It features a bright and warm palette suitable for clear, engaging visualizations.
+
+# Font (Clean sans-serif for a friendly, modern feel)
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (Standard dark elements on a light background for clarity)
+axes.facecolor      : "#FAFAFA"  # A very light, almost white background
+axes.edgecolor      : "#333333"
+axes.labelcolor     : "#333333"
+axes.titlecolor     : "#333333"
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#333333"
+ytick.color         : "#333333"
+
+# Grid
+grid.color          : "#EAEAEA"  # Subtle grid lines
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white
+figure.dpi          : 300
+
+# Legend
+legend.frameon      : False
+
+# Color Cycle (The core of the Escoffier theme)
+# Colors: #4BA2EC (Cornflower Blue), #C33B75 (Rose), #FAC17B (Gold), #74CCEF (Sky Blue)
+axes.prop_cycle: cycler(color=["#4BA2EC", "#C33B75", "#FAC17B", "#74CCEF"])

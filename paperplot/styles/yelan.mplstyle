@@ -1,0 +1,47 @@
+# styles/yelan.mplstyle
+# A theme inspired by the Genshin Impact "Yelan" character color scheme.
+# It offers a sophisticated, cool-toned palette suitable for professional and data-intensive visualizations.
+
+# Font (Clean sans-serif for a sharp, modern look)
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (A high-contrast design using the palette's own light and dark tones)
+axes.facecolor      : "#F4F0EE"  # Warm off-white from the palette
+axes.edgecolor      : "#181B30"  # Midnight blue from the palette
+axes.labelcolor     : "#181B30"
+axes.titlecolor     : "#181B30"
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#181B30"
+ytick.color         : "#181B30"
+
+# Grid
+grid.color          : white      # White grid lines for a clean, subtle division
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white
+figure.dpi          : 300
+
+# Legend
+legend.frameon      : False
+legend.labelcolor   : "#181B30"
+
+# Color Cycle (The core of the Yelan theme, from bold to neutral)
+# Colors: #2D337E (Royal Blue), #88A9CA (Dusty Blue), #736D7B (Slate Gray)
+axes.prop_cycle: cycler(color=["#2D337E", "#88A9CA", "#736D7B"])

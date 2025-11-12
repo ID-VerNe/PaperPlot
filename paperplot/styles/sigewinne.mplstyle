@@ -1,0 +1,47 @@
+# styles/sigewinne.mplstyle
+# A theme inspired by the Genshin Impact "Sigewinne" character color scheme.
+# It features a soft, gentle pastel palette of blues and pinks, creating a friendly and clean aesthetic.
+
+# Font (Clean sans-serif for a modern, accessible feel)
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (A soft, cool background with high-contrast dark text)
+axes.facecolor      : "#F2F5FA"  # Very light cool gray from the palette
+axes.edgecolor      : "#444444"  # Standard dark gray for readability
+axes.labelcolor     : "#444444"
+axes.titlecolor     : "#444444"
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#444444"
+ytick.color         : "#444444"
+
+# Grid
+grid.color          : white      # White grid lines for a subtle, clean look on the soft background
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white
+figure.dpi          : 300
+
+# Legend
+legend.frameon      : False
+legend.labelcolor   : "#444444"
+
+# Color Cycle (The core of the Sigewinne theme, ordered for good contrast)
+# Colors: #D55276 (Raspberry), #5184B2 (Dusty Blue), #F1A7B5 (Soft Pink), #AAD4F8 (Sky Blue)
+axes.prop_cycle: cycler(color=["#D55276", "#5184B2", "#F1A7B5", "#AAD4F8"])

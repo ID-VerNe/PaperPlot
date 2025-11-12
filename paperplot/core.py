@@ -20,6 +20,7 @@ from .mixins.ml_plots import MachineLearningPlotsMixin
 from .mixins.analysis_plots import DataAnalysisPlotsMixin
 from .mixins.stats_plots import StatsPlotsMixin
 from .mixins.stats_modifiers import StatsModifiersMixin
+from .utils import ColorManager
 
 
 class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, MachineLearningPlotsMixin, 
@@ -141,6 +142,8 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         self.active_target: str = 'primary' # 默认是 'primary'
 
         self.plotted_axes: set[plt.Axes] = set()
+
+        self.color_manager = ColorManager()
 
 
     def _get_plot_defaults(self, plot_type: str) -> dict:
@@ -370,7 +373,14 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
             resolved_tag = tag
             # 移除对已存在 tag 的子图占用检查，允许叠加绘图。
 
-        # 模式3: 顺序模式 (寻找下一个未被占用的ax)
+        # 模式3: 隐式叠加 (未提供tag或ax，但在同一个子图上继续绘图)
+        elif tag is None and self.last_active_tag is not None:
+            # 用户没有提供新tag，且我们知道上一个活动的子图是哪个
+            # 这意味着用户想在同一个子图上叠加绘制
+            resolved_tag = self.last_active_tag
+            _ax = self._get_ax_by_tag(resolved_tag)
+
+        # 模式4: 顺序模式 (寻找下一个未被占用的ax)
         else:
             # 遍历所有子图，找到第一个未被绘图指令占用的
             next_ax = None
@@ -495,6 +505,16 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         if plot_defaults_key:
             defaults = self._get_plot_defaults(plot_defaults_key)
             final_kwargs = {**defaults, **kwargs}
+            
+        # 检查用户是否提供了系列标签 (label)，并且没有手动指定颜色
+        series_label = final_kwargs.get('label')
+        if series_label and 'color' not in final_kwargs:
+            assigned_color = self.color_manager.get_color(series_label)
+            final_kwargs['color'] = assigned_color
+        # 优先级 2: (隐式) 如果不满足上述条件，则不向 final_kwargs 添加 'color'。
+        #            这会将颜色选择的决策权交还给 Matplotlib 的 Axes 对象本身。
+        #            - 对于普通轴，它会使用自己的标准颜色循环。
+        #            - 对于 twinx 轴，它会使用我们已在 add_twinx 中配置好的、偏移过的颜色循环。
 
         # 步骤 5: 执行绘图
         mappable = plot_func(_ax, data_map, cache_df, data_prep_kwargs, **final_kwargs)

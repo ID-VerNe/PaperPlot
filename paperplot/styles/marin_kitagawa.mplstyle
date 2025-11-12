@@ -1,0 +1,47 @@
+# styles/marin_kitagawa.mplstyle
+# A theme inspired by Marin Kitagawa from "My Dress-Up Darling".
+# It features a trendy, vibrant palette of pink, gold, and teal for a stylish and energetic feel.
+
+# Font (A clean, modern sans-serif font suits her fashionable vibe)
+font.family         : sans-serif
+font.sans-serif     : Helvetica, Arial, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (A soft, pinkish background with high-contrast text for clarity)
+axes.facecolor      : "#FFF9FA"  # A whisper of pink, like blush
+axes.edgecolor      : "#333333"  # Strong contrast, like her choker
+axes.labelcolor     : "#333333"
+axes.titlecolor     : "#333333"
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#333333"
+ytick.color         : "#333333"
+
+# Grid
+grid.color          : white      # Clean white grid on the soft background
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white
+figure.dpi          : 300
+
+# Legend
+legend.frameon      : False
+legend.labelcolor   : "#333333"
+
+# Color Cycle (The core of Marin's theme: vibrant and full of life)
+# Colors: #E55288 (Her signature pink), #509090 (Teal uniform), #F7D16E (Blonde hair), #B8A2D1 (Soft Purple accent)
+axes.prop_cycle: cycler(color=["#E55288", "#509090", "#F7D16E", "#B8A2D1"])

@@ -1,0 +1,47 @@
+# styles/xilonen.mplstyle
+# A theme inspired by the Genshin Impact "Xilonen" character color scheme.
+# It uses an earthy yet vibrant palette, ideal for grounded and clear visualizations.
+
+# Font (Clean sans-serif for clarity)
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (Using the palette's dark brown for text/axes for a cohesive look)
+axes.facecolor      : "#f8f8f8"  # A very light gray background
+axes.edgecolor      : "#443E3C"  # Dark brown from palette
+axes.labelcolor     : "#443E3C"  # Dark brown from palette
+axes.titlecolor     : "#443E3C"  # Dark brown from palette
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#443E3C"  # Dark brown from palette
+ytick.color         : "#443E3C"  # Dark brown from palette
+
+# Grid
+grid.color          : "#e0e0e0"  # Light gray grid lines for structure
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white
+figure.dpi          : 300
+
+# Legend
+legend.frameon      : False
+legend.labelcolor   : "#443E3C"
+
+# Color Cycle (The core of the Xilonen theme)
+# Colors: #E5862D (Vibrant Orange), #62CCB9 (Turquoise), #42887E (Dark Teal), #F0D254 (Warm Yellow)
+axes.prop_cycle: cycler(color=["#E5862D", "#62CCB9", "#42887E", "#F0D254"])

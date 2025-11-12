@@ -7,6 +7,9 @@ import logging
 import numpy as np
 from adjustText import adjust_text
 from collections import OrderedDict
+
+from cycler import cycler
+
 logger = logging.getLogger(__name__)
 
 class ModifiersMixin:
@@ -634,11 +637,57 @@ class ModifiersMixin:
         # 始终获取主轴，避免在孪生轴上创建孪生轴的错误
         ax1 = self._get_ax_by_tag(active_tag)
         ax2 = ax1.twinx(**kwargs)
+
+        # --- 同步颜色循环 ---
+        try:
+            # 1. 从 rcParams 获取完整的颜色列表
+            colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+            # 2. 估算主轴已使用的颜色数量 (这是一个常用且有效的启发式方法)
+            num_colors_used = len(ax1.lines)
+
+            # 3. 计算偏移量，使用模运算确保正确循环
+            offset = num_colors_used % len(colors)
+
+            # 4. 创建一个新的、偏移后的颜色列表
+            shifted_colors = colors[offset:] + colors[:offset]
+
+            # 5. 为孪生轴设置新的颜色循环
+            ax2.set_prop_cycle(cycler(color=shifted_colors))
+
+        except (KeyError, IndexError):
+            # 如果样式文件中没有定义颜色循环，则不执行任何操作，保持默认行为
+            pass
+        # --- 颜色同步逻辑结束 ---
         
         # 存储孪生轴并切换上下文
         self.twin_axes[active_tag] = ax2
         self.active_target = 'twin'
         
+        return self
+
+    def add_polar_twin(self, tag: Optional[Union[str, int]] = None, frameon: bool = False) -> 'Plotter':
+        active_tag = tag if tag is not None else self.last_active_tag
+        if active_tag is None:
+            raise ValueError("Cannot create polar twin axis: No active plot found.")
+        if active_tag in self.twin_axes:
+            raise ValueError(f"Tag '{active_tag}' already has a twin axis. Cannot create another one.")
+        ax1 = self._get_ax_by_tag(active_tag)
+        if ax1.name != 'polar':
+            raise TypeError("Axis is not polar.")
+        pos = ax1.get_position()
+        ax2 = self.fig.add_axes(pos, projection='polar', frameon=frameon)
+        ax2.patch.set_alpha(0.0)
+        try:
+            colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+            num_used = len(ax1.lines) + len(ax1.patches)
+            offset = num_used % len(colors)
+            shifted = colors[offset:] + colors[:offset]
+            ax2.set_prop_cycle(cycler(color=shifted))
+        except (KeyError, IndexError):
+            pass
+        self.twin_axes[active_tag] = ax2
+        self.active_target = 'twin'
         return self
 
     def target_primary(self, tag: Optional[Union[str, int]] = None) -> 'Plotter':

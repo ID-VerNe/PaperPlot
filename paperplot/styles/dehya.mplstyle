@@ -1,0 +1,47 @@
+# styles/dehya.mplstyle
+# A theme inspired by the Genshin Impact "Dehya" character color scheme.
+# It features a powerful, warm palette of reds, golds, and deep browns, ideal for impactful data stories.
+
+# Font (Clean sans-serif for a strong, clear presentation)
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, sans-serif
+font.size           : 12
+axes.labelsize      : 14
+axes.titlesize      : 16
+legend.fontsize     : 11
+xtick.labelsize     : 10
+ytick.labelsize     : 10
+
+# Lines
+lines.linewidth     : 2.0
+lines.markersize    : 6
+
+# Axes (A high-contrast theme using the palette's own dark brown for text)
+axes.facecolor      : "#FCFBF9"  # A very light, warm off-white
+axes.edgecolor      : "#380808"  # Dark reddish-brown from the palette
+axes.labelcolor     : "#380808"
+axes.titlecolor     : "#380808"
+axes.grid           : True
+axes.axisbelow      : True
+axes.spines.top     : False
+axes.spines.right   : False
+
+# Ticks
+xtick.color         : "#380808"
+ytick.color         : "#380808"
+
+# Grid
+grid.color          : "#EAE8E6"  # A subtle, warm-toned gray grid
+grid.linestyle      : -
+
+# Figure
+figure.facecolor    : white
+figure.dpi          : 300
+
+# Legend
+legend.frameon      : False
+legend.labelcolor   : "#380808"
+
+# Color Cycle (The core of the Dehya theme, from fiery to grounded)
+# Colors: #950A09 (Crimson), #E5A532 (Gold), #6E555B (Taupe)
+axes.prop_cycle: cycler(color=["#950A09", "#E5A532", "#6E555B"])

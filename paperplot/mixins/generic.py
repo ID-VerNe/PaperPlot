@@ -1,11 +1,13 @@
 # paperplot/mixins/generic.py
 import colorsys
-from typing import Optional, Union, List, Callable
+from typing import Optional, Union, List, Callable, Dict, Sequence
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.patches import Rectangle
+from matplotlib.lines import Line2D
 
 from ..exceptions import DuplicateTagError
 from ..utils import _data_to_dataframe
@@ -65,6 +67,376 @@ class GenericPlotsMixin:
             plot_func=plot_logic,
             data_keys=['x', 'y', 'y_err'],
             plot_defaults_key='bar',
+            **kwargs
+        )
+
+    def add_grouped_bar(self, **kwargs) -> 'Plotter':
+        """在子图上绘制多系列分组柱状图。
+
+        Args:
+            data (pd.DataFrame): 数据表。
+            x (str): 分类列名。
+            ys (List[str]): 系列列名列表。
+            labels (Dict[str, str], optional): 系列到图例名映射。
+            width (float, optional): 分组总宽度，默认 0.8。
+            yerr (Dict[str, array-like], optional): 每个系列的误差条。
+            tag (Optional[Union[str, int]]): 子图标签。
+            ax (Optional[plt.Axes]): 指定轴。
+
+        Returns:
+            Plotter: 返回实例以支持链式调用。
+        """
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            x_col = p_kwargs.pop('x')
+            y_cols = p_kwargs.pop('ys')
+            labels = p_kwargs.pop('labels', {})
+            width = p_kwargs.pop('width', 0.8)
+            yerr = p_kwargs.pop('yerr', None)
+            alpha = p_kwargs.pop('alpha', 0.8)
+
+            x_vals = cache_df[x_col]
+            n = len(y_cols)
+            base = np.arange(len(x_vals))
+            bar_w = width / max(n, 1)
+
+            for i, col in enumerate(y_cols):
+                offs = base - width / 2 + i * bar_w + bar_w / 2
+                lbl = labels[col] if isinstance(labels, dict) and col in labels else col
+                color = self.color_manager.get_color(lbl)
+                err = (yerr.get(col) if isinstance(yerr, dict) else None)
+                ax.bar(offs, cache_df[col], yerr=err, width=bar_w, label=lbl, color=color, alpha=alpha)
+
+            ax.set_xticks(base)
+            ax.set_xticklabels(x_vals)
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=[],
+            plot_defaults_key='bar',
+            **kwargs
+        )
+
+    def add_multi_line(self, **kwargs) -> 'Plotter':
+        """在子图上绘制多条折线。
+
+        Args:
+            data (pd.DataFrame): 数据表。
+            x (str): 横轴列名。
+            ys (List[str]): 多个系列列名。
+            labels (Dict[str, str], optional): 系列到图例名映射。
+            tag (Optional[Union[str, int]]): 子图标签。
+            ax (Optional[plt.Axes]): 指定轴。
+
+        Returns:
+            Plotter: 返回实例以支持链式调用。
+        """
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            x_col = p_kwargs.pop('x')
+            x_vals = cache_df[x_col]
+            y_cols = p_kwargs.pop('ys')
+            labels = p_kwargs.pop('labels', {})
+            linewidth = p_kwargs.pop('linewidth', 2)
+
+            for col in y_cols:
+                lbl = labels[col] if isinstance(labels, dict) and col in labels else col
+                color = self.color_manager.get_color(lbl)
+                ax.plot(x_vals, cache_df[col], label=lbl, color=color, linewidth=linewidth)
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=[],
+            plot_defaults_key='line',
+            **kwargs
+        )
+
+    def add_stacked_bar(self, **kwargs) -> 'Plotter':
+        """在子图上绘制多系列堆叠柱状图。
+
+        Args:
+            data (pd.DataFrame): 数据表。
+            x (str): 分类列名。
+            ys (List[str]): 多个系列列名，按顺序堆叠。
+            labels (Dict[str, str], optional): 系列到图例名映射。
+            width (float, optional): 柱宽，默认 0.8。
+            tag (Optional[Union[str, int]]): 子图标签。
+            ax (Optional[plt.Axes]): 指定轴。
+
+        Returns:
+            Plotter: 返回实例以支持链式调用。
+        """
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            x_col = p_kwargs.pop('x')
+            x_vals = cache_df[x_col]
+            base = np.arange(len(x_vals))
+            y_cols = p_kwargs.pop('ys')
+            labels = p_kwargs.pop('labels', {})
+            width = p_kwargs.pop('width', 0.8)
+            alpha = p_kwargs.pop('alpha', 0.8)
+
+            bottoms = np.zeros(len(x_vals))
+            for col in y_cols:
+                lbl = labels[col] if isinstance(labels, dict) and col in labels else col
+                color = self.color_manager.get_color(lbl)
+                ax.bar(base, cache_df[col], bottom=bottoms, width=width, label=lbl, color=color, alpha=alpha)
+                bottoms = bottoms + np.array(cache_df[col])
+            ax.set_xticks(base)
+            ax.set_xticklabels(x_vals)
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=[],
+            plot_defaults_key='bar',
+            **kwargs
+        )
+
+    def add_polar_bar(self, **kwargs) -> 'Plotter':
+        """在极坐标轴上绘制柱状图。
+
+        Args:
+            data (pd.DataFrame): 数据表。
+            theta (str): 角度列名，单位为弧度。
+            r (str): 半径列名。
+            width (float, optional): 柱宽，默认自动根据角度间距估算。
+            bottom (float, optional): 起始半径，默认 0。
+            tag (Optional[Union[str, int]]): 子图标签。
+            ax (Optional[plt.Axes]): 指定轴。
+
+        Returns:
+            Plotter: 返回实例以支持链式调用。
+        """
+        data = kwargs.pop('data', None)
+        theta_key = kwargs.pop('theta')
+        r_key = kwargs.pop('r')
+        width = kwargs.pop('width', None)
+        bottom = kwargs.pop('bottom', 0.0)
+        tag = kwargs.pop('tag', None)
+        ax = kwargs.pop('ax', None)
+        _ax, resolved_tag = self._resolve_ax_and_tag(tag, ax)
+        if _ax.name != 'polar':
+            raise TypeError("Axis is not polar. Create with ax_configs={'tag': {'projection': 'polar'}}.")
+        if isinstance(data, pd.DataFrame):
+            theta = data[theta_key]
+            r = data[r_key]
+            if width is None:
+                if len(theta) > 1:
+                    d = np.diff(np.sort(theta))
+                    w = np.median(d)
+                else:
+                    w = 0.1
+            else:
+                w = width
+            _ax.bar(theta, r, width=w, bottom=bottom, **kwargs)
+            cache_df = data[[theta_key, r_key]]
+        else:
+            raise TypeError("'data' must be a pandas DataFrame for polar bar.")
+        self.data_cache[resolved_tag] = cache_df
+        self.last_active_tag = resolved_tag
+        return self
+
+    def add_pie(self, **kwargs) -> 'Plotter':
+        """绘制饼图。
+
+        Args:
+            data (pd.DataFrame): 数据表。
+            sizes (str): 数值列名。
+            labels (Sequence[str], optional): 标签。
+            tag (Optional[Union[str, int]]): 子图标签。
+            ax (Optional[plt.Axes]): 指定轴。
+
+        Returns:
+            Plotter: 返回实例以支持链式调用。
+        """
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            sizes_col = data_names['sizes']
+            labels = p_kwargs.pop('labels', None)
+            ax.pie(cache_df[sizes_col], labels=labels if isinstance(labels, Sequence) else None, **p_kwargs)
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=['sizes'],
+            plot_defaults_key=None,
+            **kwargs
+        )
+
+    def add_donut(self, **kwargs) -> 'Plotter':
+        """绘制环形图。
+
+        Args:
+            data (pd.DataFrame): 数据表。
+            sizes (str): 数值列名。
+            labels (Sequence[str], optional): 标签。
+            width (float, optional): 环的厚度，默认 0.4。
+            radius (float, optional): 外半径，默认 1.0。
+            tag (Optional[Union[str, int]]): 子图标签。
+            ax (Optional[plt.Axes]): 指定轴。
+
+        Returns:
+            Plotter: 返回实例以支持链式调用。
+        """
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            sizes_col = data_names['sizes']
+            labels = p_kwargs.pop('labels', None)
+            width = p_kwargs.pop('width', 0.4)
+            radius = p_kwargs.pop('radius', 1.0)
+            ax.pie(cache_df[sizes_col], labels=labels if isinstance(labels, Sequence) else None, radius=radius, wedgeprops={"width": width}, **p_kwargs)
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=['sizes'],
+            plot_defaults_key=None,
+            **kwargs
+        )
+
+    def add_nested_donut(self, **kwargs) -> 'Plotter':
+        """绘制嵌套环形图。
+
+        Args:
+            outer (dict): 外圈配置，包含 `data`、`sizes`、可选 `labels`。
+            inner (dict): 内圈配置，包含 `data`、`sizes`、可选 `labels`。
+            tag (Optional[Union[str, int]]): 子图标签。
+            ax (Optional[plt.Axes]): 指定轴。
+
+        Returns:
+            Plotter: 返回实例以支持链式调用。
+        """
+        kwargs.setdefault('data', pd.DataFrame())
+
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            outer = p_kwargs.pop('outer')
+            inner = p_kwargs.pop('inner')
+            if not (isinstance(outer, dict) and isinstance(inner, dict)):
+                raise TypeError("'outer' and 'inner' must be dicts with keys: data, sizes, labels.")
+            od = outer['data']
+            os_key = outer['sizes']
+            ol = outer.get('labels')
+            idf = inner['data']
+            is_key = inner['sizes']
+            il = inner.get('labels')
+            ax.pie(od[os_key], labels=ol if isinstance(ol, Sequence) else None, radius=1.0, wedgeprops={"width": 0.4})
+            ax.pie(idf[is_key], labels=il if isinstance(il, Sequence) else None, radius=0.6, wedgeprops={"width": 0.4})
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=[],
+            plot_defaults_key=None,
+            **kwargs
+        )
+
+    def add_waterfall(self, **kwargs) -> 'Plotter':
+        """绘制阶梯瀑布图。
+
+        Args:
+            data (pd.DataFrame): 数据表。
+            x (str): 阶段列名。
+            deltas (str): 变化值列名。
+            baseline (float, optional): 初始值，默认 0.0。
+            colors (Tuple[str, str], optional): 正负颜色。
+            connectors (bool, optional): 是否绘制连接线，默认 True。
+            width (float, optional): 柱宽，默认 0.8。
+            tag (Optional[Union[str, int]]): 子图标签。
+            ax (Optional[plt.Axes]): 指定轴。
+
+        Returns:
+            Plotter: 返回实例以支持链式调用。
+        """
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            x_col = data_names['x']
+            d_col = data_names['deltas']
+            baseline = p_kwargs.pop('baseline', 0.0)
+            colors = p_kwargs.pop('colors', ("#2ca02c", "#d62728"))
+            connectors = p_kwargs.pop('connectors', True)
+            width = p_kwargs.pop('width', 0.8)
+
+            x_vals = cache_df[x_col]
+            d = cache_df[d_col].to_numpy()
+            cum = np.zeros_like(d, dtype=float)
+            total = baseline
+            bottoms, heights = [], []
+            for i, delta in enumerate(d):
+                bottoms.append(total)
+                heights.append(delta)
+                total += delta
+                cum[i] = total
+            base = np.arange(len(x_vals))
+            pos_color, neg_color = colors
+            bar_colors = [pos_color if h >= 0 else neg_color for h in heights]
+            ax.bar(base, heights, bottom=bottoms, width=width, color=bar_colors)
+            if connectors:
+                for i in range(1, len(base)):
+                    x0 = base[i-1] + width/2
+                    x1 = base[i] - width/2
+                    y0 = bottoms[i-1] + heights[i-1]
+                    y1 = bottoms[i]
+                    ax.plot([x0, x1], [y0, y1], color='gray', linewidth=1)
+            ax.set_xticks(base)
+            ax.set_xticklabels(x_vals)
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=['x', 'deltas'],
+            plot_defaults_key=None,
+            **kwargs
+        )
+
+    def add_candlestick(self, **kwargs) -> 'Plotter':
+        """绘制K线图。
+
+        Args:
+            data (pd.DataFrame): 数据表。
+            time (str): 时间列名。
+            open (str): 开盘列名。
+            high (str): 最高列名。
+            low (str): 最低列名。
+            close (str): 收盘列名。
+            width (float, optional): 蜡烛宽度，默认 0.6。
+            up_color (str, optional): 上涨颜色，默认绿色。
+            down_color (str, optional): 下跌颜色，默认红色。
+            tag (Optional[Union[str, int]]): 子图标签。
+            ax (Optional[plt.Axes]): 指定轴。
+
+        Returns:
+            Plotter: 返回实例以支持链式调用。
+        """
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            t_col = data_names['time']
+            o_col = data_names['open']
+            h_col = data_names['high']
+            l_col = data_names['low']
+            c_col = data_names['close']
+            width = p_kwargs.pop('width', 0.6)
+            up_color = p_kwargs.pop('up_color', '#2ca02c')
+            down_color = p_kwargs.pop('down_color', '#d62728')
+
+            x_vals = np.arange(len(cache_df))
+            for i in range(len(cache_df)):
+                o = float(cache_df.iloc[i][o_col])
+                h = float(cache_df.iloc[i][h_col])
+                l = float(cache_df.iloc[i][l_col])
+                c = float(cache_df.iloc[i][c_col])
+                color = up_color if c >= o else down_color
+                ax.add_line(Line2D([x_vals[i], x_vals[i]], [l, h], color=color, linewidth=1))
+                rect_y = min(o, c)
+                rect_h = abs(c - o)
+                if rect_h == 0:
+                    rect_h = 0.001
+                ax.add_patch(Rectangle((x_vals[i] - width/2, rect_y), width, rect_h, facecolor=color, edgecolor=color))
+            ax.set_xticks(x_vals)
+            ax.set_xticklabels(list(cache_df[t_col]))
+            ax.relim()
+            ax.autoscale_view()
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=['time', 'open', 'high', 'low', 'close'],
+            plot_defaults_key=None,
             **kwargs
         )
 
