@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib import image as mpimg
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
@@ -750,3 +751,85 @@ class GenericPlotsMixin:
             plot_defaults_key=None, # 样式在 plot_logic 中手动处理
             **kwargs
         )
+
+    def add_figure(self, image_path: str, fit_mode: str = 'fit', **kwargs) -> 'Plotter':
+        """
+        将一个图像文件作为子图的全部内容进行绘制。
+
+        此方法会加载指定的图像，并根据 fit_mode 将其显示在子图区域内。
+        它会自动关闭该子图的坐标轴刻度和边框。
+
+        Args:
+            image_path (str): 要显示的图像文件的路径。
+            fit_mode (str, optional): 图像的填充模式。默认为 'fit'。
+                - 'stretch': 拉伸图像以完全填满子图的矩形区域，可能会改变图像的原始宽高比。
+                - 'fit': 保持图像的原始宽高比，缩放图像以适应子图区域，可能会在某一边留下空白。
+                - 'cover': 保持图像的原始宽高比，缩放图像以完全覆盖子图区域，可能会裁剪掉图像的一部分。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。
+            ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
+            **kwargs: 其他传递给 matplotlib.axes.Axes.imshow 的关键字参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        _ax, resolved_tag = self._resolve_ax_and_tag(kwargs.pop('tag', None))
+
+        # 读取图像文件
+        try:
+            img = mpimg.imread(image_path)
+        except FileNotFoundError:
+            raise ValueError(f"Image file '{image_path}' not found.")
+
+        # 设置子图的边框和刻度
+        _ax.axis('off')
+        _ax.set_xticks([])
+        _ax.set_yticks([])
+
+        # 准备传递给 imshow 的参数
+        imshow_kwargs = kwargs.copy()
+
+        # 绘制图像
+        _ax.imshow(img, **imshow_kwargs)
+
+        # 然后根据模式调整 Axes 的视图
+        if fit_mode == 'stretch':
+            _ax.set_aspect('auto')
+
+        elif fit_mode == 'fit':
+            _ax.set_aspect('equal')
+
+        elif fit_mode == 'cover':
+            _ax.set_aspect('auto')  # 必须是 auto 才能独立设置 xlim 和 ylim
+
+            self.fig.canvas.draw()  # 确保布局计算完成
+
+            img_height, img_width, _ = img.shape
+            img_aspect = img_width / img_height
+
+            # 获取子图在屏幕上的实际宽高比
+            bbox = _ax.get_window_extent()
+            subplot_aspect = bbox.width / bbox.height
+
+            if img_aspect > subplot_aspect:
+                # 图像比子图更“宽”，需要裁剪左右
+                # 我们要显示完整的高度，所以 ylim 应该是 (img_height, 0)
+                _ax.set_ylim(img_height, 0)
+
+                # 根据子图的宽高比，计算需要显示的宽度
+                new_width = img_height * subplot_aspect
+                crop_margin = (img_width - new_width) / 2
+                _ax.set_xlim(crop_margin, img_width - crop_margin)
+            else:
+                # 图像比子图更“高”，需要裁剪上下
+                # 我们要显示完整的宽度，所以 xlim 应该是 (0, img_width)
+                _ax.set_xlim(0, img_width)
+
+                # 根据子图的宽高比，计算需要显示的高度
+                new_height = img_width / subplot_aspect
+                crop_margin = (img_height - new_height) / 2
+                _ax.set_ylim(img_height - crop_margin, crop_margin)
+        else:
+            raise ValueError(f"Invalid fit_mode '{fit_mode}'. Available modes are 'stretch', 'fit', 'cover'.")
+
+        self.last_active_tag = resolved_tag
+        return self
