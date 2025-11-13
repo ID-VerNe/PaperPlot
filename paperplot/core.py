@@ -75,8 +75,15 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         if subplot_aspect is not None:
             if isinstance(layout, tuple) and len(layout) == 2:
                 n_rows, n_cols = layout
-            else: # Mosaic layout
+            elif isinstance(layout, list):  # Mosaic layout
                 _, (n_rows, n_cols) = utils.parse_mosaic_layout(layout)
+            elif isinstance(layout, dict):  # Nested layout
+                main_layout = layout.get('main')
+                if not main_layout:
+                    raise ValueError("Nested layout dictionary must contain a 'main' key to calculate aspect.")
+                _, (n_rows, n_cols) = utils.parse_mosaic_layout(main_layout)
+            else:
+                raise TypeError(f"Unsupported layout type '{type(layout)}' for subplot_aspect calculation.")
             
             aspect_w, aspect_h = subplot_aspect
             

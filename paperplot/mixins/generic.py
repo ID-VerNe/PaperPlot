@@ -752,7 +752,7 @@ class GenericPlotsMixin:
             **kwargs
         )
 
-    def add_figure(self, image_path: str, fit_mode: str = 'fit', **kwargs) -> 'Plotter':
+    def add_figure(self, image_path: str, fit_mode: str = 'fit', align: str = 'center', padding: float = 0.0, zoom: float = 0.0, **kwargs) -> 'Plotter':
         """
         将一个图像文件作为子图的全部内容进行绘制。
 
@@ -765,6 +765,13 @@ class GenericPlotsMixin:
                 - 'stretch': 拉伸图像以完全填满子图的矩形区域，可能会改变图像的原始宽高比。
                 - 'fit': 保持图像的原始宽高比，缩放图像以适应子图区域，可能会在某一边留下空白。
                 - 'cover': 保持图像的原始宽高比，缩放图像以完全覆盖子图区域，可能会裁剪掉图像的一部分。
+            align (str, optional): 当 `fit_mode` 为 'fit' 时，图片在空白区域的对齐方式。
+                                   可选值：'center', 'top_left', 'top_right', 'bottom_left', 'bottom_right'。
+                                   默认为 'center'。
+            padding (float, optional): 图像与子图边界之间的内边距，范围从0到1。
+                                       例如，0.05 表示 5% 的边距。默认为 0.0。
+            zoom (float, optional): 从图像中心放大/裁剪的比例，范围从0到0.5（不含）。
+                                    例如，0.1 表示从中心放大10%。默认为 0.0。
             tag (Optional[Union[str, int]], optional): 目标子图的tag。
             ax (Optional[plt.Axes], optional): 直接提供一个Axes对象用于绘图。
             **kwargs: 其他传递给 matplotlib.axes.Axes.imshow 的关键字参数。
@@ -774,62 +781,113 @@ class GenericPlotsMixin:
         """
         _ax, resolved_tag = self._resolve_ax_and_tag(kwargs.pop('tag', None))
 
+        # 定义绘图目标轴
+        draw_ax = _ax
+
+        # 如果有 padding，则创建内嵌轴
+        if padding > 0:
+            if not (0.0 <= padding < 0.5):
+                raise ValueError(f"Padding must be between 0.0 and 0.5 (exclusive of 0.5), but got {padding}.")
+            draw_ax = _ax.inset_axes([padding, padding, 1 - 2 * padding, 1 - 2 * padding])
+            _ax.axis('off') # 关闭原始轴的刻度和边框，使其成为透明容器
+
+        # 参数校验
+        if fit_mode not in ['stretch', 'fit', 'cover']:
+            raise ValueError(f"Invalid fit_mode '{fit_mode}'. Available modes are 'stretch', 'fit', 'cover'.")
+        if align not in ['center', 'top_left', 'top_right', 'bottom_left', 'bottom_right']:
+            raise ValueError(f"Invalid align '{align}'. Available aligns are 'center', 'top_left', 'top_right', 'bottom_left', 'bottom_right'.")
+        if not (0.0 <= zoom < 0.5):
+            raise ValueError(f"Zoom must be between 0.0 and 0.5 (exclusive of 0.5), but got {zoom}.")
+
         # 读取图像文件
         try:
             img = mpimg.imread(image_path)
         except FileNotFoundError:
             raise ValueError(f"Image file '{image_path}' not found.")
 
-        # 设置子图的边框和刻度
-        _ax.axis('off')
-        _ax.set_xticks([])
-        _ax.set_yticks([])
+        # 总是关闭坐标轴
+        draw_ax.axis('off')
+        draw_ax.set_xticks([])
+        draw_ax.set_yticks([])
 
         # 准备传递给 imshow 的参数
         imshow_kwargs = kwargs.copy()
+        imshow_kwargs.setdefault('aspect', 'auto')
 
         # 绘制图像
-        _ax.imshow(img, **imshow_kwargs)
+        draw_ax.imshow(img, **imshow_kwargs)
 
-        # 然后根据模式调整 Axes 的视图
+        # 获取图像和子图的尺寸信息
+        img_height, img_width = img.shape[0], img.shape[1]
+        img_aspect = img_width / img_height
+        
+        # 强制重绘以获取准确的 bbox
+        self.fig.canvas.draw()
+        bbox = draw_ax.get_window_extent()
+        subplot_aspect = bbox.width / bbox.height if bbox.height > 0 else 1
+
+        # 必须是 auto 才能独立设置 xlim 和 ylim
+        draw_ax.set_aspect('auto') 
+
+        xlim, ylim = (0, img_width), (img_height, 0) # 默认全图显示
+
         if fit_mode == 'stretch':
-            _ax.set_aspect('auto')
+            # 拉伸模式，只应用 zoom
+            pass # xlim, ylim 保持默认，zoom 在后面统一处理
 
-        elif fit_mode == 'fit':
-            _ax.set_aspect('equal')
+        else: # fit 和 cover 模式都需要计算比例和裁剪
+            if fit_mode == 'fit':
+                # fit 模式：保持图像比例，缩放以适应子图
+                if img_aspect > subplot_aspect: # 图像比子图宽，需要添加垂直留白
+                    view_w = img_width
+                    view_h = view_w / subplot_aspect
+                    pad_y = (view_h - img_height)
+                    
+                    # 根据 align 参数决定如何分配 pad_y
+                    if align == 'center':
+                        ylim = (img_height + pad_y / 2, -pad_y / 2)
+                    elif align == 'top_left' or align == 'top_right':
+                        ylim = (view_h, 0)
+                    elif align == 'bottom_left' or align == 'bottom_right':
+                        ylim = (img_height, img_height - view_h)
+                    xlim = (0, view_w) # xlim 保持不变
 
-        elif fit_mode == 'cover':
-            _ax.set_aspect('auto')  # 必须是 auto 才能独立设置 xlim 和 ylim
+                else: # 图像比子图高，需要添加水平留白
+                    view_h = img_height
+                    view_w = view_h * subplot_aspect
+                    pad_x = (view_w - img_width)
+                    
+                    # 根据 align 参数决定如何分配 pad_x
+                    if align == 'center':
+                        xlim = (-pad_x / 2, view_w - pad_x / 2)
+                    elif align == 'top_left' or align == 'bottom_left':
+                        xlim = (0, view_w)
+                    elif align == 'top_right' or align == 'bottom_right':
+                        xlim = (img_width - view_w, img_width)
+                    ylim = (view_h, 0) # ylim 保持不变
+            
+            elif fit_mode == 'cover':
+                # cover 模式：保持图像比例，缩放以填满子图
+                if img_aspect > subplot_aspect: # 图像比子图宽，需裁剪左右
+                    view_h = img_height
+                    view_w = view_h * subplot_aspect
+                    crop_x = (img_width - view_w) / 2
+                    xlim, ylim = (crop_x, img_width - crop_x), (img_height, 0)
+                else: # 图像比子图高，需裁剪上下
+                    view_w = img_width
+                    view_h = view_w / subplot_aspect
+                    crop_y = (img_height - view_h) / 2
+                    xlim, ylim = (0, img_width), (img_height - crop_y, crop_y)
 
-            self.fig.canvas.draw()  # 确保布局计算完成
+        # 应用 zoom (在所有计算之后)
+        total_w = xlim[1] - xlim[0]
+        total_h = ylim[0] - ylim[1] # ylim 是 (top, bottom)，所以是反的
 
-            img_height, img_width, _ = img.shape
-            img_aspect = img_width / img_height
+        xlim = (xlim[0] + total_w * zoom, xlim[1] - total_w * zoom)
+        ylim = (ylim[0] - total_h * zoom, ylim[1] + total_h * zoom)
 
-            # 获取子图在屏幕上的实际宽高比
-            bbox = _ax.get_window_extent()
-            subplot_aspect = bbox.width / bbox.height
-
-            if img_aspect > subplot_aspect:
-                # 图像比子图更“宽”，需要裁剪左右
-                # 我们要显示完整的高度，所以 ylim 应该是 (img_height, 0)
-                _ax.set_ylim(img_height, 0)
-
-                # 根据子图的宽高比，计算需要显示的宽度
-                new_width = img_height * subplot_aspect
-                crop_margin = (img_width - new_width) / 2
-                _ax.set_xlim(crop_margin, img_width - crop_margin)
-            else:
-                # 图像比子图更“高”，需要裁剪上下
-                # 我们要显示完整的宽度，所以 xlim 应该是 (0, img_width)
-                _ax.set_xlim(0, img_width)
-
-                # 根据子图的宽高比，计算需要显示的高度
-                new_height = img_width / subplot_aspect
-                crop_margin = (img_height - new_height) / 2
-                _ax.set_ylim(img_height - crop_margin, crop_margin)
-        else:
-            raise ValueError(f"Invalid fit_mode '{fit_mode}'. Available modes are 'stretch', 'fit', 'cover'.")
+        draw_ax.set_xlim(xlim)
+        draw_ax.set_ylim(ylim)
 
         self.last_active_tag = resolved_tag
         return self
