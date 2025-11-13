@@ -14,6 +14,7 @@
 *   **🧩 强大的布局系统**: 无论是简单的 `(行, 列)` 网格，还是使用 `mosaic` 实现的跨行跨列复杂布局，都能轻松定义。
 *   **🧱 声明式嵌套布局**: 通过一个字典即可一次性定义包含子网格的复杂层级布局，并使用 `'容器.子图'` 这样的直观路径进行引用，完美实现“图中图”。
 *   **📐 数据驱动的尺寸控制**: 除了传统的 `figsize`，还可以通过 `subplot_aspect` 指定子图单元格的宽高比，让 `PaperPlot` 自动计算最合适的画布尺寸，确保图表比例的专业性。
+*   **🖼️ 灵活的图像集成**: 使用 `add_figure()` 方法，可以轻松地将外部图像文件作为子图内容，并提供了 `fit`, `cover`, `stretch` 等多种填充模式，以及对齐、内边距和缩放控制。
 *   **✨ 内置科研主题与调色板**: 提供多种专业美观的内置样式（如 `publication`）和丰富的动漫游戏主题调色板，一键切换图表风格和颜色方案，保证全局一致性。
 *   **🌐 全局图层级标注**: 提供了在整个画布（Figure）上添加文本、线条、方框和标签的 API，非常适合添加全局注释或高亮一组图表。
 *   **🔢 子图自动编号与分组**: 通过 `add_subplot_labels()` 和 `add_grouped_labels()` 方法，可以一键为子图添加 `(a)`, `(b)`... 等学术编号，或为逻辑分组添加共享标签，并支持高度定制化。
@@ -84,7 +85,7 @@ df_scatter = pd.DataFrame({
 | **高级布局 (跨行)**<br/> `Layout/row_span_example.py` | 创建一个图表，其中某个子图跨越多行。 | `layout=[['A', 'B'], ['A', 'C']]` |
 | **高级布局 (块跨越)**<br/> `Layout/block_span_example.py` | 创建一个图表，其中某个子图同时跨越多行和多列。 | `layout=[['A', 'A', 'B'], ['A', 'A', 'C']]` |
 | **固定子图宽高比**<br/> `Layout/aspect_ratio_example.py` | 通过 `subplot_aspect` 保证每个子图单元格的宽高比，Plotter 会自动计算画布大小，无需指定 `figsize`。 | `subplot_aspect=(16, 9)` |
-| **组合图与内嵌图**<br/> `Features_Customization/composite_figure_example.py` | 创建一个 L 型的复杂图表（使用 `.` 作为空白占位符），并在其中一个子图内部嵌入一张图片。 | `layout=[['A', 'A'], ['B', '.']]`<br/>`add_inset_image()` |
+| **组合图与图像集成**<br/> `Features_Customization/add_figure_alignment_example.py` | 在一个复杂的马赛克布局中集成外部图像，并演示 `fit`, `cover`, `stretch` 等多种对齐和填充模式。 | `add_figure()`<br/>`fit_mode`, `align`, `padding`, `zoom` |
 | **双Y轴 (Twin-Axis)**<br/> `Layout/twinx_chaining_example.py` | 演示如何通过上下文切换，流畅地在主轴和孪生轴上进行绘图和修饰。 | `add_twinx()`, `target_primary()`, `target_twin()` |
 
 ### 功能与定制化 (Features & Customization)

@@ -4,26 +4,36 @@ title: MachineLearningPlotsMixin API
 sidebar_label: 机器学习
 ---
 
-add_learning_curve
-- 签名：`add_learning_curve(train_sizes, train_scores, test_scores, tag?, ax?, title?, xlabel?, ylabel?, train_color?, test_color?, **kwargs)`
-- 用途：绘制模型学习曲线，显示训练/验证得分的均值与标准差带。
-- 参数：
-  - `train_sizes`：`array-like`，一维，长度为刻度数。
-  - `train_scores`：`array-like`，二维 `(n_ticks, n_folds)`。
-  - `test_scores`：`array-like`，二维 `(n_ticks, n_folds)`。
-  - `title`（可选）：默认 `'Learning Curve'`。
-  - `xlabel`/`ylabel`（可选）：默认 `'Training examples'`、`'Score'`。
-  - `train_color`/`test_color`（可选）：曲线与填充颜色，默认 `'r'`、`'g'`。
-  - `tag`/`ax`/`**kwargs`：透传至 `Axes.plot`（如 `linestyle`、`marker`）。
-- 行为：计算每个刻度的均值与标准差，绘制填充带与折线，设置标题与轴标签，显示图例。
-- 示例：
+## 概述
+
+`MachineLearningPlotsMixin` 提供了用于可视化机器学习模型性能的专用图表。
+
+---
+
+### `add_learning_curve`
+- **签名**: `add_learning_curve(train_sizes, train_scores, test_scores, tag?, ax?, title?, xlabel?, ylabel?, ...)`
+- **用途**: 绘制模型的学习曲线，用于诊断模型的偏差-方差问题（即欠拟合或过拟合）。它会显示训练得分和交叉验证得分随训练样本数量变化的趋势，并用阴影区域表示得分的标准差范围。
+- **核心参数**:
+  - `train_sizes`: `array-like`, 一维数组，表示用于生成学习曲线的训练样本数量的刻度。
+  - `train_scores`: `array-like`, 二维数组，形状为 `(n_ticks, n_folds)`，表示模型在训练集上的得分。
+  - `test_scores`: `array-like`, 二维数组，形状与 `train_scores` 相同，表示模型在交叉验证集上的得分。
+  - `title`: `str` (可选), 图表标题。默认为 `'Learning Curve'`。
+  - `xlabel`/`ylabel`: `str` (可选), 坐标轴标签。默认为 `'Training examples'` 和 `'Score'`。
+  - `train_color`/`test_color`: `str` (可选), 分别用于训练得分和验证得分曲线的颜色。
+- **示例**:
 ```python
+from sklearn.model_selection import learning_curve
+
+# 假设 model, X, y 已经定义
+train_sizes, train_scores, test_scores = learning_curve(
+    model, X, y, cv=5, n_jobs=-1, 
+    train_sizes=np.linspace(.1, 1.0, 5)
+)
+
 plotter.add_learning_curve(
-  train_sizes=sizes,
+  train_sizes=train_sizes,
   train_scores=train_scores,
   test_scores=test_scores,
-  title='Model Learning Curve',
-  train_color='tab:blue',
-  test_color='tab:orange'
+  title='Learning Curve for My Model'
 )
 ```
