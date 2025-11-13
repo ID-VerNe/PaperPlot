@@ -1,8 +1,7 @@
 <p align="center">
-  <img src="logo.svg" alt="PaperPlot Logo" width="450">
+  <img src="logo.svg" alt="PaperPlot Logo">
 </p>
 
-# PaperPlot
 
 [![PyPI version](https://badge.fury.io/py/paperplotter.svg)](https://badge.fury.io/py/paperplotter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
