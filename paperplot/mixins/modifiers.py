@@ -9,6 +9,7 @@ from adjustText import adjust_text
 from collections import OrderedDict
 
 from cycler import cycler
+from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,52 @@ class ModifiersMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs) #确保调用父类的__init__
         self._draw_on_save_queue = []
+
+    def _get_corner_fig_coords(
+        self, ax: plt.Axes, loc: int,
+        x_range: Optional[Tuple[float, float]] = None,
+        y_range: Optional[Tuple[float, float]] = None
+    ) -> Tuple[float, float]:
+        """[私有] 获取指定角点在画布坐标系中的位置。
+        如果提供了 x_range 和 y_range，则从数据坐标转换。
+        否则，从 ax 的 Bbox 转换。
+        """
+        if x_range is not None and y_range is not None:
+            # 模式1: 从数据坐标转换
+            xmin, xmax = x_range
+            ymin, ymax = y_range
+
+            # 定义数据坐标系下的8个点
+            points_data = {
+                1: (xmax, ymax), # upper right
+                2: (xmin, ymax), # upper left
+                3: (xmin, ymin), # lower left
+                4: (xmax, ymin), # lower right
+                # ... 其他位置可以按需添加
+            }
+            if loc not in points_data:
+                raise ValueError(f"Invalid loc code for data coords: {loc}")
+
+            data_coords = points_data[loc]
+
+            # 将数据坐标 -> 显示坐标 -> 画布坐标
+            fig_coords = self.fig.transFigure.inverted().transform(
+                ax.transData.transform(data_coords)
+            )
+            return tuple(fig_coords)
+
+        else:
+            # 模式2: 从 Axes 的 Bbox 获取（旧逻辑）
+            bbox = ax.get_position()
+            loc_map = {
+                1: (bbox.x1, bbox.y1), # upper right
+                2: (bbox.x0, bbox.y1), # upper left
+                3: (bbox.x0, bbox.y0), # lower left
+                4: (bbox.x1, bbox.y0), # lower right
+            }
+            if loc not in loc_map:
+                raise ValueError(f"Invalid loc code for Bbox: {loc}")
+            return loc_map[loc]
 
     def _to_roman(self, number: int) -> str:
         """将整数转换为罗马数字。"""
@@ -680,7 +727,7 @@ class ModifiersMixin:
         ax2.patch.set_alpha(0.0)
         try:
             colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-            num_used = len(ax1.lines) + len(ax1.patches)
+            num_used = len(ax1.lines) + len(ax1.containers)
             offset = num_used % len(colors)
             shifted = colors[offset:] + colors[:offset]
             ax2.set_prop_cycle(cycler(color=shifted))
@@ -853,45 +900,142 @@ class ModifiersMixin:
 
         return self
 
-    def add_zoom_inset(self, rect: List[float], zoom_level: float = 2,
-                       connector_locs: Optional[Tuple[int, int]] = (1, 2),
+    def add_zoom_inset(self, rect: List[float], x_range: Tuple[float, float],
+                       y_range: Optional[Tuple[float, float]] = None,
                        source_tag: Optional[Union[str, int]] = None,
-                       inset_ax_kwargs: Optional[dict] = None,
-                       mark_inset_kwargs: Optional[dict] = None) -> 'Plotter':
+                       draw_source_box: bool = True,
+                       source_box_kwargs: Optional[dict] = None) -> 'Plotter':
         """在指定或当前活动的子图上添加一个缩放指示（inset plot）。
 
         Args:
             rect (List[float]): 一个定义内嵌图位置和大小的列表 `[x, y, width, height]`，
-                                坐标是相对于整个 Figure 的 (0到1)。
-            zoom_level (float, optional): 缩放级别。默认为2。
-            connector_locs (Optional[Tuple[int, int]], optional): 连接线的起始和结束位置，
-                                                                  使用Matplotlib的loc代码 (例如 (1, 2) 表示右上角到左上角)。
-                                                                  默认为 (1, 2)。
+                                坐标是相对于**父坐标轴**的 (0到1)。
+            x_range (Tuple[float, float]): 内嵌图的X轴范围 (xmin, xmax)。
+            y_range (Optional[Tuple[float, float]], optional): 内嵌图的Y轴范围 (ymin, ymax)。
+                                                                如果为 `None`，将根据 `x_range` 自动计算。
             source_tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
-            inset_ax_kwargs (Optional[dict]): 传递给 `zoomed_inset_axes` 的额外关键字参数。
-            mark_inset_kwargs (Optional[dict]): 传递给 `mark_inset` 的额外关键字参数。
+            draw_source_box (bool, optional): 是否在源图上绘制一个矩形框来表示缩放范围。
+            source_box_kwargs (Optional[dict], optional): 传递给 `ax.add_patch` 的关键字参数，用于定制源图矩形框的样式。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes, mark_inset
+        # 步骤 1: 获取源 Axes 和其缓存的数据
         source_ax = self._get_active_ax(source_tag)
+        active_tag = source_tag if source_tag is not None else self.last_active_tag
 
-        if inset_ax_kwargs is None:
-            inset_ax_kwargs = {}
-        if mark_inset_kwargs is None:
-            mark_inset_kwargs = {}
+        if active_tag not in self.data_cache:
+            raise ValueError(f"未能为源子图 '{active_tag}' 找到缓存数据以创建缩放图。")
 
-        # Create the zoomed inset axes
-        # loc='center' positions the inset_ax within the bbox_to_anchor rectangle
-        # bbox_to_anchor and bbox_transform define the absolute position and size of the inset axes on the figure.
-        inset_ax = zoomed_inset_axes(source_ax, zoom_level, loc='center',
-                                     bbox_to_anchor=rect, bbox_transform=self.fig.transFigure,
-                                     **inset_ax_kwargs)
+        source_data = self.data_cache[active_tag]
+        # 假设缓存的DataFrame中，前两列分别是X和Y数据
+        x_col, y_col = source_data.columns[0], source_data.columns[1]
 
-        # Mark the region in the parent axes and draw connecting lines
-        mark_inset(source_ax, inset_ax, loc1=connector_locs[0], loc2=connector_locs[1],
-                   **mark_inset_kwargs)
+        # 步骤 2: 创建内嵌图 Axes
+        # 注意：inset_axes 的 rect 是相对于父轴的坐标系
+        inset_ax = source_ax.inset_axes(rect)
+        self.inset_axes[active_tag] = inset_ax # <-- 添加这一行
+
+        # 步骤 3: 筛选出仅在放大范围内的数据
+        zoomed_data = source_data[
+            (source_data[x_col] >= x_range[0]) & (source_data[x_col] <= x_range[1])
+            ]
+
+        # 实现自动 y_range 逻辑
+        resolved_y_range = y_range
+        if resolved_y_range is None:
+            if not zoomed_data.empty:
+                min_y = zoomed_data[y_col].min()
+                max_y = zoomed_data[y_col].max()
+                padding = (max_y - min_y) * 0.05  # 增加 5% 的垂直边距
+                resolved_y_range = (min_y - padding, max_y + padding)
+            else:
+                # 如果范围内没有数据，则退回使用源图的Y轴范围
+                resolved_y_range = source_ax.get_ylim()
+
+        # 步骤 4: 在内嵌图中只绘制筛选后的数据子集
+        # 我们从源图中获取第一条线的颜色，以保持样式一致
+        line_color = source_ax.lines[0].get_color() if source_ax.lines else 'blue'
+        inset_ax.plot(zoomed_data[x_col], zoomed_data[y_col], color=line_color)
+
+        # 步骤 5: 为内嵌图设置精确的缩放范围和样式
+        inset_ax.set_xlim(x_range)
+        inset_ax.set_ylim(resolved_y_range) # 使用 resolved_y_range
+
+        # 步骤 6: 优化内嵌图的可读性
+        inset_ax.grid(True, linestyle='--', alpha=0.6)  # 添加网格线
+        inset_ax.tick_params(axis='both', which='major', labelsize=8)
+        
+        # 步骤 8: 保存源区域的数据范围
+        self.source_zoom_ranges[active_tag] = (x_range, resolved_y_range)
+
+        # 步骤 9: 根据参数决定是否在源图上绘制高亮框
+        if draw_source_box:
+            # 准备高亮框的样式参数
+            final_box_kwargs = {'facecolor': 'gray', 'alpha': 0.2, 'zorder': 0}
+            if source_box_kwargs:
+                final_box_kwargs.update(source_box_kwargs)
+
+            # 复用已有的 add_highlight_box 方法来绘制矩形
+            # 我们需要确保操作的目标是 source_ax，可以通过 tag 来指定
+            self.add_highlight_box(
+                x_range=x_range,
+                y_range=resolved_y_range,  # 使用已计算好的Y轴范围
+                tag=active_tag,
+                **final_box_kwargs
+            )
+
+        return self
+
+    def add_zoom_connectors(self, connections: List[Tuple[int, int]],
+                            source_tag: Optional[Union[str, int]] = None,
+                            **kwargs) -> 'Plotter':
+        """
+        为缩放内嵌图手动添加自定义的连接线。
+
+        此方法提供了对连接线的完全控制，允许你指定连接线
+        从源区域的哪个角连接到内嵌图的哪个角。
+
+        Args:
+            connections (List[Tuple[int, int]]):
+                一个连接定义的列表。每个定义是一个 (source_loc, inset_loc) 元组。
+                例如, `[(2, 1), (3, 4)]` 表示:
+                - 画一条线从源区域的左上角(2)到内嵌图的右上角(1)。
+                - 画另一条线从源区域的左下角(3)到内嵌图的右下角(4)。
+            source_tag (Optional[Union[str, int]], optional):
+                源子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs:
+                传递给 `self.fig_add_line` 的关键字参数，用于定制线的样式，
+                例如 `color='gray'`, `linestyle='--'`, `linewidth=1`。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        active_tag = source_tag if source_tag is not None else self.last_active_tag
+        if active_tag is None:
+            raise ValueError("没有为缩放连接线指定源子图。")
+
+        source_ax = self._get_ax_by_tag(active_tag)
+        if active_tag not in self.inset_axes:
+            raise ValueError(f"没有找到tag为 '{active_tag}' 的内嵌图。请先调用 add_zoom_inset()。")
+        inset_ax = self.inset_axes[active_tag]
+
+        if active_tag not in self.source_zoom_ranges:
+            raise ValueError(f"没有找到tag为 '{active_tag}' 的源区域缩放范围。请先调用 add_zoom_inset()。")
+        
+        source_x_range, source_y_range = self.source_zoom_ranges[active_tag]
+
+        self.fig.canvas.draw()
+
+        for source_loc, inset_loc in connections:
+            start_coords = self._get_corner_fig_coords(source_ax, source_loc, source_x_range, source_y_range)
+            end_coords = self._get_corner_fig_coords(inset_ax, inset_loc)
+
+            self.fig_add_line(
+                [start_coords[0], end_coords[0]],
+                [start_coords[1], end_coords[1]],
+                **kwargs
+            )
 
         return self
 

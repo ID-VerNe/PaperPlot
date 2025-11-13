@@ -138,6 +138,10 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         
         # 存储已创建的孪生轴
         self.twin_axes: Dict[Union[str, int], plt.Axes] = {}
+        # 存储已创建的内嵌图
+        self.inset_axes: Dict[Union[str, int], plt.Axes] = {}
+        # 存储每个内嵌图对应的源区域的X和Y数据范围
+        self.source_zoom_ranges: Dict[Union[str, int], Tuple[Tuple[float, float], Tuple[float, float]]] = {}
         # 标记当前的活动目标是主轴还是孪生轴
         self.active_target: str = 'primary' # 默认是 'primary'
 

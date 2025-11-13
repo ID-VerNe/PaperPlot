@@ -36,29 +36,31 @@ try:
         .set_xlabel('Time (s)')
         .set_ylabel('Amplitude')
         .set_xlim(0, 10)
-        .set_ylim(-1.5, 2.0)
+        .set_ylim(-2, 2.0)
         .set_legend(loc='upper left')
-
-        # 添加一个高亮框，以在主图上标示出将被放大的区域
-        .add_highlight_box(
-            x_range=(4.5, 5.5),
-            y_range=(-1.5, 2.0),
-            facecolor='gray',
-            alpha=0.2
-        )
 
         # 添加缩放指示图 (inset)
         # rect=[x, y, width, height] 定义了 inset 在 Figure 上的位置和大小
-        # zoom_level 定义了缩放的倍数
         # source_tag 会自动使用上一个活动的 tag
-        # mark_inset_kwargs 用于定制连接框和线的样式
         .add_zoom_inset(
-            rect=[0.55, 0.6, 0.35, 0.35],  # 将 inset 放置在右上角
-            zoom_level=4,
-            connector_locs=(3, 4),  # 左下角 -> 右下角
-            mark_inset_kwargs={'edgecolor': 'red', 'facecolor': 'none', 'linewidth': 1.5}
+            rect=[0.65, 0.1, 0.3, 0.3],  # 内嵌图的位置和大小 (相对于父坐标轴)
+            x_range=(4.5, 5.5),  # 指定要放大的X轴范围
+            # y_range 参数现在是可选的，如果省略，将根据 x_range 自动计算
+            source_box_kwargs={'facecolor': 'red', 'edgecolor': 'black', 'alpha': 0.15}
+        )
+        # 手动添加连接线
+        .add_zoom_connectors(
+            [(1, 2), (4, 3)], # 从源区域的右上角到内嵌图的左上角，从源区域的右下角到内嵌图的左下角
+            color='red', linestyle=':', linewidth=1.5
         )
         
+        # # 示例：添加一个没有连接线的缩放内嵌图，并手动指定 y_range
+        # .add_zoom_inset(
+        #     rect=[0.05, 0.1, 0.3, 0.3],  # 另一个内嵌图的位置和大小
+        #     x_range=(4.5, 5.5),  # 指定要放大的X轴范围
+        #     y_range=(-0.5, 0.5), # 手动指定Y轴范围
+        # )
+
         # 保存图像
         .save("zoom_inset_example.png")
     )
