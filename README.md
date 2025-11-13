@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.svg" alt="PaperPlot Logo" width="450">
+</p>
+
 # PaperPlot
 
 [![PyPI version](https://badge.fury.io/py/paperplotter.svg)](https://badge.fury.io/py/paperplotter)
