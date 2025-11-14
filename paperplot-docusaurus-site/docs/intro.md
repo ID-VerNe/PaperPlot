@@ -33,7 +33,7 @@ PaperPlotter 是一个面向科研论文图表制作的声明式绘图库，对 
 
 ### 依赖安装步骤
 ```bash
-pip install -r requirements.txt
+pip install paperplotter
 ```
 
 ---
