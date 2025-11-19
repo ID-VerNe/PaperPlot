@@ -277,8 +277,8 @@ class DomainSpecificPlotsMixin:
         # 5. 添加事件标记
         if events and isinstance(events, dict):
             self.add_event_markers(
-                event_dates=list(events.values()),
-                labels=list(events.keys())
+                event_dates=list(events.keys()),
+                labels=list(events.values())
             )
         
         # 6. 设置默认标签和图例

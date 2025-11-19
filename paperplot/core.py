@@ -155,6 +155,9 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         self.plotted_axes: set[plt.Axes] = set()
 
         self.color_manager = ColorManager()
+        
+        # 延迟绘制队列，用于在 save 时执行需要最终布局信息的操作
+        self._draw_on_save_queue: List[Callable] = []
 
 
     def _get_plot_defaults(self, plot_type: str) -> dict:

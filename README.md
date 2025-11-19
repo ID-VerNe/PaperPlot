@@ -77,70 +77,150 @@ df_scatter = pd.DataFrame({
 
 ## 通过示例学习 (Learn from Examples)
 
-掌握 `PaperPlot` 最好的方法就是探索我们提供的丰富示例。每个示例都专注于一个核心功能，并附有详细的代码和注释。
+掌握 `PaperPlot` 最好的方法就是探索我们提供的丰富示例。所有示例已按功能分类组织在 `examples/` 目录下。
 
-### 布局 (Layout)
+> 💡 **提示**：建议从 `01_Basic_Usage` 开始，然后根据需求探索其他类别。每个目录都有详细的 README 文档。
 
-| 示例 | 描述 | 关键功能 |
-| :--- | :--- | :--- |
-| **声明式嵌套布局**<br/> `Layout/declarative_nested_layout_example.py` | 使用字典来声明式地定义一个包含子网格的复杂、多层级布局，实现“图中图”的效果。 | `layout={...}`<br/> `tag='容器.子图'` |
-| **高级布局 (跨列)**<br/> `Layout/advanced_layout_example.py` | 展示如何使用列表定义一个跨列的复杂布局。 | `layout=[['A', 'B', 'B'], ...]`<br/>`get_ax_by_name()` |
-| **高级布局 (跨行)**<br/> `Layout/row_span_example.py` | 创建一个图表，其中某个子图跨越多行。 | `layout=[['A', 'B'], ['A', 'C']]` |
-| **高级布局 (块跨越)**<br/> `Layout/block_span_example.py` | 创建一个图表，其中某个子图同时跨越多行和多列。 | `layout=[['A', 'A', 'B'], ['A', 'A', 'C']]` |
-| **固定子图宽高比**<br/> `Layout/aspect_ratio_example.py` | 通过 `subplot_aspect` 保证每个子图单元格的宽高比，Plotter 会自动计算画布大小，无需指定 `figsize`。 | `subplot_aspect=(16, 9)` |
-| **组合图与图像集成**<br/> `Features_Customization/add_figure_alignment_example.py` | 在一个复杂的马赛克布局中集成外部图像，并演示 `fit`, `cover`, `stretch` 等多种对齐和填充模式。 | `add_figure()`<br/>`fit_mode`, `align`, `padding`, `zoom` |
-| **双Y轴 (Twin-Axis)**<br/> `Layout/twinx_chaining_example.py` | 演示如何通过上下文切换，流畅地在主轴和孪生轴上进行绘图和修饰。 | `add_twinx()`, `target_primary()`, `target_twin()` |
+### 📁 示例目录结构
+```
+examples/
+├── README.md                    # 📖 示例总览和学习路径
+├── 01_Basic_Usage/              # 🎯 基础用法：快速入门
+├── 02_Chart_Types/              # 📊 图表类型：各种图表演示
+│   └── README.md                # 图表类型选择指南
+├── 03_Layout_Management/        # 🧩 布局管理：复杂子图布局
+├── 04_Twin_Axes/                # 🔗 孪生轴：双Y轴图表
+│   └── README.md                # 孪生轴使用指南
+├── 05_Styling_and_Themes/       # 🎨 样式主题：定制图表外观
+├── 06_Annotations/              # 📍 注释标注：添加说明元素
+│   ├── README.md                # 注释功能总览
+│   ├── text_and_labels/         # 文本和子图标签
+│   ├── shapes_and_regions/      # 形状和高亮区域
+│   └── statistical/             # 统计检验标注
+├── 07_Images_and_Composition/   # 🖼️ 图像组合：图像集成
+├── 08_Domain_Specific/          # 🔬 领域特定：专用图表类型
+├── 09_Data_Utils/               # 🛠️ 数据工具：辅助功能
+└── assets/                      # 📦 示例资源文件
+```
 
-### 功能与定制化 (Features & Customization)
+### 🚀 快速开始示例
 
-| 示例 | 描述 | 关键功能 |
-| :--- | :--- | :--- |
-| **多图网格**<br/> `Features_Customization/multi_plot_grid.py` | 在一个网格中通过链式调用混合绘制不同类型的图表。 | `plotter.add_...().add_...()` |
-| **缩放嵌入图 (Zoom Inset)**<br/> `Features_Customization/zoom_inset_example.py` | 在主图上创建一个放大特定区域的嵌入式子图，并自动添加连接线。 | `add_zoom_inset()` |
-| **共享颜色条**<br/> `Features_Customization/heatmap_colorbar_example.py` | 为多个热图创建一个共享的、能反映全局数据范围的颜色条。 | `add_heatmap(cbar=False)`, `cleanup_heatmaps()` |
-| **高级定制**<br/> `Features_Customization/advanced_customization.py` | 演示如何使用 `get_ax()` "逃生舱口" 来获取原生的 Matplotlib `Axes` 对象，并添加任意 `Patch`（如椭圆）。 | `get_ax()`, `add_patch()` |
-| **全局控制**<br/> `Features_Customization/global_controls_example.py` | 展示如何设置全局标题 (`suptitle`) 和创建全局图例。 | `set_suptitle()`, `add_global_legend()` |
-| **智能清理**<br/> `Features_Customization/cleanup_demonstration.py` | 演示 `cleanup()` 函数如何动态地为指定行/列的子图共享 X/Y 轴，并自动隐藏多余的刻度标签。 | `cleanup(auto_share=True)` |
-| **错误处理**<br/> `Features_Customization/error_handling_test.py` | 展示 `PaperPlot` 的自定义异常，如 `DuplicateTagError`, `TagNotFoundError`, `PlottingSpaceError`。 | `try...except pp.PaperPlotError` |
+```bash
+# 克隆或下载项目后，进入 examples 目录
+cd examples
 
-### 标注、高亮与标签 (Annotation, Highlighting & Labeling)
+# 查看完整的示例索引和学习路径
+cat README.md
 
-| 示例 | 描述 | 关键功能 |
-| :--- | :--- | :--- |
-| **自动子图标签 (马赛克)**<br/>`Labeling/example_1_auto_mosaic.py` | 自动为马赛克布局中所有已绘制的子图添加 `(a)`, `(b)` 等顺序标签。 | `add_subplot_labels()` |
-| **分组标签**<br/>`Labeling/example_2_grouped.py` | 为一组逻辑子图添加一个共享标签，并将其放置在组合边界框的外部。 | `add_grouped_labels()` |
-| **嵌套布局标签**<br/>`Labeling/example_3_nested.py` | 演示如何在复杂的嵌套布局中，为顶层和子网格内部添加不同层级的标签。 | `add_grouped_labels()`, `add_subplot_labels(tags=...)` |
-| **高度自定义标签**<br/>`Labeling/example_4_custom.py` | 展示子图标签的丰富定制选项，包括样式、模板、颜色、字体和位置。 | `add_subplot_labels(...)` |
-| **画布级标注**<br/>`Features_Customization/fig_annotation_example.py`| 演示添加跨越多个子图的画布级注解，如方框、标签和线条。| `fig_add_box()`, `fig_add_label()`, `fig_add_line()`, `fig_add_text()`|
-| **区域高亮**<br/>`Features_Customization/highlighting_example.py` | 展示如何在子图内部高亮特定的数据区域，并为整个图表添加边框。| `add_highlight_box()`, `fig_add_boundary_box()` |
-| **通用工具函数**<br/> `Data_Analysis_Utils/utility_functions_example.py` | 展示更多通用的修饰函数，如在高光谱上高亮特征峰和在时间序列上标记事件。 | `add_peak_highlights()`, `add_event_markers()` |
+# 运行基础示例
+python 01_Basic_Usage/error_handling.py
+python 02_Chart_Types/bar_charts.py
 
-### 风格与美化 (Styles & Aesthetics)
+# 探索更多功能
+python 06_Annotations/text_and_labels/subplot_labels_auto.py
+```
 
-| 示例 | 描述 | 关键功能 |
-| :--- | :--- | :--- |
-| **风格画廊**<br/> `Styles_Aesthetics/style_gallery_example.py` | 循环遍历所有内置的绘图风格，并为每种风格生成一个示例图。 | `Plotter(style='...')` |
-| **统计标注**<br/> `Styles_Aesthetics/statistical_annotation_example.py` | 在箱线图上自动进行多组成对统计检验（如 t-test），并智能堆叠显著性标记。 | `add_box()`, `add_pairwise_tests()` |
-| **美学与处理**<br/> `Styles_Aesthetics/aesthetic_and_processing_example.py` | 对数据进行平滑处理或根据条件高亮特定数据点。 | `utils.moving_average()`, `add_conditional_scatter()` |
-| **统计图组合**<br/> `Features_Customization/statistical_plots_example.py` | 演示如何组合小提琴图和蜂群图，以及在箱线图上添加统计检验。 | `add_violin()`, `add_swarm()`, `add_box()`, `add_stat_test()` |
-
-### 领域专用图 (Domain-Specific Plots)
+### 01. 基础用法 (Basic Usage)
 
 | 示例 | 描述 | 关键功能 |
 | :--- | :--- | :--- |
-| **领域专用图合集**<br/> `Domain_Specific_Plots/domain_specific_plots_example.py` | 一站式展示多种领域专用图，包括 SERS 光谱图、混淆矩阵、ROC 曲线和 PCA 散点图。 | `add_spectra()`, `add_confusion_matrix()`, `add_roc_curve()`, `add_pca_scatter()` |
-| **3D 绘图**<br/> `Domain_Specific_Plots/3d_plots_example.py` | 展示如何创建 3D 线图和表面图。 | `ax_configs={'...': {'projection': '3d'}}`, `add_line3d()`, `add_surface()` |
-| **学习曲线**<br/> `Domain_Specific_Plots/learning_curve_example.py` | 绘制机器学习模型的学习曲线，帮助诊断过拟合或欠拟合问题。 | `add_learning_curve()` |
-| **SERS 浓度图**<br/> `Domain_Specific_Plots/concentration_map_example.py` | 绘制 SERS Mapping 浓度图，本质上是带有专业美化的热图。 | `add_concentration_map()` |
-| **电力系统时间序列**<br/> `Domain_Specific_Plots/power_timeseries_example.py` | 绘制电力系统动态仿真结果，并自动标记故障、切除等事件。 | `add_power_timeseries()` |
-| **相量图**<br/> `Domain_Specific_Plots/phasor_diagram_example.py` | 在极坐标上绘制电气工程中的相量图。 | `add_phasor_diagram()` |
-| **分岔图**<br/> `Domain_Specific_Plots/bifurcation_diagram_example.py` | 绘制常用于非线性系统和稳定性分析的分岔图。 | `add_bifurcation_diagram()` |
+| **多图网格**<br/> `multi_plot_grid.py` | 在一个网格中通过链式调用混合绘制不同类型的图表。 | `plotter.add_...().add_...()` |
+| **错误处理**<br/> `error_handling.py` | 展示 `PaperPlot` 的自定义异常处理。 | `try...except pp.PaperPlotError` |
 
-### 数据分析工具 (Data Analysis Utils)
+> 💡 更多图表类型示例请参见 [`02_Chart_Types/`](examples/02_Chart_Types/)
+
+### 02. 图表类型 (Chart Types)
 
 | 示例 | 描述 | 关键功能 |
 | :--- | :--- | :--- |
-| **数据分析工具集**<br/> `Data_Analysis_Utils/data_analysis_utils_example.py` | 演示如何对数据进行分布拟合和数据分箱绘图。 | `add_distribution_fit()`, `add_binned_plot()` |
+| **柱状图**<br/> `bar_charts.py` | 分组柱状图和堆叠柱状图。 | `add_grouped_bar()`, `add_stacked_bar()` |
+| **折线图**<br/> `line_charts.py` | 多线图演示。 | `add_multi_line()` |
+| **饼图与环形图**<br/> `pie_and_donut.py` | 饼图、环形图、嵌套环形图。 | `add_pie()`, `add_donut()`, `add_nested_donut()` |
+| **热图与颜色条**<br/> `heatmaps.py` | 为多个热图创建共享的颜色条。 | `add_heatmap()`, `cleanup_heatmaps()` |
+| **统计图组合**<br/> `statistical_plots.py` | 组合小提琴图、蜂群图和箱线图。 | `add_violin()`, `add_swarm()`, `add_box()` |
+| **瀑布图**<br/> `waterfall.py` | 阶梯瀑布图。 | `add_waterfall()` |
+| **K线图**<br/> `candlestick.py` | 金融K线图（蜡烛图）。 | `add_candlestick()` |
+| **极坐标图**<br/> `polar_plots.py` | 极坐标柱状图。 | `add_polar_bar()` |
+| **回归图**<br/> `regression_plots.py` | 回归分析图。 | `add_regplot()` |
+
+> 📖 详细图表类型选择指南请查看 [`examples/02_Chart_Types/README.md`](examples/02_Chart_Types/README.md)
+
+### 02. 布局管理 (Layout Management)
+
+| 示例 | 描述 | 关键功能 |
+| :--- | :--- | :--- |
+| **布局展示**<br/> `layout_showcase.py` | 全面展示各种布局能力。 | 多种 `layout` 配置 |
+| **声明式嵌套布局**<br/> `nested_layout.py` | 使用字典声明式定义包含子网格的复杂多层级布局。 | `layout={...}`, `tag='容器.子图'` |
+| **高级布局**<br/> `advanced_layout.py` | 展示跨列的复杂布局。 | `layout=[['A', 'B', 'B'], ...]` |
+| **块跨越**<br/> `block_span.py` | 子图同时跨越多行和多列。 | `layout=[['A', 'A', 'B'], ['A', 'A', 'C']]` |
+| **行跨越**<br/> `row_span.py` | 子图跨越多行。 | `layout=[['A', 'B'], ['A', 'C']]` |
+| **固定宽高比**<br/> `aspect_ratio.py` | 通过 `subplot_aspect` 保证子图单元格宽高比。 | `subplot_aspect=(16, 9)` |
+
+### 03. 孪生轴 (Twin Axes)
+
+| 示例 | 描述 | 关键功能 |
+| :--- | :--- | :--- |
+| **双Y轴基础**<br/> `basic_twin_axes.py` | 演示如何流畅地在主轴和孪生轴上绘图。 | `add_twinx()`, `target_primary()`, `target_twin()` |
+| **颜色循环同步**<br/> `twin_axes_color_cycle.py` | 确保双轴的颜色循环同步。 | 颜色循环管理 |
+| **极坐标双轴** <br/> `polar_twin_axes.py` | 在极坐标系统中使用双轴。 | `add_polar_twin()` |
+
+> 📖 完整的孪生轴使用指南请查看 [`examples/04_Twin_Axes/README.md`](examples/04_Twin_Axes/README.md)
+
+### 04. 样式与主题 (Styling and Themes)
+
+| 示例 | 描述 | 关键功能 |
+| :--- | :--- | :--- |
+| **风格画廊**<br/> `theme_gallery.py` | 循环遍历所有内置绘图风格。 | `Plotter(style='...')` |
+| **自定义主题**<br/> `custom_theme.py` | 演示如何使用 `get_ax()` 获取原生 Matplotlib Axes 并自定义。 | `get_ax()`, `add_patch()` |
+| **全局样式控制**<br/> `global_styling.py` | 设置全局标题和创建全局图例。 | `set_suptitle()`, `add_global_legend()` |
+| **智能清理**<br/> `cleanup_functions.py` | 演示 `cleanup()` 动态共享坐标轴和隐藏多余标签。 | `cleanup(auto_share=True)` |
+| **数据处理**<br/> `data_processing.py` | 数据平滑处理和条件高亮。 | `utils.moving_average()`, `add_conditional_scatter()` |
+
+### 05. 标注与标签 (Annotations)
+
+| 示例 | 描述 | 关键功能 |
+| :--- | :--- | :--- |
+| **📝 文本和标签** (`text_and_labels/`) |
+| **自动子图标签**<br/> `subplot_labels_auto.py` | 自动为子图添加 `(a)`, `(b)` 等顺序标签。 | `add_subplot_labels()` |
+| **分组标签**<br/> `subplot_labels_grouped.py` | 为一组子图添加共享标签。 | `add_grouped_labels()` |
+| **嵌套布局标签**<br/> `subplot_labels_nested.py` | 在复杂嵌套布局中添加多层级标签。 | `add_grouped_labels()`, `add_subplot_labels(tags=...)` |
+| **自定义标签**<br/> `subplot_labels_custom.py` | 展示标签的丰富定制选项。 | `add_subplot_labels(...)` |
+| **图形文本**<br/> `figure_text.py` | 在画布上添加文本注释。 | `fig_add_text()` |
+| **🎨 形状和区域** (`shapes_and_regions/`) |
+| **画布级标注**<br/> `shapes_and_boxes.py` | 添加跨越多个子图的方框、标签和线条。 | `fig_add_box()`, `fig_add_label()`, `fig_add_line()` |
+| **缩放嵌入图**<br/> `zoom_insets.py` | 创建放大特定区域的嵌入式子图。 | `add_zoom_inset()` |
+| **区域高亮**<br/> `highlighting.py` | 高亮特定数据区域并添加边框。 | `add_highlight_box()`, `fig_add_boundary_box()` |
+| **📊 统计注释** (`statistical/`) |
+| **统计标注**<br/> `statistical_annotation.py` | 在箱线图上自动添加统计检验标记。 | `add_box()`, `add_pairwise_tests()` |
+
+> 📖 完整的注释功能指南请查看 [`examples/06_Annotations/README.md`](examples/06_Annotations/README.md)
+
+### 06. 图像集成与组合 (Images and Composition)
+
+| 示例 | 描述 | 关键功能 |
+| :--- | :--- | :--- |
+| **嵌入图像**<br/> `embedding_images.py` | 将外部图像文件作为子图内容。 | `add_figure()` |
+| **图像对齐**<br/> `image_alignment.py` | 演示 `fit`, `cover`, `stretch` 等对齐模式。 | `add_figure(fit_mode=..., align=...)` |
+| **组合图形**<br/> `composite_figures.py` | 创建包含图像和图表的复杂组合图形。 | `add_figure()`, `add_zoom_inset()` |
+
+### 07. 领域专用图表 (Domain-Specific Plots)
+
+| 示例 | 描述 | 关键功能 |
+| :--- | :--- | :--- |
+| **领域专用图合集**<br/> `domain_specific_plots_example.py` | 展示多种领域专用图（光谱图、混淆矩阵、ROC曲线、PCA散点图）。 | `add_spectra()`, `add_confusion_matrix()`, `add_roc_curve()` |
+| **3D 绘图**<br/> `3d_plots_example.py` | 创建 3D 线图和表面图。 | `ax_configs={'projection': '3d'}`, `add_line3d()`, `add_surface()` |
+| **学习曲线**<br/> `learning_curve_example.py` | 绘制机器学习模型学习曲线。 | `add_learning_curve()` |
+| **浓度图**<br/> `concentration_map_example.py` | 绘制 SERS Mapping 浓度图。 | `add_concentration_map()` |
+| **电力时间序列**<br/> `power_timeseries_example.py` | 绘制电力系统动态仿真结果。 | `add_power_timeseries()` |
+| **相量图**<br/> `phasor_diagram_example.py` | 在极坐标上绘制相量图。 | `add_phasor_diagram()` |
+| **分岔图**<br/> `bifurcation_diagram_example.py` | 绘制非线性系统分岔图。 | `add_bifurcation_diagram()` |
+
+### 08. 数据分析工具 (Data Analysis Utils)
+
+| 示例 | 描述 | 关键功能 |
+| :--- | :--- | :--- |
+| **数据分析工具集**<br/> `data_analysis_utils_example.py` | 分布拟合和数据分箱绘图。 | `add_distribution_fit()`, `add_binned_plot()` |
+| **通用工具函数**<br/> `utility_functions_example.py` | 高亮特征峰和标记事件。 | `add_peak_highlights()`, `add_event_markers()` |
 
 ---
 
