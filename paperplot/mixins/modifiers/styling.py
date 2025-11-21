@@ -8,7 +8,7 @@ class StylingMixin:
         Args:
             label (str): 标题文本。
             tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
-            **kwargs: 传递给 `ax.set_title` 的其他参数。
+            **kwargs: 其他传递给 `ax.set_title` 的参数 (e.g., fontsize, loc, color)。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -18,26 +18,62 @@ class StylingMixin:
         return self
 
     def set_xlabel(self, label: str, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
-        """设置子图 X 轴标签。"""
+        """设置子图 X 轴标签。
+
+        Args:
+            label (str): 标签文本。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 其他传递给 `ax.set_xlabel` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         ax = self._get_active_ax(tag)
         ax.set_xlabel(label, **kwargs)
         return self
 
     def set_ylabel(self, label: str, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
-        """设置子图 Y 轴标签。"""
+        """设置子图 Y 轴标签。
+
+        Args:
+            label (str): 标签文本。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 其他传递给 `ax.set_ylabel` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         ax = self._get_active_ax(tag)
         ax.set_ylabel(label, **kwargs)
         return self
     
     def set_zlabel(self, label: str, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
-        """设置子图 Z 轴标签 (仅限 3D 图)。"""
+        """设置子图 Z 轴标签 (仅限 3D 图)。
+
+        Args:
+            label (str): 标签文本。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 其他传递给 `ax.set_zlabel` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         ax = self._get_active_ax(tag)
         if ax.name == '3d':
             ax.set_zlabel(label, **kwargs)
         return self
 
     def view_init(self, elev: float, azim: float, tag: Optional[Union[str, int]] = None) -> 'Plotter':
-        """设置 3D 子图的视角。"""
+        """设置 3D 子图的视角。
+
+        Args:
+            elev (float): 仰角 (elevation angle)。
+            azim (float): 方位角 (azimuth angle)。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         ax = self._get_active_ax(tag)
         if ax.name == '3d':
             ax.view_init(elev=elev, azim=azim)
@@ -45,20 +81,49 @@ class StylingMixin:
 
     def set_xlim(self, left: Optional[float] = None, right: Optional[float] = None, 
                  tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
-        """设置子图 X 轴范围。"""
+        """设置子图 X 轴范围。
+
+        Args:
+            left (float, optional): X轴下限。
+            right (float, optional): X轴上限。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 其他传递给 `ax.set_xlim` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         ax = self._get_active_ax(tag)
         ax.set_xlim(left=left, right=right, **kwargs)
         return self
 
     def set_ylim(self, bottom: Optional[float] = None, top: Optional[float] = None, 
                  tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
-        """设置子图 Y 轴范围。"""
+        """设置子图 Y 轴范围。
+
+        Args:
+            bottom (float, optional): Y轴下限。
+            top (float, optional): Y轴上限。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 其他传递给 `ax.set_ylim` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         ax = self._get_active_ax(tag)
         ax.set_ylim(bottom=bottom, top=top, **kwargs)
         return self
 
     def tick_params(self, axis: str = 'both', tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
-        """设置刻度参数 (封装 `ax.tick_params`)。"""
+        """设置刻度参数 (封装 `ax.tick_params`)。
+
+        Args:
+            axis (str, optional): 应用轴 ('x', 'y', 'both')。默认为 'both'。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            **kwargs: 其他传递给 `ax.tick_params` 的参数 (e.g., labelsize, direction, length, width, colors)。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         ax = self._get_active_ax(tag)
         ax.tick_params(axis=axis, **kwargs)
         return self

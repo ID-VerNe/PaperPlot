@@ -3,7 +3,35 @@ import matplotlib.image as mpimg
 
 class ImagePlotsMixin:
     def add_figure(self, image_path: str, fit_mode: str = 'fit', align: str = 'center', padding: float = 0.0, zoom: float = 0.0, **kwargs) -> 'Plotter':
-        """将一个图像文件作为子图的全部内容进行绘制。"""
+        """将一个图像文件作为子图的全部内容进行绘制。
+
+        此方法用于在子图中展示图片，支持多种适应模式和对齐方式。
+
+        Args:
+            image_path (str): 图像文件的路径。
+            fit_mode (str, optional): 图像适应模式。
+                - 'fit': 保持纵横比，完整显示图像 (可能会留白)。
+                - 'cover': 保持纵横比，填满子图 (可能会裁剪)。
+                - 'stretch': 拉伸图像以填满子图 (不保持纵横比)。
+                默认为 'fit'。
+            align (str, optional): 当 `fit_mode='fit'` 且有留白时的对齐方式。
+                可选值: 'center', 'top_left', 'top_right', 'bottom_left', 'bottom_right'。
+                默认为 'center'。
+            padding (float, optional): 图像周围的内边距 (0-0.5)。默认为 0.0。
+            zoom (float, optional): 缩放比例 (0-0.5)。正值表示向中心缩小 (zoom in)，实际上裁剪了边缘。默认为 0.0。
+            **kwargs:
+                核心参数:
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                样式参数:
+                - ... 其他传递给 `ax.imshow` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+
+        Raises:
+            ValueError: 如果参数值无效或文件未找到。
+        """
         _ax, resolved_tag = self._resolve_ax_and_tag(kwargs.pop('tag', None))
 
         draw_ax = _ax

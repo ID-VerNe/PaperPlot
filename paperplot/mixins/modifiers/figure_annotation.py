@@ -3,8 +3,16 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
 class FigureAnnotationMixin:
-    def set_suptitle(self, title: str, **kwargs):
-        """为整个画布（Figure）设置一个主标题。"""
+    def set_suptitle(self, title: str, **kwargs) -> 'Plotter':
+        """为整个画布（Figure）设置一个主标题。
+
+        Args:
+            title (str): 标题文本。
+            **kwargs: 其他传递给 `fig.suptitle` 的参数 (e.g., fontsize, fontweight, y)。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         self.fig.suptitle(title, **kwargs)
         return self
 
@@ -15,7 +23,7 @@ class FigureAnnotationMixin:
             x (float): 文本的X坐标，范围从0到1（图的左下角为(0,0)，右上角为(1,1)）。
             y (float): 文本的Y坐标，范围从0到1。
             text (str): 要添加的文本内容。
-            **kwargs: 其他传递给 `matplotlib.figure.Figure.text` 的关键字参数。
+            **kwargs: 其他传递给 `matplotlib.figure.Figure.text` 的关键字参数 (e.g., fontsize, color, ha, va)。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -29,7 +37,7 @@ class FigureAnnotationMixin:
         Args:
             x_coords (List[float]): 线的X坐标列表，范围从0到1（图的左下角为(0,0)，右上角为(1,1)）。
             y_coords (List[float]): 线的Y坐标列表，范围从0到1。
-            **kwargs: 其他传递给 `matplotlib.lines.Line2D` 的关键字参数。
+            **kwargs: 其他传递给 `matplotlib.lines.Line2D` 的关键字参数 (e.g., linewidth, color, linestyle)。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -46,7 +54,7 @@ class FigureAnnotationMixin:
                 一个或多个子图的tag，这些子图将被框选。
             padding (float, optional):
                 矩形框相对于子图边界的额外填充（以Figure坐标为单位）。默认为0.01。
-            **kwargs: 其他传递给 `matplotlib.patches.Rectangle` 的关键字参数。
+            **kwargs: 其他传递给 `matplotlib.patches.Rectangle` 的关键字参数 (e.g., edgecolor, facecolor, linestyle, linewidth)。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -127,8 +135,17 @@ class FigureAnnotationMixin:
         self.fig.add_artist(rect)
 
     def fig_add_boundary_box(self, padding: float = 0.02, **kwargs) -> 'Plotter':
-        """请求在整个画布（Figure）上，围绕所有子图的组合边界框绘制一个矩形边框。 实际的绘制操作将延迟到调用 .save()
-        方法时执行，以确保所有其他元素都已就位。"""
+        """请求在整个画布（Figure）上，围绕所有子图的组合边界框绘制一个矩形边框。 
+        
+        实际的绘制操作将延迟到调用 .save() 方法时执行，以确保所有其他元素都已就位。
+
+        Args:
+            padding (float, optional): 边框内边距。默认为 0.02。
+            **kwargs: 其他传递给 `matplotlib.patches.Rectangle` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         self._draw_on_save_queue.append(
             {'func': self._draw_fig_boundary_box, 'kwargs': {'padding': padding, **kwargs}}
         )
@@ -178,8 +195,9 @@ class FigureAnnotationMixin:
         self.fig.text(x, y, text, **kwargs)
 
     def fig_add_label(self, tags: Union[str, int, List[Union[str, int]]], text: str, position: str = 'top_left', padding: float = 0.01, **kwargs) -> 'Plotter':
-        """在整个画布（Figure）上，相对于一个或多个指定的子图放置一个文本标签。 注意：实际的绘制操作将延迟到调用 .save()
-        方法时执行，以确保布局计算的准确性。
+        """在整个画布（Figure）上，相对于一个或多个指定的子图放置一个文本标签。 
+        
+        注意：实际的绘制操作将延迟到调用 .save() 方法时执行，以确保布局计算的准确性。
 
         Args:
             tags (Union[str, int, List[Union[str, int]]]):

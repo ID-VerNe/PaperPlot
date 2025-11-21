@@ -24,6 +24,7 @@
 *   **🔗 优雅的双Y轴（Twin-Axis）**: 彻底解决了 Matplotlib 双Y轴操作繁琐的问题。通过 `add_twinx()` 进入孪生轴上下文，然后可以继续使用链式调用进行绘图和修饰，最后通过 `target_primary()` 切回主轴。
 *   **🔬 丰富的领域专用图表**: 内置了科研中常用的图表类型，如光谱图、混淆矩阵、ROC 曲线、学习曲线、分岔图、相量图等。
 *   **🔧 智能美化工具**: `cleanup()` 方法可以智能地共享坐标轴、对齐标签；`cleanup_heatmaps()` 可以为多个热图创建共享的颜色条。
+*   **📏 精确的手动布局控制**: 当自动布局无法满足需求时，提供了 `set_padding()` 和 `set_spacing()` 方法，让你能够精确控制图表的边距和子图间距，实现像素级的布局微调。
 
 ## 安装
 
@@ -155,6 +156,7 @@ python 06_Annotations/text_and_labels/subplot_labels_auto.py
 | **块跨越**<br/> `block_span.py` | 子图同时跨越多行和多列。 | `layout=[['A', 'A', 'B'], ['A', 'A', 'C']]` |
 | **行跨越**<br/> `row_span.py` | 子图跨越多行。 | `layout=[['A', 'B'], ['A', 'C']]` |
 | **固定宽高比**<br/> `aspect_ratio.py` | 通过 `subplot_aspect` 保证子图单元格宽高比。 | `subplot_aspect=(16, 9)` |
+| **手动布局控制**<br/> `manual_layout_demo.py` | 手动设置图表边距和子图间距，覆盖自动布局。 | `set_padding()`, `set_spacing()` |
 
 ### 03. 孪生轴 (Twin Axes)
 

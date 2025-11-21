@@ -7,8 +7,10 @@ from .figure_annotation import FigureAnnotationMixin
 from .twin_axes import TwinAxesMixin
 from .plot_annotation import PlotAnnotationMixin
 
+from .layout import LayoutMixin
+
 class ModifiersMixin(LabelingMixin, StylingMixin, LegendMixin, 
-                     FigureAnnotationMixin, TwinAxesMixin, PlotAnnotationMixin):
+                     FigureAnnotationMixin, TwinAxesMixin, PlotAnnotationMixin, LayoutMixin):
     """包含所有修饰和注释方法的 Mixin 类。"""
     
     def save(self, filename: str, **kwargs):

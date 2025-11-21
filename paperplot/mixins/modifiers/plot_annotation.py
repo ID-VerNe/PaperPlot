@@ -53,7 +53,7 @@ class PlotAnnotationMixin:
         Args:
             y (float): 水平线的y轴位置。
             tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
-            **kwargs: 传递给 `ax.axhline` 的其他参数。
+            **kwargs: 其他传递给 `ax.axhline` 的参数 (e.g., color, linestyle, linewidth, label)。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -68,7 +68,7 @@ class PlotAnnotationMixin:
         Args:
             x (float): 垂直线的x轴位置。
             tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
-            **kwargs: 传递给 `ax.axvline` 的其他参数。
+            **kwargs: 其他传递给 `ax.axvline` 的参数 (e.g., color, linestyle, linewidth, label)。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -85,7 +85,7 @@ class PlotAnnotationMixin:
             y (float): 文本的y坐标。
             text (str): 要添加的文本。
             tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
-            **kwargs: 传递给 `ax.text` 的其他参数。
+            **kwargs: 其他传递给 `ax.text` 的参数 (e.g., fontsize, color, ha, va, bbox)。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -98,7 +98,7 @@ class PlotAnnotationMixin:
         """将一个Matplotlib的Patch对象添加到指定或当前活动的子图。
 
         Args:
-            patch_object: 一个Matplotlib Patch对象 (例如 `plt.Circle`)。
+            patch_object: 一个Matplotlib Patch对象 (例如 `plt.Circle`, `plt.Rectangle`)。
             tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
 
         Returns:
@@ -116,6 +116,7 @@ class PlotAnnotationMixin:
             y_range (tuple[float, float]): 高亮区域的Y轴范围 (ymin, ymax)。
             tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
             **kwargs: 其他传递给 `matplotlib.patches.Rectangle` 的关键字参数。
+                默认值: `facecolor='yellow'`, `alpha=0.3`, `edgecolor='none'`, `zorder=0`。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -140,7 +141,7 @@ class PlotAnnotationMixin:
         Args:
             image_path (str): 要嵌入的图片文件路径。
             rect (List[float]): 一个定义嵌入位置和大小的列表 `[x, y, width, height]`，
-                                坐标是相对于宿主子图的。
+                                坐标是相对于宿主子图的 (0-1)。
             host_tag (Optional[Union[str, int]], optional): 宿主子图的tag。如果为None，则使用最后一次绘图的子图。
             **kwargs: 传递给 `ax.imshow` 的其他参数。
 
@@ -167,6 +168,8 @@ class PlotAnnotationMixin:
                        source_box_kwargs: Optional[dict] = None) -> 'Plotter':
         """在指定或当前活动的子图上添加一个缩放指示（inset plot）。
 
+        该方法会自动从源子图中提取数据，并在内嵌图中绘制指定范围的数据子集。
+
         Args:
             rect (List[float]): 一个定义内嵌图位置和大小的列表 `[x, y, width, height]`，
                                 坐标是相对于**父坐标轴**的 (0到1)。
@@ -174,7 +177,7 @@ class PlotAnnotationMixin:
             y_range (Optional[Tuple[float, float]], optional): 内嵌图的Y轴范围 (ymin, ymax)。
                                                                 如果为 `None`，将根据 `x_range` 自动计算。
             source_tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
-            draw_source_box (bool, optional): 是否在源图上绘制一个矩形框来表示缩放范围。
+            draw_source_box (bool, optional): 是否在源图上绘制一个矩形框来表示缩放范围。默认为 True。
             source_box_kwargs (Optional[dict], optional): 传递给 `ax.add_patch` 的关键字参数，用于定制源图矩形框的样式。
 
         Returns:
@@ -258,6 +261,7 @@ class PlotAnnotationMixin:
         Args:
             connections (List[Tuple[int, int]]):
                 一个连接定义的列表。每个定义是一个 (source_loc, inset_loc) 元组。
+                位置代码: 1=右上, 2=左上, 3=左下, 4=右下。
                 例如, `[(2, 1), (3, 4)]` 表示:
                 - 画一条线从源区域的左上角(2)到内嵌图的右上角(1)。
                 - 画另一条线从源区域的左下角(3)到内嵌图的右下角(4)。
@@ -305,7 +309,9 @@ class PlotAnnotationMixin:
                             label_positions: dict = None,
                             tag: Optional[Union[str, int]] = None,
                             **kwargs) -> 'Plotter':
-        """在一条已绘制的光谱或曲线上，自动高亮并（可选地）标注出特征峰的位置。 使用 adjustText 库来避免标签重叠。
+        """在一条已绘制的光谱或曲线上，自动高亮并（可选地）标注出特征峰的位置。
+        
+        使用 adjustText 库来避免标签重叠。
 
         Args:
             peaks_x (list): 一个包含特征峰X轴位置的列表。
@@ -369,7 +375,9 @@ class PlotAnnotationMixin:
                           label_positions: dict = None,
                           tag: Optional[Union[str, int]] = None,
                           **kwargs) -> 'Plotter':
-        """在时间序列图上标记重要的垂直事件。 使用 adjustText 库来避免标签重叠。
+        """在时间序列图上标记重要的垂直事件。
+        
+        使用 adjustText 库来避免标签重叠。
 
         Args:
             event_dates (list): 包含事件X轴位置的列表。

@@ -10,6 +10,28 @@ sidebar_label: 修饰与轴管理
 
 ---
 
+## 布局控制
+
+### `set_padding`
+- **签名**: `set_padding(left?, bottom?, right?, top?)`
+- **用途**: 手动设置图形的边距（padding）。调用此方法会自动禁用 `constrained_layout` 或 `tight_layout`，以确保手动设置生效。
+- **核心参数**:
+  - `left`: `float` (可选), 左边距 (0-1)。
+  - `bottom`: `float` (可选), 下边距 (0-1)。
+  - `right`: `float` (可选), 右边距 (0-1)。
+  - `top`: `float` (可选), 上边距 (0-1)。
+- **示例**: `plotter.set_padding(left=0.1, bottom=0.1, right=0.9, top=0.9)`
+
+### `set_spacing`
+- **签名**: `set_spacing(wspace?, hspace?)`
+- **用途**: 手动设置子图之间的间距。调用此方法会自动禁用 `constrained_layout` 或 `tight_layout`，以确保手动设置生效。
+- **核心参数**:
+  - `wspace`: `float` (可选), 子图之间的水平间距（以子图宽度的分数表示）。
+  - `hspace`: `float` (可选), 子图之间的垂直间距（以子图高度的分数表示）。
+- **示例**: `plotter.set_spacing(wspace=0.3, hspace=0.3)`
+
+---
+
 ## 子图标签与分组
 
 ### `add_subplot_labels`

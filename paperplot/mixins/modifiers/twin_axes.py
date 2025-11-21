@@ -4,7 +4,9 @@ from matplotlib import cycler
 
 class TwinAxesMixin:
     def add_twinx(self, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
-        """为指定或当前活动的子图创建一个共享X轴但拥有独立Y轴的“双Y轴”图， 并切换Plotter的活动目标到新创建的孪生轴，以支持链式调用。
+        """为指定或当前活动的子图创建一个共享X轴但拥有独立Y轴的“双Y轴”图。
+        
+        并切换Plotter的活动目标到新创建的孪生轴，以支持链式调用。
 
         Args:
             tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
@@ -58,6 +60,15 @@ class TwinAxesMixin:
         return self
 
     def add_polar_twin(self, tag: Optional[Union[str, int]] = None, frameon: bool = False) -> 'Plotter':
+        """为指定或当前活动的极坐标子图创建一个孪生轴 (Twin Axis)。
+
+        Args:
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+            frameon (bool, optional): 是否绘制边框。默认为 False。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         active_tag = tag if tag is not None else self.last_active_tag
         if active_tag is None:
             raise ValueError("Cannot create polar twin axis: No active plot found.")

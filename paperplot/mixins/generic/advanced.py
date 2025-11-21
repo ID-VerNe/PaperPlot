@@ -4,7 +4,26 @@ from matplotlib.lines import Line2D
 
 class AdvancedPlotsMixin:
     def add_grouped_bar(self, **kwargs) -> 'Plotter':
-        """在子图上绘制多系列分组柱状图。"""
+        """在子图上绘制多系列分组柱状图。
+
+        Args:
+            **kwargs:
+                核心参数:
+                - data (pd.DataFrame, optional): 数据源 DataFrame。
+                - x (str): x轴数据（类别）。如果是字符串，则为 `data` 中的列名。
+                - ys (List[str]): y轴数据列名列表，每个列对应一个分组。
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                样式参数:
+                - labels (Dict[str, str], optional): 列名到图例标签的映射字典。
+                - width (float, optional): 整个分组的总宽度 (0-1)。默认为 0.8。
+                - yerr (Dict[str, Any], optional): 列名到误差数据的映射字典。
+                - alpha (float, optional): 透明度。默认为 0.8。
+                - ... 其他传递给 `ax.bar` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             x_col = p_kwargs.pop('x')
             y_cols = p_kwargs.pop('ys')
@@ -37,7 +56,24 @@ class AdvancedPlotsMixin:
         )
 
     def add_multi_line(self, **kwargs) -> 'Plotter':
-        """在子图上绘制多条折线。"""
+        """在子图上绘制多条折线。
+
+        Args:
+            **kwargs:
+                核心参数:
+                - data (pd.DataFrame, optional): 数据源 DataFrame。
+                - x (str): x轴数据。如果是字符串，则为 `data` 中的列名。
+                - ys (List[str]): y轴数据列名列表，每个列对应一条线。
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                样式参数:
+                - labels (Dict[str, str], optional): 列名到图例标签的映射字典。
+                - linewidth (float, optional): 线宽。默认为 2。
+                - ... 其他传递给 `ax.plot` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             x_col = p_kwargs.pop('x')
             x_vals = cache_df[x_col]
@@ -59,7 +95,25 @@ class AdvancedPlotsMixin:
         )
 
     def add_stacked_bar(self, **kwargs) -> 'Plotter':
-        """在子图上绘制多系列堆叠柱状图。"""
+        """在子图上绘制多系列堆叠柱状图。
+
+        Args:
+            **kwargs:
+                核心参数:
+                - data (pd.DataFrame, optional): 数据源 DataFrame。
+                - x (str): x轴数据（类别）。如果是字符串，则为 `data` 中的列名。
+                - ys (List[str]): y轴数据列名列表，每个列对应一个堆叠层。
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                样式参数:
+                - labels (Dict[str, str], optional): 列名到图例标签的映射字典。
+                - width (float, optional): 柱状图宽度。默认为 0.8。
+                - alpha (float, optional): 透明度。默认为 0.8。
+                - ... 其他传递给 `ax.bar` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             x_col = p_kwargs.pop('x')
             x_vals = cache_df[x_col]
@@ -87,7 +141,25 @@ class AdvancedPlotsMixin:
         )
 
     def add_waterfall(self, **kwargs) -> 'Plotter':
-        """绘制阶梯瀑布图。"""
+        """绘制阶梯瀑布图，常用于展示数值的累积变化。
+
+        Args:
+            **kwargs:
+                核心参数:
+                - data (pd.DataFrame, optional): 数据源 DataFrame。
+                - x (str): x轴数据（类别）。如果是字符串，则为 `data` 中的列名。
+                - deltas (str): 变化量数据列名。
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                样式参数:
+                - baseline (float, optional): 起始基准值。默认为 0.0。
+                - colors (Tuple[str, str], optional): (正值颜色, 负值颜色)。默认为 ("#2ca02c", "#d62728")。
+                - connectors (bool, optional): 是否绘制连接线。默认为 True。
+                - width (float, optional): 柱状图宽度。默认为 0.8。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             x_col = data_names['x']
             d_col = data_names['deltas']
@@ -129,7 +201,27 @@ class AdvancedPlotsMixin:
         )
 
     def add_candlestick(self, **kwargs) -> 'Plotter':
-        """绘制K线图。"""
+        """绘制K线图 (Candlestick Chart)。
+
+        Args:
+            **kwargs:
+                核心参数:
+                - data (pd.DataFrame, optional): 数据源 DataFrame。
+                - time (str): 时间轴数据列名。
+                - open (str): 开盘价列名。
+                - high (str): 最高价列名。
+                - low (str): 最低价列名。
+                - close (str): 收盘价列名。
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                样式参数:
+                - width (float, optional): 蜡烛宽度。默认为 0.6。
+                - up_color (str, optional): 上涨颜色。默认为 '#2ca02c'。
+                - down_color (str, optional): 下跌颜色。默认为 '#d62728'。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             t_col = data_names['time']
             o_col = data_names['open']
@@ -167,7 +259,32 @@ class AdvancedPlotsMixin:
         )
 
     def add_conditional_scatter(self, **kwargs) -> 'Plotter':
-        """根据条件在散点图上突出显示特定的数据点。"""
+        """根据条件在散点图上突出显示特定的数据点。
+
+        Args:
+            **kwargs:
+                核心参数:
+                - data (pd.DataFrame, optional): 数据源 DataFrame。
+                - x (str): x轴数据列名。
+                - y (str): y轴数据列名。
+                - condition (str): 布尔条件列名。True 为高亮，False 为普通。
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                普通点样式 (后缀 _normal):
+                - s_normal (float): 大小。
+                - c_normal (str): 颜色。
+                - alpha_normal (float): 透明度。
+                - label_normal (str): 图例标签。
+                
+                高亮点样式 (后缀 _highlight):
+                - s_highlight (float): 大小。
+                - c_highlight (str): 颜色。
+                - alpha_highlight (float): 透明度。
+                - label_highlight (str): 图例标签。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             x_col = data_names['x']
             y_col = data_names['y']

@@ -3,10 +3,16 @@ import matplotlib.pyplot as plt
 
 class LegendMixin:
     def set_legend(self, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
-        """
-        为子图添加图例。
+        """为子图添加图例。
         
         自动处理双轴 (Twin Axis) 的情况，将两个轴的图例合并显示。
+
+        Args:
+            tag (Optional[Union[str, int]], optional): 指定子图标签。
+            **kwargs: 传递给 `ax.legend` 的参数 (e.g., loc, fontsize, frameon)。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
         ax = self._get_active_ax(tag)
         
@@ -53,10 +59,18 @@ class LegendMixin:
 
     def add_global_legend(self, loc: str = 'lower center', bbox_to_anchor: tuple = (0.5, 0.0), 
                           ncol: int = 3, **kwargs) -> 'Plotter':
-        """
-        添加一个全局图例 (Figure-level legend)。
+        """添加一个全局图例 (Figure-level legend)。
         
         收集所有子图的图例句柄，去重后显示在 Figure 上。
+
+        Args:
+            loc (str, optional): 图例位置。默认为 'lower center'。
+            bbox_to_anchor (tuple, optional): 图例锚点。默认为 (0.5, 0.0)。
+            ncol (int, optional): 列数。默认为 3。
+            **kwargs: 其他传递给 `fig.legend` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
         """
         lines = []
         labels = []
