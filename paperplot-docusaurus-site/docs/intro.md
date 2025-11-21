@@ -175,6 +175,8 @@ paperplot/
 ### ModifiersMixin (`mixins/modifiers.py`)
 - **子图标签**: `add_subplot_labels(...)`, `add_grouped_labels(...)`
 - **轴与标题**: `set_title(...)`, `set_xlabel(...)`, `set_ylabel(...)`, `set_zlabel(...)`, `tick_params(...)`
+- **精确的手动布局控制**: `set_padding()`, `set_spacing()` 
+- **元数据导出**: `get_layout_metadata()`
 - **范围与视角**: `set_xlim(...)`, `set_ylim(...)`, `view_init(...)`
 - **图例**: `set_legend(...)`, `add_global_legend(...)`
 - **画布级**: `set_suptitle(...)`, `fig_add_text(...)`, `fig_add_line(...)`, `fig_add_box(...)`, `fig_add_boundary_box(...)`, `fig_add_label(...)`

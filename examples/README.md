@@ -72,6 +72,13 @@
 - 数据分析工具
 - 实用函数
 
+### 🔟 [10_Metadata_Export](./10_Metadata_Export/) - 元数据导出
+导出图表布局元数据，支持 GUI 开发和交互式可视化。
+- `get_layout_metadata()` 方法使用
+- 像素坐标到数据坐标转换
+- 支持所有布局类型（Grid / Mosaic / Nested）
+- JSON 格式导出
+
 ## 🚀 快速开始
 
 ### 运行单个示例
