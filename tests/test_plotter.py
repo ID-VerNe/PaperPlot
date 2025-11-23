@@ -267,7 +267,7 @@ class TestPlotter(unittest.TestCase):
         plt.close(plotter.fig)
 
     def test_add_hline_vline_text(self):
-        """测试add_hline, add_vline, add_text方法。"""
+        """测试add_hline, add_vline, 方法。"""
         plotter = Plotter(layout=(1,1))
         plotter.add_blank() # Initialize an ax
         plotter.add_hline(y=0.5)
