@@ -34,10 +34,11 @@ class BasicPlotsMixin:
             **kwargs
         )
 
-    def add_bar(self, **kwargs) -> 'Plotter':
-        """在子图上绘制条形图 (封装 `matplotlib.axes.Axes.bar`)。
+    def add_bar(self, orientation: str = 'vertical', **kwargs) -> 'Plotter':
+        """在子图上绘制条形图 (封装 `matplotlib.axes.Axes.bar` 或 `barh`)。
 
         Args:
+            orientation (str, optional): 'vertical' (垂直柱状图) 或 'horizontal' (水平条形图)。默认为 'vertical'。
             **kwargs:
                 核心参数:
                 - data (pd.DataFrame, optional): 数据源 DataFrame。
@@ -46,19 +47,25 @@ class BasicPlotsMixin:
                 - y_err (str or array-like, optional): 误差棒数据。
                 - tag (str or int, optional): 指定绘图的目标子图标签。
                 
-                样式参数 (传递给 `ax.bar`):
+                样式参数 (传递给 `ax.bar` 或 `ax.barh`):
                 - color (str): 条形颜色。
-                - width (float): 条形宽度。
+                - width/height (float): 条形宽度/高度（根据orientation自动选择）。
                 - align (str): 对齐方式 ('center' or 'edge')。
                 - label (str): 图例标签。
-                - ... 其他 `matplotlib.patches.Rectangle` 支持的参数。
+                - ... 其他参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             y_err_data = data_map.get('y_err')
-            ax.bar(data_map['x'], data_map['y'], yerr=y_err_data, **p_kwargs)
+            
+            if orientation == 'horizontal':
+                # 水平条形图：barh(y=位置, width=长度)
+                ax.barh(data_map['x'], data_map['y'], xerr=y_err_data, **p_kwargs)
+            else:
+                # 垂直柱状图：bar(x=位置, height=高度)
+                ax.bar(data_map['x'], data_map['y'], yerr=y_err_data, **p_kwargs)
             return None
 
         return self._execute_plot(
@@ -68,10 +75,11 @@ class BasicPlotsMixin:
             **kwargs
         )
 
-    def add_scatter(self, **kwargs) -> 'Plotter':
+    def add_scatter(self, orientation: str = 'vertical', **kwargs) -> 'Plotter':
         """在子图上绘制散点图 (封装 `matplotlib.axes.Axes.scatter`)。
 
         Args:
+            orientation (str, optional): 如果为 'horizontal'，则交换 x 和 y 数据。默认为 'vertical'。
             **kwargs:
                 核心参数:
                 - data (pd.DataFrame, optional): 数据源 DataFrame。
@@ -92,12 +100,19 @@ class BasicPlotsMixin:
             Plotter: 返回Plotter实例以支持链式调用。
         """
         def _plot_scatter_logic(ax, data_map, cache_df, data_names, **plot_kwargs):
+            x_data = data_map['x']
+            y_data = data_map['y']
+            
+            # 如果是水平模式，交换 X 和 Y 的数据
+            if orientation == 'horizontal':
+                x_data, y_data = y_data, x_data
+            
             if 's' in plot_kwargs and isinstance(plot_kwargs['s'], str):
                 plot_kwargs['s'] = data_map.get(plot_kwargs['s'])
             if 'c' in plot_kwargs and isinstance(plot_kwargs['c'], str):
                 plot_kwargs['c'] = data_map.get(plot_kwargs['c'])
             
-            mappable = ax.scatter(data_map['x'], data_map['y'], **plot_kwargs)
+            mappable = ax.scatter(x_data, y_data, **plot_kwargs)
             return mappable
 
         data_keys = ['x', 'y']
@@ -143,10 +158,11 @@ class BasicPlotsMixin:
             **kwargs
         )
 
-    def add_box(self, **kwargs) -> 'Plotter':
+    def add_box(self, orientation: str = 'vertical', **kwargs) -> 'Plotter':
         """在子图上绘制箱线图 (封装 `seaborn.boxplot`)。
 
         Args:
+            orientation (str, optional): 'vertical' 或 'horizontal'。默认为 'vertical'。
             **kwargs:
                 核心参数:
                 - data (pd.DataFrame, optional): 数据源 DataFrame。
@@ -157,7 +173,6 @@ class BasicPlotsMixin:
                 
                 样式参数 (传递给 `sns.boxplot`):
                 - order, hue_order: 指定类别顺序。
-                - orient: "v" | "h"，方向。
                 - color: 颜色。
                 - palette: 调色板。
                 - ... 其他 `seaborn.boxplot` 支持的参数。
@@ -167,7 +182,19 @@ class BasicPlotsMixin:
         """
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             hue_col = data_names.get('hue')
-            sns.boxplot(data=cache_df, x=data_names.get('x'), y=data_names.get('y'), hue=hue_col, ax=ax, **p_kwargs)
+            
+            # 映射 orientation 到 seaborn 的 orient 参数 ('v' 或 'h')
+            sns_orient = 'h' if orientation == 'horizontal' else 'v'
+            
+            sns.boxplot(
+                data=cache_df, 
+                x=data_names.get('x'), 
+                y=data_names.get('y'), 
+                hue=hue_col, 
+                orient=sns_orient,
+                ax=ax, 
+                **p_kwargs
+            )
             return None
 
         return self._execute_plot(
@@ -233,3 +260,97 @@ class BasicPlotsMixin:
         _ax.axis('off')
         self.last_active_tag = resolved_tag
         return self
+
+    def add_radar(self, **kwargs) -> 'Plotter':
+        """在子图上绘制雷达图/蜘蛛图 (Radar/Spider Chart)。
+
+        Args:
+            **kwargs:
+                核心参数:
+                - data (pd.DataFrame): 数据源 DataFrame。
+                - theta (str): 角度/维度数据列名（例如指标名称）。
+                - r (str): 半径/数值数据列名。
+                - hue (str, optional): 分组变量列名。如果提供，将绘制多个系列对比。
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                样式参数:
+                - fill (bool, optional): 是否填充颜色。默认为 True。
+                - alpha (float, optional): 填充透明度。默认为 0.25。
+                - linewidth (float, optional): 线宽。
+                - ... 其他传递给 `ax.plot` 和 `ax.fill` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+            
+        Note:
+            目标轴必须是极坐标投影 (projection='polar')。
+        """
+        import numpy as np
+        
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            theta_col = data_names['theta']
+            r_col = data_names['r']
+            hue_col = data_names.get('hue')
+            
+            fill = p_kwargs.pop('fill', True)
+            alpha = p_kwargs.pop('alpha', 0.25)
+            
+            if hue_col:
+                # 分组绘制多个系列
+                groups = cache_df[hue_col].unique()
+                for group in groups:
+                    group_df = cache_df[cache_df[hue_col] == group]
+                    
+                    # 获取类别和数值
+                    categories = group_df[theta_col].values
+                    values = group_df[r_col].values
+                    
+                    # 计算角度
+                    N = len(categories)
+                    angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+                    
+                    # 闭合图形
+                    values = np.concatenate((values, [values[0]]))
+                    angles += angles[:1]
+                    
+                    # 获取颜色
+                    color = self.color_manager.get_color(group)
+                    
+                    # 绘制线条和填充
+                    ax.plot(angles, values, 'o-', label=group, color=color, **p_kwargs)
+                    if fill:
+                        ax.fill(angles, values, alpha=alpha, color=color)
+                
+                # 设置类别标签
+                ax.set_xticks(np.linspace(0, 2 * np.pi, N, endpoint=False))
+                ax.set_xticklabels(categories)
+            else:
+                # 单个系列
+                categories = cache_df[theta_col].values
+                values = cache_df[r_col].values
+                
+                # 计算角度
+                N = len(categories)
+                angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+                
+                # 闭合图形
+                values = np.concatenate((values, [values[0]]))
+                angles += angles[:1]
+                
+                # 绘制线条和填充
+                ax.plot(angles, values, 'o-', **p_kwargs)
+                if fill:
+                    ax.fill(angles, values, alpha=alpha)
+                
+                # 设置类别标签
+                ax.set_xticks(np.linspace(0, 2 * np.pi, N, endpoint=False))
+                ax.set_xticklabels(categories)
+            
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=['theta', 'r', 'hue'],
+            plot_defaults_key='line',
+            **kwargs
+        )

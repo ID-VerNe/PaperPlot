@@ -138,6 +138,39 @@ sidebar_label: 修饰与轴管理
   - `**kwargs`: 传递给 `ax.tick_params` 的其他参数。
 - **示例**: `plotter.tick_params(axis='x', labelrotation=45, labelsize=10)`
 
+### `invert_axes_direction`
+- **签名**: `invert_axes_direction(axis='both', tag?)`
+- **用途**: 反转指定或当前活动子图的坐标轴方向（例如将Y轴从下到上改为从上到下）。这不会交换X和Y的数据，仅改变刻度的增长方向。
+- **核心参数**:
+  - `axis`: `str` (可选), 要反转的轴 ('x', 'y', 'both')。默认为 `'both'`。
+  - `tag`: `Optional[Union[str, int]]` (可选), 目标子图的 `tag`。
+- **示例**: `plotter.add_line(...).invert_axes_direction(axis='y')`
+- **注意**: 不适用于极坐标图。
+
+### `reverse_x`
+- **签名**: `reverse_x(tag?)`
+- **用途**: 反转指定或当前活动子图的X轴方向。
+- **核心参数**:
+  - `tag`: `Optional[Union[str, int]]` (可选), 目标子图的 `tag`。
+- **示例**: `plotter.add_scatter(...).reverse_x()`
+
+### `reverse_y`
+- **签名**: `reverse_y(tag?)`
+- **用途**: 反转指定或当前活动子图的Y轴方向。
+- **核心参数**:
+  - `tag`: `Optional[Union[str, int]]` (可选), 目标子图的 `tag`。
+- **示例**: `plotter.add_scatter(...).reverse_y()`
+
+### `log_scale`
+- **签名**: `log_scale(axis='both', tag?)`
+- **用途**: 设置指定或当前活动子图的对数刻度。
+- **核心参数**:
+  - `axis`: `str` (可选), 要应用对数刻度的轴 ('x', 'y', 'both')。默认为 `'both'`。
+  - `tag`: `Optional[Union[str, int]]` (可选), 目标子图的 `tag`。
+- **示例**: `plotter.add_scatter(...).log_scale(axis='both')`
+
+---
+
 ### `view_init`
 - **签名**: `view_init(elev?, azim?, tag?)`
 - **用途**: 设置3D子图的观察角度。

@@ -164,3 +164,85 @@ class CircularPlotsMixin:
             plot_defaults_key=None,
             **kwargs
         )
+
+    def add_radial_grouped_bar(self, **kwargs) -> 'Plotter':
+        """绘制径向分组柱状图 (Radial Grouped Bar Chart)。
+        
+        Args:
+            **kwargs:
+                核心参数:
+                - data (pd.DataFrame): 数据源 DataFrame。
+                - theta (str): 类别/角度数据列名。
+                - r (str): 数值/半径数据列名。
+                - hue (str): 分组变量列名。
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                样式参数:
+                - width (float, optional): 整个扇区的总宽度 (弧度)。默认为 0.8 * (2*pi / N)。
+                - inner_radius (float, optional): 内圆半径 (用于创建空心效果)。默认为 0.0。
+                - bottom (float, optional): 柱底起始位置。默认为 `inner_radius`。
+                - alpha (float, optional): 透明度。默认为 0.8。
+                - show_grid (bool, optional): 是否显示网格。默认为 True。
+                - ... 其他传递给 `ax.bar` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            theta_col = data_names['theta']
+            r_col = data_names['r']
+            hue_col = data_names['hue']
+            
+            # Pivot data
+            pivot_df = cache_df.pivot(index=theta_col, columns=hue_col, values=r_col)
+            categories = pivot_df.index
+            groups = pivot_df.columns
+            n_cats = len(categories)
+            n_groups = len(groups)
+            
+            # Calculate angles
+            angles = np.linspace(0, 2 * np.pi, n_cats, endpoint=False)
+            sector_width = 2 * np.pi / n_cats
+            
+            # User specified total width factor (0-1 relative to sector) or absolute
+            total_width_rad = p_kwargs.pop('width', sector_width * 0.8)
+            bar_width = total_width_rad / n_groups
+            
+            inner_radius = p_kwargs.pop('inner_radius', 0.0)
+            bottom = p_kwargs.pop('bottom', inner_radius)
+            alpha = p_kwargs.pop('alpha', 0.8)
+            show_grid = p_kwargs.pop('show_grid', True)
+            
+            # Configure axes
+            ax.set_theta_zero_location('N')
+            ax.set_theta_direction(-1)
+            ax.set_xticks(angles)
+            ax.set_xticklabels(categories)
+            ax.set_yticklabels([]) # Hide radial labels by default for cleaner look
+            
+            if not show_grid:
+                ax.grid(False)
+                ax.spines['polar'].set_visible(False)
+            
+            for i, group in enumerate(groups):
+                # Calculate offset for this group
+                # Center of sector is 'angle'
+                # Center of this bar is calculated relative to the sector center
+                group_center_offset = (i - (n_groups - 1) / 2) * bar_width
+                bar_angles = angles + group_center_offset
+                
+                values = pivot_df[group].fillna(0)
+                label = str(group)
+                color = self.color_manager.get_color(label)
+                
+                ax.bar(bar_angles, values, width=bar_width, bottom=bottom, 
+                       label=label, color=color, alpha=alpha, **p_kwargs)
+                       
+            return None
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=['theta', 'r', 'hue'],
+            plot_defaults_key='bar',
+            **kwargs
+        )

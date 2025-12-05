@@ -179,6 +179,89 @@ class StylingMixin:
 
         return self
 
+    def invert_axes_direction(self, axis: str = 'both', tag: Optional[Union[str, int]] = None) -> 'Plotter':
+        """反转指定或当前活动子图的坐标轴方向（例如将Y轴从下到上改为从上到下）。
+
+        这不会交换X和Y的数据，仅仅是改变刻度的增长方向。
+
+        Args:
+            axis (str, optional): 要反转的轴，可选 'x', 'y' 或 'both'。默认为 'both'。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+
+        Raises:
+            ValueError: 如果目标轴是不支持的类型或axis参数无效。
+        """
+        if axis not in ['x', 'y', 'both']:
+            raise ValueError(f"axis must be 'x', 'y', or 'both', got '{axis}'")
+        
+        ax = self._get_active_ax(tag)
+        
+        # 检查是否为不支持的轴类型
+        if ax.name == 'polar':
+            raise ValueError("invert_axes_direction 不适用于极坐标图。")
+        
+        if axis in ['x', 'both']:
+            ax.invert_xaxis()
+        if axis in ['y', 'both']:
+            ax.invert_yaxis()
+        
+        return self
+
+    def reverse_x(self, tag: Optional[Union[str, int]] = None) -> 'Plotter':
+        """反转指定或当前活动子图的X轴方向。
+
+        Args:
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        ax = self._get_active_ax(tag)
+        ax.invert_xaxis()
+        return self
+
+    def reverse_y(self, tag: Optional[Union[str, int]] = None) -> 'Plotter':
+        """反转指定或当前活动子图的Y轴方向。
+
+        Args:
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        ax = self._get_active_ax(tag)
+        ax.invert_yaxis()
+        return self
+
+    def log_scale(self, axis: str = 'both', tag: Optional[Union[str, int]] = None) -> 'Plotter':
+        """设置指定或当前活动子图的对数刻度。
+
+        Args:
+            axis (str, optional): 要应用对数刻度的轴 ('x', 'y', 'both')。默认为 'both'。
+            tag (Optional[Union[str, int]], optional): 目标子图的tag。如果为None，则使用最后一次绘图的子图。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+
+        Raises:
+            ValueError: 如果 axis 参数不在 ['x', 'y', 'both'] 中。
+        """
+        if axis not in ['x', 'y', 'both']:
+            raise ValueError(f"axis must be 'x', 'y', or 'both', got '{axis}'")
+        
+        ax = self._get_active_ax(tag)
+        
+        if axis in ['x', 'both']:
+            ax.set_xscale('log')
+        if axis in ['y', 'both']:
+            ax.set_yscale('log')
+        
+        return self
+
+
     def cleanup(self, share_y_on_rows: list[int] = None, share_x_on_cols: list[int] = None, align_labels: bool = True, auto_share: Union[bool, str] = False) -> 'Plotter':
         """根据指定的行或列共享坐标轴，并对齐标签。
 

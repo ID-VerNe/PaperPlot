@@ -26,24 +26,28 @@ sidebar_label: 通用图表
 ---
 
 ### `add_bar`
-- **签名**: `add_bar(data?, x, y, y_err?, tag?, ax?, **kwargs)`
-- **用途**: 绘制柱状图，封装 `matplotlib.axes.Axes.bar`，支持误差条。
+- **签名**: `add_bar(orientation='vertical', data?, x, y, y_err?, tag?, ax?, **kwargs)`
+- **用途**: 绘制柱状图，封装 `matplotlib.axes.Axes.bar` 或 `barh`，支持误差条和方向控制。
 - **核心参数**:
+  - `orientation`: `str` (可选), `'vertical'` (垂直) 或 `'horizontal'` (水平)。默认为 `'vertical'`。
   - `x`, `y`: 分类/位置和高度。
   - `y_err`: (可选) 误差条数据或列名。
-- **示例**: `plotter.add_bar(data=df, x='category', y='value', y_err='std_dev')`
+- **示例**: 
+  - 垂直: `plotter.add_bar(data=df, x='category', y='value')`
+  - 水平: `plotter.add_bar(data=df, x='category', y='value', orientation='horizontal')`
 
 ---
 
 ### `add_grouped_bar`
-- **签名**: `add_grouped_bar(data, x, ys, labels?, width?, yerr?, ...)`
-- **用途**: 在同一分类上并排绘制多系列分组柱状图。
+- **签名**: `add_grouped_bar(orientation='vertical', data, x, ys, labels?, width?, yerr?, ...)`
+- **用途**: 在同一分类上并排绘制多系列分组柱状图，支持垂直和水平方向。
 - **核心参数**:
+  - `orientation`: `str` (可选), `'vertical'` 或 `'horizontal'`。默认为 `'vertical'`。
   - `data`: `pd.DataFrame`。
   - `x`: `str`, 分类列名。
   - `ys`: `List[str]`, 多个系列的高度列名。
   - `labels`: `Dict[str, str]` (可选), 系列列名到图例标签的映射。
-- **示例**: `plotter.add_grouped_bar(data=df, x='year', ys=['sales_q1', 'sales_q2'])`
+- **示例**: `plotter.add_grouped_bar(data=df, x='year', ys=['sales_q1', 'sales_q2'], orientation='horizontal')`
 
 ---
 
@@ -77,6 +81,30 @@ sidebar_label: 通用图表
   - `theta`: `str`, 角度列名 (弧度)。
   - `r`: `str`, 半径列名。
 - **示例**: `plotter.add_polar_bar(data=df, theta='direction', r='magnitude')`
+
+### `add_radial_grouped_bar`
+- **签名**: `add_radial_grouped_bar(data, theta, r, hue, width?, inner_radius?, show_grid?, ...)`
+- **用途**: 在极坐标轴上绘制径向分组柱状图（类似南丁格尔玫瑰图）。
+- **轴要求**: 目标轴必须是极坐标投影。
+- **核心参数**:
+  - `theta`: `str`, 角度/类别列名。
+  - `r`: `str`, 半径/数值列名。
+  - `hue`: `str`, 分组变量列名。
+  - `width`: `float` (可选), 扇区宽度。
+  - `inner_radius`: `float` (可选), 内圆半径，创建空心效果。
+  - `show_grid`: `bool` (可选), 是否显示网格。默认为 `True`。
+- **示例**: `plotter.add_radial_grouped_bar(data=df, theta='Category', r='Value', hue='Group', inner_radius=3.0, show_grid=False)`
+
+### `add_radar`
+- **签名**: `add_radar(data, theta, r, hue?, fill?, ...)`
+- **用途**: 绘制雷达图/蜘蛛图，用于多维数据对比。
+- **轴要求**: 目标轴必须是极坐标投影。
+- **核心参数**:
+  - `theta`: `str`, 角度/维度列名（例如指标名称）。
+  - `r`: `str`, 半径/数值列名。
+  - `hue`: `str` (可选), 分组变量列名。
+  - `fill`: `bool` (可选), 是否填充颜色。默认为 `True`。
+- **示例**: `plotter.add_radar(data=df, theta='Metric', r='Score', hue='Model', fill=True)`
 
 ---
 
@@ -174,6 +202,17 @@ sidebar_label: 通用图表
   - `condition`: `str` (布尔列名) 或 `bool Series`。
   - `s_normal`, `c_normal`, `s_highlight`, `c_highlight` 等用于分别定义普通点和高亮点的样式。
 - **示例**: `plotter.add_conditional_scatter(data=df, x='x', y='y', condition='is_outlier')`
+
+### `add_dumbbell`
+- **签名**: `add_dumbbell(data, y, x1, x2?, ...)`
+- **用途**: 绘制哑铃图或棒棒糖图，用于对比两个数值或展示变化。
+- **核心参数**:
+  - `y`: `str`, 类别轴数据列名。
+  - `x1`: `str`, 第一个数值列名。
+  - `x2`: `str` (可选), 第二个数值列名。如果提供则绘制哑铃图，否则绘制棒棒糖图。
+  - `color1`, `color2`: 点的颜色。
+  - `line_color`: 连接线颜色。
+- **示例**: `plotter.add_dumbbell(data=df, y='Model', x1='Score_Old', x2='Score_New')`
 
 ---
 

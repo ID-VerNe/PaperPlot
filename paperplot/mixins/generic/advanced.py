@@ -3,10 +3,11 @@ from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
 
 class AdvancedPlotsMixin:
-    def add_grouped_bar(self, **kwargs) -> 'Plotter':
+    def add_grouped_bar(self, orientation: str = 'vertical', **kwargs) -> 'Plotter':
         """在子图上绘制多系列分组柱状图。
 
         Args:
+            orientation (str, optional): 'vertical' 或 'horizontal'。默认为 'vertical'。
             **kwargs:
                 核心参数:
                 - data (pd.DataFrame, optional): 数据源 DataFrame。
@@ -16,10 +17,10 @@ class AdvancedPlotsMixin:
                 
                 样式参数:
                 - labels (Dict[str, str], optional): 列名到图例标签的映射字典。
-                - width (float, optional): 整个分组的总宽度 (0-1)。默认为 0.8。
-                - yerr (Dict[str, Any], optional): 列名到误差数据的映射字典。
+                - width/height (float, optional): 整个分组的总宽度/高度 (0-1)。默认为 0.8。
+                - yerr/xerr (Dict[str, Any], optional): 列名到误差数据的映射字典。
                 - alpha (float, optional): 透明度。默认为 0.8。
-                - ... 其他传递给 `ax.bar` 的参数。
+                - ... 其他传递给 `ax.bar` 或 `ax.barh` 的参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -42,10 +43,18 @@ class AdvancedPlotsMixin:
                 lbl = labels[col] if isinstance(labels, dict) and col in labels else col
                 color = self.color_manager.get_color(lbl)
                 err = (yerr.get(col) if isinstance(yerr, dict) else None)
-                ax.bar(offs, cache_df[col], yerr=err, width=bar_w, label=lbl, color=color, alpha=alpha)
+                
+                if orientation == 'horizontal':
+                    ax.barh(offs, cache_df[col], xerr=err, height=bar_w, label=lbl, color=color, alpha=alpha)
+                else:
+                    ax.bar(offs, cache_df[col], yerr=err, width=bar_w, label=lbl, color=color, alpha=alpha)
 
-            ax.set_xticks(base)
-            ax.set_xticklabels(x_vals)
+            if orientation == 'horizontal':
+                ax.set_yticks(base)
+                ax.set_yticklabels(x_vals)
+            else:
+                ax.set_xticks(base)
+                ax.set_xticklabels(x_vals)
             return None
 
         return self._execute_plot(
@@ -94,10 +103,11 @@ class AdvancedPlotsMixin:
             **kwargs
         )
 
-    def add_stacked_bar(self, **kwargs) -> 'Plotter':
+    def add_stacked_bar(self, orientation: str = 'vertical', **kwargs) -> 'Plotter':
         """在子图上绘制多系列堆叠柱状图。
 
         Args:
+            orientation (str, optional): 'vertical' 或 'horizontal'。默认为 'vertical'。
             **kwargs:
                 核心参数:
                 - data (pd.DataFrame, optional): 数据源 DataFrame。
@@ -107,9 +117,9 @@ class AdvancedPlotsMixin:
                 
                 样式参数:
                 - labels (Dict[str, str], optional): 列名到图例标签的映射字典。
-                - width (float, optional): 柱状图宽度。默认为 0.8。
+                - width/height (float, optional): 柱状图宽度/高度。默认为 0.8。
                 - alpha (float, optional): 透明度。默认为 0.8。
-                - ... 其他传递给 `ax.bar` 的参数。
+                - ... 其他传递给 `ax.bar` 或 `ax.barh` 的参数。
 
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
@@ -123,14 +133,24 @@ class AdvancedPlotsMixin:
             width = p_kwargs.pop('width', 0.8)
             alpha = p_kwargs.pop('alpha', 0.8)
 
-            bottoms = np.zeros(len(x_vals))
+            lefts = np.zeros(len(x_vals))
             for col in y_cols:
                 lbl = labels[col] if isinstance(labels, dict) and col in labels else col
                 color = self.color_manager.get_color(lbl)
-                ax.bar(base, cache_df[col], bottom=bottoms, width=width, label=lbl, color=color, alpha=alpha)
-                bottoms = bottoms + np.array(cache_df[col])
-            ax.set_xticks(base)
-            ax.set_xticklabels(x_vals)
+                
+                if orientation == 'horizontal':
+                    ax.barh(base, cache_df[col], left=lefts, height=width, label=lbl, color=color, alpha=alpha)
+                    lefts = lefts + np.array(cache_df[col])
+                else:
+                    ax.bar(base, cache_df[col], bottom=lefts, width=width, label=lbl, color=color, alpha=alpha)
+                    lefts = lefts + np.array(cache_df[col])
+            
+            if orientation == 'horizontal':
+                ax.set_yticks(base)
+                ax.set_yticklabels(x_vals)
+            else:
+                ax.set_xticks(base)
+                ax.set_xticklabels(x_vals)
             return None
 
         return self._execute_plot(
@@ -320,3 +340,75 @@ class AdvancedPlotsMixin:
             plot_defaults_key=None,
             **kwargs
         )
+
+    def add_dumbbell(self, **kwargs) -> 'Plotter':
+        """绘制哑铃图 (Dumbbell Plot) 或棒棒糖图 (Lollipop Plot)。
+
+        Args:
+            **kwargs:
+                核心参数:
+                - data (pd.DataFrame): 数据源 DataFrame。
+                - y (str): 类别轴数据列名 (Y轴)。
+                - x1 (str): 第一个数值轴数据列名 (X轴)。
+                - x2 (str, optional): 第二个数值轴数据列名 (X轴)。如果提供，则绘制哑铃图；否则绘制棒棒糖图。
+                - tag (str or int, optional): 指定绘图的目标子图标签。
+                
+                样式参数:
+                - color (str, optional): 统一颜色。
+                - color1 (str, optional): x1 点的颜色。
+                - color2 (str, optional): x2 点的颜色。
+                - line_color (str, optional): 连接线的颜色。默认为 'gray'。
+                - s (float, optional): 点的大小。
+                - ... 其他传递给 `ax.scatter` 的参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            y_col = data_names['y']
+            x1_col = data_names['x1']
+            x2_col = data_names.get('x2') # Optional
+            
+            y_vals = cache_df[y_col]
+            x1_vals = cache_df[x1_col]
+            
+            # Defaults
+            s = p_kwargs.pop('s', 60)
+            line_color = p_kwargs.pop('line_color', 'gray')
+            alpha = p_kwargs.pop('alpha', 1.0)
+            
+            # Determine colors
+            c1 = p_kwargs.pop('color1', p_kwargs.get('color', self.color_manager.get_color(x1_col)))
+            
+            if x2_col:
+                # Dumbbell Plot
+                x2_vals = cache_df[x2_col]
+                c2 = p_kwargs.pop('color2', p_kwargs.get('color', self.color_manager.get_color(x2_col)))
+                
+                # Draw lines
+                ax.hlines(y=y_vals, xmin=x1_vals, xmax=x2_vals, color=line_color, alpha=0.5)
+                
+                # Draw points
+                ax.scatter(x1_vals, y_vals, color=c1, s=s, alpha=alpha, label=x1_col, zorder=3)
+                ax.scatter(x2_vals, y_vals, color=c2, s=s, alpha=alpha, label=x2_col, zorder=3)
+            else:
+                # Lollipop Plot
+                # Draw lines from 0 to x1
+                ax.hlines(y=y_vals, xmin=0, xmax=x1_vals, color=line_color, alpha=0.5)
+                
+                # Draw points
+                ax.scatter(x1_vals, y_vals, color=c1, s=s, alpha=alpha, label=x1_col, zorder=3)
+            
+            return None
+
+        data_keys = ['y', 'x1']
+        if 'x2' in kwargs:
+            data_keys.append('x2')
+
+        return self._execute_plot(
+            plot_func=plot_logic,
+            data_keys=data_keys,
+            plot_defaults_key='scatter',
+            **kwargs
+        )
+
