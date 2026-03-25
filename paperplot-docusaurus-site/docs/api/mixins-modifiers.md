@@ -13,22 +13,23 @@ sidebar_label: 修饰与轴管理
 ## 布局控制
 
 ### `set_padding`
-- **签名**: `set_padding(left?, bottom?, right?, top?)`
-- **用途**: 手动设置图形的边距（padding）。调用此方法会自动禁用 `constrained_layout` 或 `tight_layout`，以确保手动设置生效。
+- **签名**: `set_padding(left?, bottom?, right?, top?, wspace?, hspace?)`
+- **用途**: 手动设置图形的边距（padding）和子图间距（spacing）。调用此方法会自动禁用 `constrained_layout` 或 `tight_layout`，以确保手动设置生效。
 - **核心参数**:
-  - `left`: `float` (可选), 左边距 (0-1)。
-  - `bottom`: `float` (可选), 下边距 (0-1)。
-  - `right`: `float` (可选), 右边距 (0-1)。
-  - `top`: `float` (可选), 上边距 (0-1)。
-- **示例**: `plotter.set_padding(left=0.1, bottom=0.1, right=0.9, top=0.9)`
+  - `left`, `bottom`, `right`, `top`: `float` (可选), 四周边距 (0-1)。
+  - `wspace`: `float` (可选), 子图之间的水平间距（以子图宽度的分数表示）。
+  - `hspace`: `float` (可选), 子图之间的垂直间距（以子图高度的分数表示）。
+- **示例**: `plotter.set_padding(left=0.1, top=0.9, wspace=0.3, hspace=0.4)`
 
 ### `set_spacing`
 - **签名**: `set_spacing(wspace?, hspace?)`
-- **用途**: 手动设置子图之间的间距。调用此方法会自动禁用 `constrained_layout` 或 `tight_layout`，以确保手动设置生效。
+- **用途**: 手动设置子图之间的间距。
+- **注意**: 在最新版本中，建议优先使用 `set_padding` 同时控制边距和间距。
 - **核心参数**:
-  - `wspace`: `float` (可选), 子图之间的水平间距（以子图宽度的分数表示）。
-  - `hspace`: `float` (可选), 子图之间的垂直间距（以子图高度的分数表示）。
+  - `wspace`: `float` (可选), 子图之间的水平间距。
+  - `hspace`: `float` (可选), 子图之间的垂直间距。
 - **示例**: `plotter.set_spacing(wspace=0.3, hspace=0.3)`
+
 
 ---
 
@@ -306,6 +307,16 @@ sidebar_label: 修饰与轴管理
   ```python
   plotter.target_primary(tag='A').add_line(...) # 作用于主轴
   plotter.target_twin(tag='A').add_bar(...)     # 切换到孪生轴
+  ```
+
+### `add_twinx_line`
+- **签名**: `add_twinx_line(**kwargs)`
+- **用途**: **[高层级 API]** 一键为当前子图添加孪生轴并绘制线图。它会自动创建轴、同步颜色循环，并支持链式调用。
+- **核心参数**: 透传到 `add_line` 的所有参数 (如 `data`, `x`, `y`, `label`)。
+- **示例**:
+  ```python
+  plotter.add_line(data=df, x='t', y='v1', label='Main')\
+         .add_twinx_line(y='v2', label='Secondary') # 一键双 Y 轴
   ```
 
 

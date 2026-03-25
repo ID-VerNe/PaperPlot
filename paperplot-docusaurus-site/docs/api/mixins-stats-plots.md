@@ -75,3 +75,25 @@ plotter.add_joint(data=iris, x='sepal_width', y='sepal_length', kind='kde')
 # 这个调用会替换整个画布
 plotter.add_pair(data=iris, hue='species')
 ```
+
+---
+
+### `add_errorbar_from_raw`
+- **签名**: `add_errorbar_from_raw(data, x, y, hue?, error_type='std', plot_type='line', **kwargs)`
+- **用途**: **[高层级 API]** 直接从包含重复实验的原始数据绘制均值和误差棒。它会自动对数据进行分组聚合，计算均值作为中心点，并计算标准差或标准误。
+- **核心参数**:
+  - `data`: `pd.DataFrame`, 包含原始重复实验数据的 DataFrame。
+  - `x`: `str`, X 轴分组列名（通常是分类变量或离散数值）。
+  - `y`: `str`, Y 轴数值列名。
+  - `hue`: `str` (可选), 分组变量。如果提供，将绘制多个系列。
+  - `error_type`: `str` (可选), 误差计算类型。`'std'` (标准差，默认) 或 `'sem'` (标准误)。
+  - `plot_type`: `str` (可选), 呈现模式。`'line'` (折线图+误差棒，默认) 或 `'bar'` (柱状图+误差棒)。
+  - `**kwargs`: 透传到 `Axes.errorbar` 或 `add_bar`，如 `capsize`, `elinewidth`。
+- **示例**:
+```python
+# 假设 df 包含 'Model', 'Epoch', 'Accuracy' (多个重复运行的值)
+plotter.add_errorbar_from_raw(
+    data=df, x='Epoch', y='Accuracy', hue='Model', 
+    error_type='sem', plot_type='line', capsize=3
+)
+```
