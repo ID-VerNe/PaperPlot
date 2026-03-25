@@ -95,6 +95,15 @@ python 06_Annotations/text_and_labels/subplot_labels_auto.py
 
 ### 运行所有示例
 
+推荐使用根目录下的 `run_all_examples.py` 脚本，它支持并行执行并能正确处理环境配置：
+
+```bash
+# 在项目根目录下运行
+python run_all_examples.py
+```
+
+或者使用以下命令（不推荐，可能存在编码或路径问题）：
+
 ```bash
 # Windows PowerShell
 Get-ChildItem -Recurse -Filter "*.py" | ForEach-Object { python $_.FullName }
@@ -144,6 +153,6 @@ find . -name "*.py" -type f ! -name "__*" -exec python {} \;
 
 ---
 
-**最后更新**: 2025-11-19  
-**示例总数**: 42+  
-**建议 PaperPlot 版本**: >= 0.1.0
+**最后更新**: 2026-03-25  
+**示例总数**: 56+  
+**建议 PaperPlot 版本**: >= 0.1.16
