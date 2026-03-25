@@ -186,31 +186,55 @@ class ColorManager:
     这个类会自动从 Matplotlib 的当前样式配置中加载颜色循环。
     当第一次请求一个系列名称的颜色时，它会从循环中分配一个
     新颜色并缓存起来。后续对同一系列名称的请求将返回缓存的颜色。
+    如果预设颜色循环耗尽，它会通过调整亮度和饱和度自动生成新颜色。
     """
     def __init__(self):
         """初始化颜色管理器。"""
         self._color_map: Dict[str, str] = {}
         try:
             # 1. 尝试从 Matplotlib 的当前配置中加载默认的颜色循环
-            default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-            self._color_cycler = cycler(color=default_colors)
+            self._default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
         except (KeyError, IndexError):
-            # 2. 如果加载失败（例如样式文件没有定义颜色），则使用一个健壮的备用颜色列表
-            self._color_cycler = cycler(color=[
+            # 2. 如果加载失败，则使用一个健壮的备用颜色列表
+            self._default_colors = [
                 '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', 
                 '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', 
                 '#bcbd22', '#17becf'
-            ])
+            ]
         
-        # 3. 创建一个可迭代对象，用于按顺序提供颜色
-        self._cycler_iterator = iter(self._color_cycler)
+        self._n_defaults = len(self._default_colors)
+        self._assigned_count = 0
+
+    def _generate_new_color(self, base_color: str, iteration: int) -> str:
+        """[私有] 通过调整基础颜色的亮度来生成新颜色。"""
+        import matplotlib.colors as mcolors
+        import colorsys
+
+        # 将 hex 转换为 RGB (0-1)
+        rgb = mcolors.to_rgb(base_color)
+        # 转换为 HLS
+        h, l, s = colorsys.rgb_to_hls(*rgb)
+        
+        # 根据迭代次数调整亮度 (Lightness)
+        # 目标是避免重复，且颜色看起来仍然协调
+        # 每一轮循环（iteration >= 1）都会使颜色变亮或变暗
+        if iteration % 2 == 1:
+            # 奇数轮：变亮
+            l = min(0.9, l + 0.15 * ((iteration + 1) // 2))
+        else:
+            # 偶数轮：变暗
+            l = max(0.1, l - 0.15 * (iteration // 2))
+            
+        # 转回 RGB 并转换为 hex
+        new_rgb = colorsys.hls_to_rgb(h, l, s)
+        return mcolors.to_hex(new_rgb)
 
     def get_color(self, series_name: str) -> str:
         """
         获取指定系列的颜色。
 
         如果该系列已有预设颜色，则返回该颜色。
-        否则，从颜色循环中分配一个新颜色，并为该系列注册它。
+        否则，从颜色循环中分配一个新颜色。如果循环耗尽，则生成新颜色。
 
         Args:
             series_name (str): 系列的名称 (通常是图例标签)。
@@ -222,14 +246,20 @@ class ColorManager:
         if series_name in self._color_map:
             return self._color_map[series_name]
         
-        # 2. 如果是新系列，从颜色循环器中动态分配一个新颜色
-        try:
-            new_color = next(self._cycler_iterator)['color']
-        except StopIteration:
-            # 3. 如果颜色循环用尽，重置迭代器并再次获取，实现“循环”
-            self._cycler_iterator = iter(self._color_cycler)
-            new_color = next(self._cycler_iterator)['color']
+        # 2. 计算当前索引和循环轮次
+        idx = self._assigned_count % self._n_defaults
+        iteration = self._assigned_count // self._n_defaults
         
-        # 4. 缓存新分配的颜色，供将来使用
+        base_color = self._default_colors[idx]
+        
+        if iteration == 0:
+            # 第一轮：直接使用默认颜色
+            new_color = base_color
+        else:
+            # 后续轮次：基于默认颜色生成变体
+            new_color = self._generate_new_color(base_color, iteration)
+            
+        # 3. 缓存并返回
         self._color_map[series_name] = new_color
+        self._assigned_count += 1
         return new_color

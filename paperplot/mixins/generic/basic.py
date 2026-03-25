@@ -34,11 +34,13 @@ class BasicPlotsMixin:
             **kwargs
         )
 
-    def add_bar(self, orientation: str = 'vertical', **kwargs) -> 'Plotter':
+    def add_bar(self, orientation: str = 'vertical', categorical: bool = True, **kwargs) -> 'Plotter':
         """在子图上绘制条形图 (封装 `matplotlib.axes.Axes.bar` 或 `barh`)。
 
         Args:
             orientation (str, optional): 'vertical' (垂直柱状图) 或 'horizontal' (水平条形图)。默认为 'vertical'。
+            categorical (bool, optional): 是否强制将坐标轴视为分类变量。
+                如果为 True (默认)，则 X/Y 轴数据会被强转为字符串，确保等宽等距。
             **kwargs:
                 核心参数:
                 - data (pd.DataFrame, optional): 数据源 DataFrame。
@@ -60,12 +62,24 @@ class BasicPlotsMixin:
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             y_err_data = data_map.get('y_err')
             
+            x_data = data_map['x']
+            y_data = data_map['y']
+
+            # 如果启用分类防御机制，将坐标轴数据强转为字符串
+            if categorical:
+                if orientation == 'horizontal':
+                    # 水平条形图，y 是类别轴
+                    y_data = y_data.astype(str)
+                else:
+                    # 垂直条形图，x 是类别轴
+                    x_data = x_data.astype(str)
+
             if orientation == 'horizontal':
                 # 水平条形图：barh(y=位置, width=长度)
-                ax.barh(data_map['x'], data_map['y'], xerr=y_err_data, **p_kwargs)
+                ax.barh(x_data, y_data, xerr=y_err_data, **p_kwargs)
             else:
                 # 垂直柱状图：bar(x=位置, height=高度)
-                ax.bar(data_map['x'], data_map['y'], yerr=y_err_data, **p_kwargs)
+                ax.bar(x_data, y_data, yerr=y_err_data, **p_kwargs)
             return None
 
         return self._execute_plot(

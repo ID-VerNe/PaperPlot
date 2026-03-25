@@ -141,3 +141,30 @@ class TwinAxesMixin:
             self.last_active_tag = tag
             
         return self
+
+    def add_twinx_line(self, **kwargs) -> 'Plotter':
+        """[高层级 API] 一键为当前子图添加孪生轴并绘制线图。
+        
+        该方法会自动创建孪生轴（如果尚不存在），切换上下文，绘制线条，
+        并默认切换回主轴上下文以便后续链式操作。
+
+        Args:
+            **kwargs: 转发给 `add_line` 的所有参数。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        # 记录当前 tag
+        current_tag = kwargs.get('tag') if kwargs.get('tag') is not None else self.last_active_tag
+        
+        if current_tag not in self.twin_axes:
+            self.add_twinx(tag=current_tag)
+        else:
+            self.target_twin(tag=current_tag)
+            
+        # 绘图 (此时已经在 twin 模式下)
+        self.add_line(**kwargs)
+        
+        # 绘制完成后通常建议切回 primary，或者保持 twin? 
+        # 为了符合 add_line 的直觉，我们保持在当前状态，但提供方便
+        return self

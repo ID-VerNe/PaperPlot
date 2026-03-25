@@ -141,14 +141,81 @@ class StatsPlotsMixin:
             self.tag_to_ax.clear()
 
         g = sns.pairplot(data=data, **kwargs)
-        
+
         plt.close(self.fig)
         self.fig = g.fig
-        
+
         # pairplot创建了多个axes，我们无法简单地选择一个作为活动ax
         # 因此，调用此方法后，链式修饰器可能无法正常工作
         self.axes = list(g.axes.flatten())
         self.last_active_tag = None # 没有明确的活动ax
         self.data_cache['pairplot'] = data
+
+        return self
+
+    def add_errorbar_from_raw(self, **kwargs) -> 'Plotter':
+        """[高层级 API] 直接从包含重复实验的原始数据绘制均值和误差棒。
+
+        该方法会自动对数据进行分组聚合，计算均值作为中心点，
+        计算标准差 (std) 或标准误 (sem) 作为误差范围。
+
+        Args:
+            data (pd.DataFrame): 包含原始数据的 DataFrame。
+            x (str): X轴分组列名（通常是分类变量或离散数值）。
+            y (str): Y轴数值列名。
+            hue (str, optional): 分组变量。如果提供，将绘制多个系列。
+            error_type (str, optional): 误差计算类型，'std' (标准差) 或 'sem' (标准误)。
+                                       默认为 'std'。
+            plot_type (str, optional): 绘图类型，'line' (线图+误差棒) 或 'bar' (柱状图+误差棒)。
+                                      默认为 'line'。
+            **kwargs: 其他传递给绘图函数的参数 (例如 capsize, elinewidth)。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        data = kwargs.pop('data')
+        x_col = kwargs.pop('x')
+        y_col = kwargs.pop('y')
+        hue_col = kwargs.pop('hue', None)
+        error_type = kwargs.pop('error_type', 'std')
+        plot_type = kwargs.pop('plot_type', 'line')
+
+        # 准备聚合逻辑
+        group_cols = [x_col]
+        if hue_col:
+            group_cols.append(hue_col)
+
+        grouped = data.groupby(group_cols, observed=True)[y_col]
+        means = grouped.mean().reset_index()
+
+        if error_type == 'sem':
+            errors = grouped.sem().reset_index()
+        else:
+            errors = grouped.std().reset_index()
+
+        # 合并均值和误差
+        plot_df = means.rename(columns={y_col: 'mean_val'})
+        plot_df['err_val'] = errors[y_col].fillna(0) # 如果只有一个样本，误差为0
+
+        if hue_col:
+            for hue_val in plot_df[hue_col].unique():
+                subset = plot_df[plot_df[hue_col] == hue_val]
+                label = str(hue_val)
+                if plot_type == 'bar':
+                    self.add_bar(data=subset, x=x_col, y='mean_val', y_err='err_val', label=label, **kwargs)
+                else:
+                    self.add_line(data=subset, x=x_col, y='mean_val', label=label, **kwargs)
+                    # add_line 不直接支持 y_err，我们需要在此手动叠加 errorbar
+                    ax, _ = self._resolve_ax_and_tag(kwargs.get('tag'))
+                    color = self.color_manager.get_color(label)
+                    ax.errorbar(subset[x_col].astype(str) if plot_type == 'line' else subset[x_col], 
+                                subset['mean_val'], yerr=subset['err_val'], fmt='none', ecolor=color, **kwargs)
+        else:
+            if plot_type == 'bar':
+                self.add_bar(data=plot_df, x=x_col, y='mean_val', y_err='err_val', **kwargs)
+            else:
+                self.add_line(data=plot_df, x=x_col, y='mean_val', **kwargs)
+                ax, _ = self._resolve_ax_and_tag(kwargs.get('tag'))
+                ax.errorbar(plot_df[x_col].astype(str), plot_df['mean_val'], yerr=plot_df['err_val'], fmt='none', **kwargs)
 
         return self
