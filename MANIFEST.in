@@ -1,2 +1,18 @@
-include examples/*
-recursive-include examples *.py *.png
+include logo.svg logo_notext.svg
+include README.md
+include LICENSE
+recursive-include examples *.py
+include examples/assets/placeholder_image.png
+recursive-include paperplot/styles *.mplstyle
+
+# Exclude unwanted directories
+prune paperplot-docusaurus-site
+prune resources
+prune .trae
+prune .idea
+prune .vscode
+prune .github
+prune tests
+
+# Exclude garbage files
+global-exclude *.py[cod] __pycache__ *.so .DS_Store

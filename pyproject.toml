@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "paperplotter"
-version = "0.1.17"
+version = "0.1.18"
 authors = [
   { name="VerNe", email="yuu_seeing@foxmail.com" },
 ]
@@ -36,4 +36,4 @@ dependencies = [
 "paperplot" = ["styles/*.mplstyle"]
 
 [tool.setuptools.packages.find]
-exclude = ["修改指导", "tests*"]
+exclude = ["修改指导", "tests*", "examples*", "paperplot-docusaurus-site*", "resources*"]
