@@ -147,4 +147,4 @@ plotter = pp.Plotter(layout=nested_layout)
 ## 完整示例
 
 完整的演示脚本请参考：
-- [examples/10_Metadata_Export/metadata_demo.py](../../examples/10_Metadata_Export/metadata_demo.py)
+- [examples/10_Metadata_Export/metadata_demo.py](https://github.com/ID-VerNe/PaperPlot/blob/master/examples/10_Metadata_Export/metadata_demo.py)
