@@ -17,7 +17,7 @@ def run_single_example(filepath: str, python_executable: str) -> Dict[str, Any]:
         # with each other.
         result = subprocess.run(
             [python_executable, filepath],
-            capture_output=True, text=True, check=True, encoding='utf-8'
+            capture_output=True, text=True, check=True, encoding='utf-8', errors='replace'
         )
         return {
             'filename': filename,

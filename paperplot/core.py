@@ -104,6 +104,12 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
             fig_kwargs.setdefault('figsize', calculated_figsize)
         
         self.fig = plt.figure(**fig_kwargs)
+
+        # --- 布局冲突保护 ---
+        self._manual_layout_active = False
+        self._original_tight_layout = self.fig.tight_layout
+        self.fig.tight_layout = self._safe_tight_layout
+        # ------------------
         
         self.axes_dict: Dict[Union[str, int], plt.Axes] = {}
         self.axes: List[plt.Axes] = []
@@ -333,6 +339,14 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
                                (例如，在顺序模式下)。
         """
         # 检查是否处于孪生轴上下文
+        # 如果用户显式切换到了另一个 tag (无论是已存在的还是新的)，则退出孪生模式并尝试寻找主轴
+        # 假设：显式提供的 tag 总是意图切换到某个主轴 (subplot)
+        is_explicit_switch = (tag is not None and 
+                              tag != self.last_active_tag)
+        
+        if is_explicit_switch:
+             self.active_target = 'primary'
+                              
         if self.active_target == 'twin':
             # 在孪生轴模式下，绘图总是发生在“最后一个活动主轴”对应的孪生轴上
             active_primary_tag = self.last_active_tag
@@ -367,6 +381,10 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
 
         # 模式1: 显式提供了ax对象 (最高优先级)
         if ax is not None:
+             # 如果提供了明确的 ax，我们总是尊重用户的选择，并假定这也可能意味着退出之前的上下文
+            if self.active_target == 'twin':
+                 self.active_target = 'primary'
+            
             _ax = ax
             if tag is not None:
                 if tag in self.tag_to_ax and self.tag_to_ax[tag] is not _ax:
@@ -384,6 +402,15 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
 
         # 模式2: 提供了已存在的tag (无论是来自布局还是动态创建)
         elif tag is not None and tag in self.tag_to_ax:
+            # Check if we need to exit twin mode
+            if self.active_target == 'twin':
+                 # If the tag points to a primary axis, we switch back to primary mode
+                 # unless it also has a twin axis AND that twin axis is what we want?
+                 # But typically explicit tag means "I want THIS axis".
+                 # If user wanted the twin of 'A', they should use target_twin('A') or rely on state.
+                 # If they say tag='A', they usually mean the primary 'A'.
+                 self.active_target = 'primary'
+
             _ax = self.tag_to_ax[tag]
             resolved_tag = tag
             # 移除对已存在 tag 的子图占用检查，允许叠加绘图。
@@ -422,6 +449,17 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
         self.plotted_axes.add(_ax)
 
         return _ax, resolved_tag
+
+    def _safe_tight_layout(self, *args, **kwargs):
+        """[保护包装器] 防止 tight_layout 覆盖手动布局设置。"""
+        if self._manual_layout_active:
+            import warnings
+            warnings.warn(
+                "Manual layout settings (set_padding/set_spacing) detected. "
+                "Calling tight_layout() will override these settings and break your layout.",
+                UserWarning
+            )
+        return self._original_tight_layout(*args, **kwargs)
 
     def _prepare_data(self, data: Optional[pd.DataFrame] = None, **kwargs: dict) -> Tuple[dict, pd.DataFrame]:
         """[私有] 准备绘图数据，将多种输入格式统一为可用的数据系列和用于缓存的DataFrame。

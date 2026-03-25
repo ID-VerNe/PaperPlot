@@ -162,6 +162,10 @@ class TwinAxesMixin:
         else:
             self.target_twin(tag=current_tag)
             
+        # 移除 tag 参数，防止 add_line 重新注册 tag 导致 DuplicateTagError
+        if 'tag' in kwargs:
+            kwargs.pop('tag')
+
         # 绘图 (此时已经在 twin 模式下)
         self.add_line(**kwargs)
         

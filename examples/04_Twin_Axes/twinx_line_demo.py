@@ -20,7 +20,7 @@ def main():
     # .add_line 绘制主轴（Temperature）
     # .add_twinx_line 一步完成：创建孪生轴 -> 切换上下文 -> 绘制湿度（Humidity）
     plotter.add_line(data=df, x='Time', y='Temperature', label='Temperature (°C)') \
-           .add_twinx_line(y='Humidity', label='Humidity (%)') \
+           .add_twinx_line(data=df, x='Time', y='Humidity', label='Humidity (%)', color='orange') \
            .set_ylabel("Humidity (%)") \
            .target_primary() \
            .set_xlabel("Time (s)") \

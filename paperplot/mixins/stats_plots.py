@@ -168,6 +168,7 @@ class StatsPlotsMixin:
                                        默认为 'std'。
             plot_type (str, optional): 绘图类型，'line' (线图+误差棒) 或 'bar' (柱状图+误差棒)。
                                       默认为 'line'。
+            categorical (bool, optional): 是否强制将X轴视为分类变量。默认为 True。
             **kwargs: 其他传递给绘图函数的参数 (例如 capsize, elinewidth)。
 
         Returns:
@@ -179,6 +180,10 @@ class StatsPlotsMixin:
         hue_col = kwargs.pop('hue', None)
         error_type = kwargs.pop('error_type', 'std')
         plot_type = kwargs.pop('plot_type', 'line')
+        categorical = kwargs.pop('categorical', True)
+        
+        # tag 参数仅用于定位子图，不应传递给绘图函数
+        tag = kwargs.pop('tag', None)
 
         # 准备聚合逻辑
         group_cols = [x_col]
@@ -204,18 +209,32 @@ class StatsPlotsMixin:
                 if plot_type == 'bar':
                     self.add_bar(data=subset, x=x_col, y='mean_val', y_err='err_val', label=label, **kwargs)
                 else:
-                    self.add_line(data=subset, x=x_col, y='mean_val', label=label, **kwargs)
+                    # 分离 errorbar 特有的参数，避免传递给 add_line 导致 AttributeError
+                    errorbar_specific_args = ['capsize', 'elinewidth', 'capthick', 'barsabove', 'errorevery']
+                    line_kwargs = {k: v for k, v in kwargs.items() if k not in errorbar_specific_args}
+                    
+                    self.add_line(data=subset, x=x_col, y='mean_val', label=label, tag=tag, **line_kwargs)
                     # add_line 不直接支持 y_err，我们需要在此手动叠加 errorbar
-                    ax, _ = self._resolve_ax_and_tag(kwargs.get('tag'))
+                    ax, _ = self._resolve_ax_and_tag(tag)
                     color = self.color_manager.get_color(label)
-                    ax.errorbar(subset[x_col].astype(str) if plot_type == 'line' else subset[x_col], 
+                    
+                    x_vals = subset[x_col].astype(str) if (plot_type == 'line' and categorical) else subset[x_col]
+                    
+                    ax.errorbar(x_vals, 
                                 subset['mean_val'], yerr=subset['err_val'], fmt='none', ecolor=color, **kwargs)
         else:
             if plot_type == 'bar':
-                self.add_bar(data=plot_df, x=x_col, y='mean_val', y_err='err_val', **kwargs)
+                self.add_bar(data=plot_df, x=x_col, y='mean_val', y_err='err_val', categorical=categorical, tag=tag, **kwargs)
             else:
-                self.add_line(data=plot_df, x=x_col, y='mean_val', **kwargs)
-                ax, _ = self._resolve_ax_and_tag(kwargs.get('tag'))
-                ax.errorbar(plot_df[x_col].astype(str), plot_df['mean_val'], yerr=plot_df['err_val'], fmt='none', **kwargs)
+                # 分离 errorbar 特有的参数，避免传递给 add_line
+                errorbar_specific_args = ['capsize', 'elinewidth', 'capthick', 'barsabove', 'errorevery']
+                line_kwargs = {k: v for k, v in kwargs.items() if k not in errorbar_specific_args}
+                
+                self.add_line(data=plot_df, x=x_col, y='mean_val', tag=tag, **line_kwargs)
+                ax, _ = self._resolve_ax_and_tag(tag)
+                
+                x_vals = plot_df[x_col].astype(str) if categorical else plot_df[x_col]
+                
+                ax.errorbar(x_vals, plot_df['mean_val'], yerr=plot_df['err_val'], fmt='none', **kwargs)
 
         return self

@@ -26,6 +26,8 @@ class LayoutMixin:
         # 禁用自动布局引擎以允许手动调整
         if self.fig.get_layout_engine() is not None:
             self.fig.set_layout_engine(None)
+            
+        self._manual_layout_active = True
 
         # 构建参数字典，过滤掉 None 值
         params = {}
@@ -56,6 +58,8 @@ class LayoutMixin:
         # 禁用自动布局引擎以允许手动调整
         if self.fig.get_layout_engine() is not None:
             self.fig.set_layout_engine(None)
+            
+        self._manual_layout_active = True
 
         params = {}
         if wspace is not None: params['wspace'] = wspace

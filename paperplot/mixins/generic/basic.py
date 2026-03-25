@@ -59,6 +59,10 @@ class BasicPlotsMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
+        valid_orientations = {'vertical', 'horizontal'}
+        if orientation not in valid_orientations:
+            raise ValueError(f"Invalid orientation '{orientation}'. Must be one of {valid_orientations}.")
+        
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             y_err_data = data_map.get('y_err')
             
@@ -68,10 +72,10 @@ class BasicPlotsMixin:
             # 如果启用分类防御机制，将坐标轴数据强转为字符串
             if categorical:
                 if orientation == 'horizontal':
-                    # 水平条形图，y 是类别轴
-                    y_data = y_data.astype(str)
+                    # 水平条形图，y 是类别轴 (Y-axis position) -> mapped to x_data
+                    x_data = x_data.astype(str)
                 else:
-                    # 垂直条形图，x 是类别轴
+                    # 垂直条形图，x 是类别轴 (X-axis position) -> mapped to x_data
                     x_data = x_data.astype(str)
 
             if orientation == 'horizontal':
