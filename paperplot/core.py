@@ -21,11 +21,13 @@ from .mixins.analysis_plots import DataAnalysisPlotsMixin
 from .mixins.stats_plots import StatsPlotsMixin
 from .mixins.stats_modifiers import StatsModifiersMixin
 from .mixins.metadata import MetadataMixin
+from .mixins.spectroscopy import SpectroscopyMixin
 from .utils import ColorManager
 
 
 class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, MachineLearningPlotsMixin, 
-              DataAnalysisPlotsMixin, StatsPlotsMixin, StatsModifiersMixin, ModifiersMixin, MetadataMixin):
+              DataAnalysisPlotsMixin, StatsPlotsMixin, StatsModifiersMixin, ModifiersMixin, MetadataMixin,
+              SpectroscopyMixin):
     def __init__(self, layout: Union[Tuple[int, int], List[List[str]]],
                  style: str = 'marin_kitagawa',
                  figsize: Optional[Tuple[float, float]] = None,

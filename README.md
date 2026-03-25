@@ -17,6 +17,7 @@
     *   **水平条形图修正**: 修复了 `add_bar(orientation='horizontal')` 时数值型数据被错误转为字符串的问题。
     *   **布局引擎保护**: 引入 `_safe_tight_layout`，防止 `tight_layout` 覆盖用户手动设置的 `padding`。
     *   **运行时稳健性**: 修复了 `DuplicateTagError` 和 `StatsPlotsMixin` 中的参数传递错误。
+*   **🔬 光谱与结构分析**: 新增 `SpectroscopyMixin`，支持自动寻峰与标注 (`add_peak_labels`)、化学结构式/图片嵌入 (`add_image_box`) 以及光谱范围标注 (`add_bracket`)，专为物理化学领域设计。
 *   **🎨 声明式链式调用**: 像写句子一样构建你的图表，例如 `plotter.add_line(...).set_title(...).set_xlabel(...)`。绘图后，后续修饰器会自动作用于最后一个活动的子图，无需重复指定目标。
 *   **🏷️ 基于标签的控制**: 给每个子图一个独一无二的 `tag`，之后就可以随时通过 `tag` 对其进行任何修改，告别混乱的 `axes[i][j]` 索引。
 *   **🧩 强大的布局系统**: 无论是简单的 `(行, 列)` 网格，还是使用 `mosaic` 实现的跨行跨列复杂布局，都能轻松定义。
@@ -223,6 +224,7 @@ python 06_Annotations/text_and_labels/subplot_labels_auto.py
 | **电力时间序列**<br/> `power_timeseries_example.py` | 绘制电力系统动态仿真结果。 | `add_power_timeseries()` |
 | **相量图**<br/> `phasor_diagram_example.py` | 在极坐标上绘制相量图。 | `add_phasor_diagram()` |
 | **分岔图**<br/> `bifurcation_diagram_example.py` | 绘制非线性系统分岔图。 | `add_bifurcation_diagram()` |
+| **光谱分析**<br/> `spectroscopy_complex_demo.py` | 复杂光谱图、自动寻峰与结构式嵌入。 | `add_peak_labels()`, `add_image_box()`, `add_bracket()` |
 
 ### 08. 数据分析工具 (Data Analysis Utils)
 
