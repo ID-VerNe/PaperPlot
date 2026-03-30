@@ -88,7 +88,7 @@ plotter.add_pair(data=iris, hue='species')
   - `hue`: `str` (可选), 分组变量。如果提供，将绘制多个系列。
   - `error_type`: `str` (可选), 误差计算类型。`'std'` (标准差，默认) 或 `'sem'` (标准误)。
   - `plot_type`: `str` (可选), 呈现模式。`'line'` (折线图+误差棒，默认) 或 `'bar'` (柱状图+误差棒)。
-  - `**kwargs`: 透传到 `Axes.errorbar` 或 `add_bar`，如 `capsize`, `elinewidth`。
+  - `**kwargs`: 透传到底层统一误差棒协议，支持 `err_style` 及 `capsize/elinewidth/ecolor`。
 - **示例**:
 ```python
 # 假设 df 包含 'Model', 'Epoch', 'Accuracy' (多个重复运行的值)

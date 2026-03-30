@@ -110,6 +110,22 @@ sidebar_label: 修饰与轴管理
 
 ---
 
+## 高频标注增强
+
+### `add_bar_labels`
+- **签名**: `add_bar_labels(tag?, fmt='{:.2f}', offset=0.0, where='top', **kwargs)`
+- **用途**: 为当前轴柱图自动添加数值标签。
+
+### `add_reference_line`
+- **签名**: `add_reference_line(y='mean'|float, tag?, annotate=True, fmt='Avg: {:.2f}', text_offset=0.01, **kwargs)`
+- **用途**: 添加参考线，支持按当前轴折线数据自动计算均值。
+
+### `add_interval_shading`
+- **签名**: `add_interval_shading(x: List[float], labels?, colors?, alpha=0.15, tag?)`
+- **用途**: 为若干 x 区间添加背景着色。
+
+---
+
 ## 范围、刻度与视角
 
 ### `set_xlim`

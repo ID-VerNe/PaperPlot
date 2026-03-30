@@ -294,7 +294,7 @@ class StylingMixin:
             else:
                 n_rows = len(self.layout)
                 n_cols = len(self.layout[0]) if n_rows > 0 else 0
-        except:
+        except (TypeError, AttributeError):
             n_rows, n_cols = 1, len(self.axes)
 
         # Implement auto_share logic
@@ -333,8 +333,8 @@ class StylingMixin:
         if align_labels:
             try:
                 self.fig.align_labels()
-            except Exception:
-                pass
+            except (AttributeError, RuntimeError) as exc:
+                raise ValueError("Failed to align labels for current figure.") from exc
         return self
 
     def cleanup_heatmaps(self, tags: list[Union[str, int]]) -> 'Plotter':

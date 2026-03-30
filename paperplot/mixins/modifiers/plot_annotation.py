@@ -94,6 +94,88 @@ class PlotAnnotationMixin:
         ax.text(x, y, text, **kwargs)
         return self
 
+    def add_bar_labels(
+        self,
+        tag: Optional[Union[str, int]] = None,
+        fmt: str = '{:.2f}',
+        offset: float = 0.0,
+        where: str = 'top',
+        **kwargs
+    ) -> 'Plotter':
+        """为当前轴上的柱子添加数值标签。"""
+        ax = self._get_active_ax(tag)
+        if where != 'top':
+            raise ValueError("Currently only where='top' is supported.")
+
+        for container in ax.containers:
+            labels = []
+            for patch in container:
+                if hasattr(patch, 'get_height'):
+                    value = patch.get_height()
+                else:
+                    value = patch.get_width()
+                labels.append(fmt.format(value))
+
+            ax.bar_label(container, labels=labels, padding=0, **kwargs)
+
+            if offset != 0:
+                for text in ax.texts[-len(labels):]:
+                    x, y = text.get_position()
+                    text.set_position((x, y + offset))
+        return self
+
+    def add_reference_line(
+        self,
+        y: Union[str, float] = 'mean',
+        tag: Optional[Union[str, int]] = None,
+        annotate: bool = True,
+        fmt: str = 'Avg: {:.2f}',
+        text_offset: float = 0.01,
+        **kwargs
+    ) -> 'Plotter':
+        """添加参考线，支持均值快捷模式。"""
+        ax = self._get_active_ax(tag)
+        value = y
+        if isinstance(y, str):
+            if y != 'mean':
+                raise ValueError("String y must be 'mean'.")
+            y_values = []
+            for line in ax.lines:
+                y_values.extend(list(line.get_ydata()))
+            if not y_values:
+                raise ValueError("No line data found on axis to compute mean reference line.")
+            value = float(np.mean(y_values))
+
+        ax.axhline(float(value), **kwargs)
+        if annotate:
+            x0, x1 = ax.get_xlim()
+            ax.text(x1, float(value) + text_offset, fmt.format(float(value)), ha='right', va='bottom')
+        return self
+
+    def add_interval_shading(
+        self,
+        x: List[float],
+        labels: Optional[List[str]] = None,
+        colors: Optional[List[str]] = None,
+        alpha: float = 0.15,
+        tag: Optional[Union[str, int]] = None,
+    ) -> 'Plotter':
+        """按区间添加背景着色。"""
+        ax = self._get_active_ax(tag)
+        if len(x) < 2:
+            raise ValueError("x must contain at least 2 boundary values.")
+        if colors is None:
+            colors = ['#dbe9f6', '#fbe4d5']
+
+        for i in range(len(x) - 1):
+            c = colors[i % len(colors)]
+            ax.axvspan(x[i], x[i + 1], color=c, alpha=alpha)
+            if labels and i < len(labels):
+                xm = (x[i] + x[i + 1]) / 2
+                y0, y1 = ax.get_ylim()
+                ax.text(xm, y1, labels[i], ha='center', va='top')
+        return self
+
     def add_patch(self, patch_object, tag: Optional[Union[str, int]] = None) -> 'Plotter':
         """将一个Matplotlib的Patch对象添加到指定或当前活动的子图。
 

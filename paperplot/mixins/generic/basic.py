@@ -25,11 +25,29 @@ class BasicPlotsMixin:
         Returns:
             Plotter: 返回Plotter实例以支持链式调用。
         """
-        plot_logic = lambda ax, data_map, cache_df, data_names, **p_kwargs: ax.plot(data_map['x'], data_map['y'], **p_kwargs)
+        def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
+            x_data = data_map['x']
+            y_data = data_map['y']
+            y_err_data = data_map.get('y_err')
+            err_style = self._pop_error_style_kwargs(p_kwargs)
+
+            line = ax.plot(x_data, y_data, **p_kwargs)
+
+            if y_err_data is not None:
+                err_kwargs = {'fmt': 'none'}
+                if 'ecolor' in err_style:
+                    err_kwargs['ecolor'] = err_style.pop('ecolor')
+                err_kwargs.update(err_style)
+                ax.errorbar(x_data, y_data, yerr=y_err_data, **err_kwargs)
+            return line
+
+        err_data, has_err = self._pop_error_data_alias(kwargs)
+        if has_err:
+            kwargs['y_err'] = err_data
         
         return self._execute_plot(
             plot_func=plot_logic,
-            data_keys=['x', 'y'],
+            data_keys=['x', 'y', 'y_err'],
             plot_defaults_key='line',
             **kwargs
         )
@@ -65,7 +83,8 @@ class BasicPlotsMixin:
         
         def plot_logic(ax, data_map, cache_df, data_names, **p_kwargs):
             y_err_data = data_map.get('y_err')
-            
+            err_style = self._pop_error_style_kwargs(p_kwargs)
+             
             x_data = data_map['x']
             y_data = data_map['y']
 
@@ -80,11 +99,19 @@ class BasicPlotsMixin:
 
             if orientation == 'horizontal':
                 # 水平条形图：barh(y=位置, width=长度)
+                if err_style:
+                    p_kwargs['error_kw'] = {**p_kwargs.get('error_kw', {}), **err_style}
                 ax.barh(x_data, y_data, xerr=y_err_data, **p_kwargs)
             else:
                 # 垂直柱状图：bar(x=位置, height=高度)
+                if err_style:
+                    p_kwargs['error_kw'] = {**p_kwargs.get('error_kw', {}), **err_style}
                 ax.bar(x_data, y_data, yerr=y_err_data, **p_kwargs)
             return None
+
+        err_data, has_err = self._pop_error_data_alias(kwargs)
+        if has_err:
+            kwargs['y_err'] = err_data
 
         return self._execute_plot(
             plot_func=plot_logic,

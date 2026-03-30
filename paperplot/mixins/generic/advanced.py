@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
+from ...exceptions import PlottingError
 
 class AdvancedPlotsMixin:
     def add_grouped_bar(self, orientation: str = 'vertical', **kwargs) -> 'Plotter':
@@ -32,6 +33,7 @@ class AdvancedPlotsMixin:
             width = p_kwargs.pop('width', 0.8)
             yerr = p_kwargs.pop('yerr', None)
             alpha = p_kwargs.pop('alpha', 0.8)
+            err_style = self._pop_error_style_kwargs(p_kwargs)
 
             x_vals = cache_df[x_col]
             n = len(y_cols)
@@ -43,6 +45,12 @@ class AdvancedPlotsMixin:
                 lbl = labels[col] if isinstance(labels, dict) and col in labels else col
                 color = self.color_manager.get_color(lbl)
                 err = (yerr.get(col) if isinstance(yerr, dict) else None)
+                if err is not None and len(err) != len(x_vals):
+                    raise PlottingError(
+                        f"Error values length mismatch for series '{col}': expected {len(x_vals)}, got {len(err)}."
+                    )
+                if err_style:
+                    p_kwargs['error_kw'] = {**p_kwargs.get('error_kw', {}), **err_style}
                 
                 if orientation == 'horizontal':
                     ax.barh(offs, cache_df[col], xerr=err, height=bar_w, label=lbl, color=color, alpha=alpha)
@@ -56,6 +64,10 @@ class AdvancedPlotsMixin:
                 ax.set_xticks(base)
                 ax.set_xticklabels(x_vals)
             return None
+
+        err_data, has_err = self._pop_error_data_alias(kwargs)
+        if has_err:
+            kwargs['yerr'] = err_data
 
         return self._execute_plot(
             plot_func=plot_logic,

@@ -69,6 +69,58 @@ class DomainSpecificPlotsMixin:
         self.last_active_tag = resolved_tag
         return self
 
+    def add_peak_ratio_kinetics(
+        self,
+        data: pd.DataFrame,
+        x: str,
+        peaks: List[str],
+        baseline: str,
+        tag: Optional[Union[str, int]] = None,
+        **kwargs
+    ) -> 'Plotter':
+        """绘制峰强比动力学曲线：peak/baseline。"""
+        if not peaks:
+            raise ValueError("peaks cannot be empty.")
+        for peak in peaks:
+            ratio_col = f"{peak}_ratio"
+            df_ratio = data.copy()
+            df_ratio[ratio_col] = df_ratio[peak] / df_ratio[baseline]
+            self.add_line(data=df_ratio, x=x, y=ratio_col, tag=tag, label=ratio_col, **kwargs)
+        return self
+
+    def add_ros_timebar(
+        self,
+        data: pd.DataFrame,
+        x: str,
+        ys: List[str],
+        err: Optional[Dict[str, Union[List[float], np.ndarray]]] = None,
+        tag: Optional[Union[str, int]] = None,
+        **kwargs
+    ) -> 'Plotter':
+        """绘制 ROS 多系列时间分组柱图。"""
+        return self.add_grouped_bar(data=data, x=x, ys=ys, err=err, tag=tag, **kwargs)
+
+    def add_sers_dualpeak_dualaxis(
+        self,
+        data: pd.DataFrame,
+        x: str,
+        left_peak: str,
+        right_peak: str,
+        tag: Optional[Union[str, int]] = None,
+        left_label: Optional[str] = None,
+        right_label: Optional[str] = None,
+        **kwargs
+    ) -> 'Plotter':
+        """一键绘制 SERS 双峰双轴图。"""
+        return self.add_dual_axis_line(
+            data=data,
+            x=x,
+            tag=tag,
+            left={'y': left_peak, 'label': left_label or left_peak},
+            right={'y': right_peak, 'label': right_label or right_peak},
+            **kwargs,
+        )
+
     def add_concentration_map(self, **kwargs) -> 'Plotter':
         """绘制浓度图或SERS Mapping图。
 

@@ -32,15 +32,8 @@ class LabelingMixin:
         return roman_num
 
     def _draw_subplot_label(self, fig: plt.Figure, ax: plt.Axes, text: str, position: Tuple[float, float], **kwargs):
-        """[私有] 实际执行在子图上添加标签的逻辑。 此方法在 .save() 期间被调用。"""
-        # 获取子图在画布坐标系中的最终位置
-        transform = ax.transAxes + fig.transFigure.inverted()
-
-        # 使用这个变换来计算标签在画布上的最终位置
-        label_x, label_y = transform.transform(position)
-
-        # 使用 fig.text 在计算出的画布坐标上绘制文本
-        fig.text(label_x, label_y, text, **kwargs)
+        """[私有] 实际执行在子图上添加标签的逻辑。"""
+        ax.text(position[0], position[1], text, transform=ax.transAxes, **kwargs)
 
     def add_subplot_labels(
         self,
@@ -107,7 +100,8 @@ class LabelingMixin:
                 if tags is None and ax not in self.plotted_axes:
                     continue
                 target_axes.append(ax)
-            except Exception:
+            except (KeyError, ValueError):
+                logger.warning("Skip subplot label for unknown tag '%s'.", tag)
                 continue
         
         if not target_axes:
@@ -137,18 +131,15 @@ class LabelingMixin:
         }
         final_kwargs.update(text_kwargs)
 
-        # 4. 将绘图操作添加到队列
+        # 4. 立即绘制到 axes，确保在交互与测试中可见；同时保持保存流程兼容
         for i, ax in enumerate(target_axes):
             label_text = template.format(label=labels[i])
-            draw_kwargs = {
-                'fig': self.fig,
-                'ax': ax,
-                'text': label_text,
-                'position': position,
+            self._draw_subplot_label(
+                fig=self.fig,
+                ax=ax,
+                text=label_text,
+                position=position,
                 **final_kwargs
-            }
-            self._draw_on_save_queue.append(
-                {'func': self._draw_subplot_label, 'kwargs': draw_kwargs}
             )
 
         return self
@@ -183,11 +174,11 @@ class LabelingMixin:
             Plotter: 返回Plotter实例以支持链式调用。
         """
         for label_text, tags_in_group in groups.items():
-            self.fig_add_label(
+            self._draw_fig_label(
                 tags=tags_in_group,
                 text=label_text,
                 position=position,
                 padding=padding,
-                **text_kwargs
+                **text_kwargs,
             )
         return self

@@ -1,6 +1,7 @@
 import logging
 
 from matplotlib.gridspec import GridSpecFromSubplotSpec
+from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 from typing import Optional, Union, List, Tuple, Callable, Dict
@@ -191,6 +192,30 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
             'surface': {'cmap': 'viridis'},
         }
         return defaults.get(plot_type, {}).copy() # 返回副本以防外部修改
+
+    def _pop_error_data_alias(self, kwargs: dict, aliases: Tuple[str, ...] = ('err', 'y_err', 'yerr', 'y_errs')):
+        """[私有] 从 kwargs 中提取并移除误差棒数据别名。"""
+        for key in aliases:
+            if key in kwargs:
+                value = kwargs.pop(key)
+                for alias in aliases:
+                    if alias in kwargs:
+                        kwargs.pop(alias)
+                return value, True
+        return None, False
+
+    def _pop_error_style_kwargs(self, kwargs: dict) -> dict:
+        """[私有] 从 kwargs 中提取误差棒样式参数并标准化到 Matplotlib error_kw。"""
+        style = {}
+        explicit = kwargs.pop('err_style', None)
+        if isinstance(explicit, dict):
+            style.update(explicit)
+
+        for key in ('capsize', 'elinewidth', 'ecolor'):
+            if key in kwargs:
+                style[key] = kwargs.pop(key)
+
+        return style
 
     def _create_nested_layout(self, layout_def: Dict, parent_spec=None, prefix=''):
         """[私有] 根据声明式定义，递归创建嵌套布局。
@@ -622,3 +647,60 @@ class Plotter(GenericPlotsMixin, DomainSpecificPlotsMixin, ThreeDPlotsMixin, Mac
             available_names = list(self.axes_dict.keys()) if isinstance(self.axes_dict, dict) else []
             raise ValueError(f"Name '{name}' not found in layout. Available names are: {available_names}")
         return self.axes_dict[name]
+
+    def set_palette(self, colors: List[str], scope: str = 'figure') -> 'Plotter':
+        """设置调色板并可同步到各轴颜色循环。"""
+        if scope not in ('figure', 'axes'):
+            raise ValueError("scope must be 'figure' or 'axes'.")
+        self.color_manager.set_palette(colors)
+        if scope == 'axes':
+            for ax in self.axes:
+                ax.set_prop_cycle(color=colors)
+            for ax in self.twin_axes.values():
+                ax.set_prop_cycle(color=colors)
+        return self
+
+    def bind_color(self, mapping: Dict[str, str]) -> 'Plotter':
+        """绑定系列名称与颜色。"""
+        self.color_manager.bind_colors(mapping)
+        return self
+
+    def reset_color_cycle(self, tag: Optional[Union[str, int]] = None) -> 'Plotter':
+        """重置颜色循环。"""
+        self.color_manager.reset_cycle()
+        palette = self.color_manager._default_colors
+        if tag is None:
+            for ax in self.axes:
+                ax.set_prop_cycle(color=palette)
+            for ax in self.twin_axes.values():
+                ax.set_prop_cycle(color=palette)
+        else:
+            ax = self._get_ax_by_tag(tag)
+            ax.set_prop_cycle(color=palette)
+            if tag in self.twin_axes:
+                self.twin_axes[tag].set_prop_cycle(color=palette)
+        return self
+
+    @contextmanager
+    def on_primary(self, tag: Union[str, int]):
+        """显式主轴上下文。"""
+        prev_target = self.active_target
+        prev_tag = self.last_active_tag
+        self.target_primary(tag=tag)
+        try:
+            yield self
+        finally:
+            self.active_target = prev_target
+            self.last_active_tag = prev_tag
+
+    @contextmanager
+    def on_twin(self, tag: Union[str, int]):
+        """显式孪生轴上下文。"""
+        prev_target = self.active_target
+        prev_tag = self.last_active_tag
+        self.target_twin(tag=tag)
+        try:
+            yield self
+        finally:
+            self.active_target = prev_target
+            self.last_active_tag = prev_tag

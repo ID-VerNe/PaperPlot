@@ -41,6 +41,18 @@ sidebar_label: Plotter
 - **返回**: `plt.Axes` 对象。
 - **抛出**: `ValueError` - 如果布局中不存在指定的名称。
 
+### `set_palette(colors, scope='figure')`
+- **说明**: 设置全局调色板。`scope='axes'` 时会同步重置已有主轴和 twin 轴的 prop cycle。
+
+### `bind_color(mapping)`
+- **说明**: 绑定“系列名 -> 固定颜色”，优先级高于颜色循环。
+
+### `reset_color_cycle(tag=None)`
+- **说明**: 重置颜色循环；可针对单个 `tag` 或全局。
+
+### `on_primary(tag)` / `on_twin(tag)`
+- **说明**: 显式上下文管理器，适用于复杂链式调用中的主轴/孪生轴切换。
+
 ## 工作流与内部机制
 
 - **统一绘图入口 `_execute_plot`**: 所有 `add_*` 方法都通过此内部方法执行。它负责解析目标轴、准备数据、合并默认样式、调用具体绘图逻辑、缓存结果并更新活动 `tag`。

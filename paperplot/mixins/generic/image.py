@@ -75,7 +75,8 @@ class ImagePlotsMixin:
         xlim, ylim = (0, img_width), (img_height, 0)
 
         if fit_mode == 'stretch':
-            pass
+            draw_ax.set_xlim(xlim)
+            draw_ax.set_ylim(ylim)
 
         else:
             if fit_mode == 'fit':

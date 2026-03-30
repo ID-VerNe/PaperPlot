@@ -191,6 +191,7 @@ class ColorManager:
     def __init__(self):
         """初始化颜色管理器。"""
         self._color_map: Dict[str, str] = {}
+        self._bound_colors: Dict[str, str] = {}
         try:
             # 1. 尝试从 Matplotlib 的当前配置中加载默认的颜色循环
             self._default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
@@ -204,6 +205,27 @@ class ColorManager:
         
         self._n_defaults = len(self._default_colors)
         self._assigned_count = 0
+
+    def set_palette(self, palette: List[str]) -> None:
+        """设置新的默认调色板并重置颜色循环状态。"""
+        if not palette:
+            raise ValueError("Palette cannot be empty.")
+        self._default_colors = list(palette)
+        self._n_defaults = len(self._default_colors)
+        self._assigned_count = 0
+        self._color_map = {}
+
+    def bind_colors(self, mapping: Dict[str, str]) -> None:
+        """绑定特定系列名到固定颜色，优先级高于循环分配。"""
+        if not isinstance(mapping, dict):
+            raise TypeError("Color mapping must be a dictionary.")
+        self._bound_colors.update(mapping)
+        self._color_map.update(mapping)
+
+    def reset_cycle(self) -> None:
+        """重置颜色循环计数，不清除绑定颜色。"""
+        self._assigned_count = 0
+        self._color_map = dict(self._bound_colors)
 
     def _generate_new_color(self, base_color: str, iteration: int) -> str:
         """[私有] 通过调整基础颜色的亮度来生成新颜色。"""
@@ -242,6 +264,9 @@ class ColorManager:
         Returns:
             str: 代表颜色的十六进制字符串或名称。
         """
+        if series_name in self._bound_colors:
+            return self._bound_colors[series_name]
+
         # 1. 检查缓存中是否已有该系列的颜色
         if series_name in self._color_map:
             return self._color_map[series_name]

@@ -1,5 +1,22 @@
 # 版本历史
 
+## 0.1.19 (2026.03.30)
+- **Features**:
+  - 新增高阶 API：`add_dual_axis_line`、`add_bar_labels`、`add_reference_line`、`add_interval_shading`。
+  - 新增公开配色控制 API：`set_palette`、`bind_color`、`reset_color_cycle`。
+  - 新增显式上下文管理：`on_primary(tag)`、`on_twin(tag)`。
+  - 新增领域模板 API：`add_peak_ratio_kinetics`、`add_ros_timebar`、`add_sers_dualpeak_dualaxis`。
+- **Fixes**:
+  - 统一误差棒参数协议：`add_bar/add_grouped_bar/add_line` 兼容 `err/y_err/yerr/y_errs`，并支持 `err_style`。
+  - `add_errorbar_from_raw` 重构为复用统一协议，移除重复的手工 `ax.errorbar` 分支。
+  - 修复库级日志副作用：移除 `paperplot/__init__.py` 中的 `logging.basicConfig`。
+  - 修复图例合并在同轴多 tag 场景下遗漏 twin 项的问题。
+  - metadata 导出按 `axis_id` 去重，并保留 `tags` 列表。
+- **Changes**:
+  - 错误处理收敛：关键路径移除 `print` 与宽泛吞错，改为显式 warning/异常。
+  - 新增示例：`examples/09_Data_Utils/unified_error_protocol_demo.py`。
+  - 新增/扩展回归测试，覆盖上述协议与高阶 API。
+
 ## 0.1.18 (2026.03.26)
 - **维护**:
   - **仓库清理**: 移除了开发过程中的临时文件、生成的图像以及非必要的文档，显著减小了包体积。

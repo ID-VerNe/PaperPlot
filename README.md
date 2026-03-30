@@ -28,6 +28,11 @@
 *   **🌐 全局图层级标注**: 提供了在整个画布（Figure）上添加文本、线条、方框和标签的 API，非常适合添加全局注释或高亮一组图表。
 *   **🔢 子图自动编号与分组**: 通过 `add_subplot_labels()` 和 `add_grouped_labels()` 方法，可以一键为子图添加 `(a)`, `(b)`... 等学术编号，或为逻辑分组添加共享标签，并支持高度定制化。
 *   **🔗 优雅的双Y轴（Twin-Axis）**: 彻底解决了 Matplotlib 双Y轴操作繁琐的问题。通过 `add_twinx()` 进入孪生轴上下文，然后可以继续使用链式调用进行绘图和修饰，最后通过 `target_primary()` 切回主轴。
+*   **🧠 双轴高阶封装与显式上下文**: 新增 `add_dual_axis_line()` 一键双轴绘图；并支持 `with plotter.on_primary(tag)` / `with plotter.on_twin(tag)` 明确上下文，减少隐式状态误用。
+*   **📏 误差棒参数统一**: `add_bar()` / `add_grouped_bar()` 统一支持 `err/y_err/yerr/y_errs` 别名，并支持 `err_style` 统一控制误差棒样式。
+*   **🎯 高频标注一键化**: 新增 `add_bar_labels()`、`add_reference_line()`、`add_interval_shading()`，减少手写 `ax.text/axhline/axvspan`。
+*   **🎨 公开配色控制 API**: 新增 `set_palette()`、`bind_color()`、`reset_color_cycle()`，替代私有字段 hack。
+*   **🧪 领域模板 API**: 新增 `add_peak_ratio_kinetics()`、`add_ros_timebar()`、`add_sers_dualpeak_dualaxis()`。
 *   **🔬 丰富的领域专用图表**: 内置了科研中常用的图表类型，如光谱图、混淆矩阵、ROC 曲线、学习曲线、分岔图、相量图等。
 *   **🔧 智能美化工具**: `cleanup()` 方法可以智能地共享坐标轴、对齐标签；`cleanup_heatmaps()` 可以为多个热图创建共享的颜色条。
 *   **📏 精确的手动布局控制**: 当自动布局无法满足需求时，提供了 `set_padding()` 和 `set_spacing()` 方法，让你能够精确控制图表的边距和子图间距，实现像素级的布局微调。
@@ -232,6 +237,7 @@ python 06_Annotations/text_and_labels/subplot_labels_auto.py
 | :--- | :--- | :--- |
 | **数据分析工具集**<br/> `data_analysis_utils_example.py` | 分布拟合和数据分箱绘图。 | `add_distribution_fit()`, `add_binned_plot()` |
 | **通用工具函数**<br/> `utility_functions_example.py` | 高亮特征峰和标记事件。 | `add_peak_highlights()`, `add_event_markers()` |
+| **统一误差协议**<br/> `unified_error_protocol_demo.py` | 演示折线/柱图统一误差棒参数入口。 | `err/y_err/yerr/y_errs`, `err_style` |
 
 ---
 

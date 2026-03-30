@@ -3,7 +3,10 @@ import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from scipy.signal import find_peaks
 from typing import Optional, Union, Tuple, List
+import logging
 from ..exceptions import PlottingError
+
+logger = logging.getLogger(__name__)
 
 class SpectroscopyMixin:
     """Methods for spectroscopy and advanced annotation."""
@@ -50,7 +53,11 @@ class SpectroscopyMixin:
         peaks, properties = find_peaks(y_data, prominence=prominence, height=threshold, distance=distance, **kwargs)
         
         if len(peaks) == 0:
-            print(f"Warning: No peaks found with current parameters (prominence={prominence}, threshold={threshold}).")
+            logger.warning(
+                "No peaks found with current parameters (prominence=%s, threshold=%s).",
+                prominence,
+                threshold,
+            )
             return self
 
         # Filter top K by height
@@ -110,7 +117,7 @@ class SpectroscopyMixin:
         
         try:
             arr_img = plt.imread(image_path)
-        except Exception as e:
+        except (FileNotFoundError, OSError) as e:
             raise PlottingError(f"Failed to load image from {image_path}: {str(e)}")
 
         imagebox = OffsetImage(arr_img, zoom=zoom)

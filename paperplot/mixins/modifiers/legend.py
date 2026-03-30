@@ -1,5 +1,4 @@
 from typing import Optional, Union, Dict
-import matplotlib.pyplot as plt
 
 class LegendMixin:
     def set_legend(self, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
@@ -23,11 +22,7 @@ class LegendMixin:
         # Case 1: ax 是 primary，检查是否有 twin
         # 我们需要知道当前的 tag
         # 这是一个反向查找 tag 的过程，比较低效，但为了 API 方便
-        current_tag = None
-        for t, a in self.tag_to_ax.items():
-            if a is ax:
-                current_tag = t
-                break
+        current_tags = [t for t, a in self.tag_to_ax.items() if a is ax]
         
         lines = []
         labels = []
@@ -38,11 +33,12 @@ class LegendMixin:
         labels.extend(l1)
         
         # Case 1: ax 是 Primary，检查是否有 Twin
-        if current_tag in self.twin_axes:
-            twin_ax = self.twin_axes[current_tag]
-            h2, l2 = twin_ax.get_legend_handles_labels()
-            lines.extend(h2)
-            labels.extend(l2)
+        for current_tag in current_tags:
+            if current_tag in self.twin_axes:
+                twin_ax = self.twin_axes[current_tag]
+                h2, l2 = twin_ax.get_legend_handles_labels()
+                lines.extend(h2)
+                labels.extend(l2)
             
         # Case 2: ax 是 Twin (这种情况比较少见，通常用户会对 Primary 调 legend)
         # 如果用户直接对 twin ax 调 set_legend，我们只显示 twin 的，或者尝试找 primary?

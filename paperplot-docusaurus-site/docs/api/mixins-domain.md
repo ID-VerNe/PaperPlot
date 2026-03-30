@@ -94,3 +94,17 @@ sidebar_label: 领域图表
   - `x`: `str` 或 `array-like`, 分岔参数。
   - `y`: `str` 或 `array-like`, 系统状态变量。
 - **示例**: `plotter.add_bifurcation_diagram(data=df, x='r', y='x_steady_state')`
+
+---
+
+### `add_peak_ratio_kinetics`
+- **签名**: `add_peak_ratio_kinetics(data, x, peaks, baseline, tag?, **kwargs)`
+- **用途**: 快速绘制峰强比动力学曲线（`peak/baseline`）。
+
+### `add_ros_timebar`
+- **签名**: `add_ros_timebar(data, x, ys, err?, tag?, **kwargs)`
+- **用途**: 一键绘制 ROS 多系列时间分组柱图。
+
+### `add_sers_dualpeak_dualaxis`
+- **签名**: `add_sers_dualpeak_dualaxis(data, x, left_peak, right_peak, tag?, left_label?, right_label?, **kwargs)`
+- **用途**: 一键绘制 SERS 双峰双轴图（封装双轴线图流程）。

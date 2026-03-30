@@ -1,6 +1,9 @@
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
+import logging
 import matplotlib.pyplot as plt
 from matplotlib import cycler
+
+logger = logging.getLogger(__name__)
 
 class TwinAxesMixin:
     def add_twinx(self, tag: Optional[Union[str, int]] = None, **kwargs) -> 'Plotter':
@@ -49,8 +52,8 @@ class TwinAxesMixin:
             ax2.set_prop_cycle(cycler(color=shifted_colors))
 
         except (KeyError, IndexError):
-            # 如果样式文件中没有定义颜色循环，则不执行任何操作，保持默认行为
-            pass
+            logger.warning("No axes.prop_cycle colors found; fallback to default twin color cycle.")
+            ax2.set_prop_cycle(cycler(color=self.color_manager._default_colors))
         # --- 颜色同步逻辑结束 ---
         
         # 存储孪生轴并切换上下文
@@ -87,7 +90,8 @@ class TwinAxesMixin:
             shifted = colors[offset:] + colors[:offset]
             ax2.set_prop_cycle(cycler(color=shifted))
         except (KeyError, IndexError):
-            pass
+            logger.warning("No axes.prop_cycle colors found; fallback to default polar twin color cycle.")
+            ax2.set_prop_cycle(cycler(color=self.color_manager._default_colors))
         self.twin_axes[active_tag] = ax2
         self.active_target = 'twin'
         return self
@@ -171,4 +175,78 @@ class TwinAxesMixin:
         
         # 绘制完成后通常建议切回 primary，或者保持 twin? 
         # 为了符合 add_line 的直觉，我们保持在当前状态，但提供方便
+        return self
+
+    def add_dual_axis_line(
+        self,
+        data,
+        x: str,
+        left: Dict[str, Any],
+        right: Dict[str, Any],
+        ylabel_left: Optional[str] = None,
+        ylabel_right: Optional[str] = None,
+        tag: Optional[Union[str, int]] = None,
+        legend: str = 'merged',
+        legend_loc: str = 'best',
+        **legend_kwargs,
+    ) -> 'Plotter':
+        """[高层级 API] 一次性绘制双轴折线图并可自动合并图例。"""
+        active_tag = tag if tag is not None else self.last_active_tag
+        if active_tag is None:
+            raise ValueError("Cannot draw dual axis line: No active plot found and no tag specified.")
+
+        left_cfg = dict(left)
+        right_cfg = dict(right)
+
+        left_y = left_cfg.pop('y', None)
+        right_y = right_cfg.pop('y', None)
+        if left_y is None or right_y is None:
+            raise ValueError("Both left and right configs must include key 'y'.")
+
+        left_label = left_cfg.get('label', left_y)
+        right_label = right_cfg.get('label', right_y)
+        left_color = left_cfg.get('color')
+        right_color = right_cfg.get('color')
+
+        prev_target = self.active_target
+        prev_tag = self.last_active_tag
+
+        self.target_primary(tag=active_tag)
+        self.add_line(data=data, x=x, y=left_y, tag=active_tag, **left_cfg)
+
+        if active_tag not in self.twin_axes:
+            self.add_twinx(tag=active_tag)
+        else:
+            self.target_twin(tag=active_tag)
+
+        self.add_line(data=data, x=x, y=right_y, **right_cfg)
+
+        ax_left = self._get_ax_by_tag(active_tag)
+        ax_right = self.twin_axes[active_tag]
+
+        if ylabel_left is not None:
+            ax_left.set_ylabel(ylabel_left)
+        if ylabel_right is not None:
+            ax_right.set_ylabel(ylabel_right)
+
+        if left_color:
+            ax_left.yaxis.label.set_color(left_color)
+            ax_left.tick_params(axis='y', colors=left_color)
+        if right_color:
+            ax_right.yaxis.label.set_color(right_color)
+            ax_right.tick_params(axis='y', colors=right_color)
+
+        self.target_primary(tag=active_tag)
+        if legend == 'merged':
+            self.set_legend(tag=active_tag, loc=legend_loc, **legend_kwargs)
+        elif legend == 'separate':
+            ax_left.legend(loc=legend_loc, **legend_kwargs)
+            ax_right.legend(loc=legend_loc, **legend_kwargs)
+        elif legend == 'none':
+            logger.debug("Dual-axis legend disabled by legend='none'.")
+        else:
+            raise ValueError("legend must be one of: 'merged', 'separate', 'none'.")
+
+        self.last_active_tag = active_tag if prev_tag is None else active_tag
+        self.active_target = prev_target if prev_target in ('primary', 'twin') else 'primary'
         return self

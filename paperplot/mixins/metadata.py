@@ -45,8 +45,16 @@ class MetadataMixin:
             "subplots": {}
         }
         
-        # 遍历所有主轴
+        axis_entries = {}
+        axis_id_to_key = {}
+
+        # 遍历所有主轴并按 axis_id 去重
         for tag, ax in self.tag_to_ax.items():
+            axis_id = str(id(ax))
+            if axis_id in axis_id_to_key:
+                axis_entries[axis_id_to_key[axis_id]]["tags"].append(str(tag))
+                continue
+
             # 获取子图在画布上的像素位置 (Bbox)
             # Matplotlib 的 bbox 原点在左下角
             bbox = ax.get_window_extent()
@@ -55,7 +63,11 @@ class MetadataMixin:
             xlim = ax.get_xlim()
             ylim = ax.get_ylim()
             
-            metadata["subplots"][str(tag)] = {
+            entry_key = str(tag)
+            axis_id_to_key[axis_id] = entry_key
+            axis_entries[entry_key] = {
+                "axis_id": axis_id,
+                "tags": [str(tag)],
                 # 转换为 [left, bottom, right, top] 格式
                 "bbox": [
                     float(bbox.x0),
@@ -77,7 +89,9 @@ class MetadataMixin:
                 ylim = twin_ax.get_ylim()
                 
                 twin_tag = f"{tag}_twin"
-                metadata["subplots"][twin_tag] = {
+                axis_entries[twin_tag] = {
+                    "axis_id": str(id(twin_ax)),
+                    "tags": [twin_tag],
                     "bbox": [
                         float(bbox.x0),
                         float(bbox.y0),
@@ -89,5 +103,7 @@ class MetadataMixin:
                     "x_scale": twin_ax.get_xscale(),
                     "y_scale": twin_ax.get_yscale()
                 }
+
+        metadata["subplots"] = axis_entries
         
         return metadata

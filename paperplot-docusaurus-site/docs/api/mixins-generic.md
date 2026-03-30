@@ -20,20 +20,23 @@ sidebar_label: 通用图表
 - **核心参数**:
   - `data`: `pd.DataFrame` (可选)。
   - `x`, `y`: `str` (列名) 或 `array-like` (数据)。
+  - `err/y_err/yerr/y_errs`: (可选) 误差棒数据（列名或数组），四者为兼容别名。
+  - `err_style` 或 `capsize/elinewidth/ecolor`: (可选) 误差棒样式。
   - `**kwargs`: 透传到 `Axes.plot`，如 `color`, `linestyle`, `marker`, `label`。
 - **示例**: `plotter.add_line(data=df, x='time', y='value', label='Series A')`
 
 ---
 
 ### `add_bar`
-- **签名**: `add_bar(orientation='vertical', categorical=True, data?, x, y, y_err?, tag?, ax?, **kwargs)`
+- **签名**: `add_bar(orientation='vertical', categorical=True, data?, x, y, err?/y_err?/yerr?/y_errs?, tag?, ax?, **kwargs)`
 - **用途**: 绘制柱状图，封装 `matplotlib.axes.Axes.bar` 或 `barh`，支持误差条和方向控制。
 - **核心参数**:
   - `orientation`: `str` (可选), `'vertical'` (垂直) 或 `'horizontal'` (水平)。默认为 `'vertical'`。
   - `categorical`: `bool` (可选), **分类变量防御机制**。默认为 `True`。
     - 如果为 `True`，强制将坐标轴数据（如数值型的年份 2020, 2021）转换为字符串，确保在 X/Y 轴上呈现等宽、等距的柱状图，彻底解决数值型轴导致柱子消失或坐标偏移的问题。
   - `x`, `y`: 分类/位置和高度。
-  - `y_err`: (可选) 误差条数据或列名。
+  - `err/y_err/yerr/y_errs`: (可选) 误差条数据或列名。
+  - `err_style` 或 `capsize/elinewidth/ecolor`: (可选) 误差棒样式。
 - **示例**: 
   - 基础: `plotter.add_bar(data=df, x='year', y='sales')` (即使 year 是 int 也会被安全处理)
   - 禁用防御: `plotter.add_bar(data=df, x='pos', y='val', categorical=False)` (按数值位置绘制)
@@ -42,7 +45,7 @@ sidebar_label: 通用图表
 ---
 
 ### `add_grouped_bar`
-- **签名**: `add_grouped_bar(orientation='vertical', data, x, ys, labels?, width?, yerr?, ...)`
+- **签名**: `add_grouped_bar(orientation='vertical', data, x, ys, labels?, width?, err?/y_err?/yerr?/y_errs?, ...)`
 - **用途**: 在同一分类上并排绘制多系列分组柱状图，支持垂直和水平方向。
 - **核心参数**:
   - `orientation`: `str` (可选), `'vertical'` 或 `'horizontal'`。默认为 `'vertical'`。
@@ -50,6 +53,7 @@ sidebar_label: 通用图表
   - `x`: `str`, 分类列名。
   - `ys`: `List[str]`, 多个系列的高度列名。
   - `labels`: `Dict[str, str]` (可选), 系列列名到图例标签的映射。
+  - `err_style` 或 `capsize/elinewidth/ecolor`: (可选) 误差棒样式。
 - **示例**: `plotter.add_grouped_bar(data=df, x='year', ys=['sales_q1', 'sales_q2'], orientation='horizontal')`
 
 ---
