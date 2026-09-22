@@ -1,0 +1,36 @@
+# styles/figures4papers.mplstyle
+# House style adapted from ChenLiu-1996/figures4papers (Nature MI / ICML / NeurIPS / ECCV).
+# Minimalist, high-contrast, sans-serif, gridless, with the semantic palette as the color cycle.
+
+# Font
+font.family         : sans-serif
+font.sans-serif     : Arial, Helvetica, DejaVu Sans, sans-serif
+font.size           : 16
+axes.labelsize      : 16
+axes.titlesize      : 18
+legend.fontsize     : 13
+xtick.labelsize     : 13
+ytick.labelsize     : 13
+
+# Lines
+lines.linewidth     : 2.5
+lines.markersize    : 6
+
+# Axes (minimalist: no top/right spines, no grid)
+axes.spines.top     : False
+axes.spines.right   : False
+axes.linewidth      : 2.5
+axes.grid           : False
+
+# Figure
+figure.dpi          : 300
+figure.facecolor    : white
+
+# Legend
+legend.frameon      : False
+
+# Vector text: keep editable text in SVG exports
+svg.fonttype        : none
+
+# Color cycle (semantic roles: proposed / improvement / contrast / baseline / highlight)
+axes.prop_cycle: cycler(color=["#0F4D92", "#8BCF8B", "#B64342", "#CFCECE", "#FFD700"])

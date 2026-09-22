@@ -100,6 +100,148 @@ class DomainSpecificPlotsMixin:
         """绘制 ROS 多系列时间分组柱图。"""
         return self.add_grouped_bar(data=data, x=x, ys=ys, err=err, tag=tag, **kwargs)
 
+    def add_ablation_barh(
+        self,
+        components: List[str],
+        scores: Union[List[float], List[List[float]]],
+        metrics: Optional[List[str]] = None,
+        baseline_label: str = 'Full',
+        base_color: Optional[str] = None,
+        alpha_range: Tuple[float, float] = (0.2, 1.0),
+        tags: Optional[List[Union[str, int]]] = None,
+        x_labels: Optional[List[str]] = None,
+        ax: Optional[plt.Axes] = None,
+        **kwargs
+    ) -> 'Plotter':
+        """绘制消融实验的横向条形图 (ablation bar chart)。
+
+        借鉴自 figures4papers 的 ML 论文出图惯例：用同一基色、按消融组合数
+        线性渐变的 alpha 来编码“方法的完整度”——全集最深，逐个移除部件后变浅。
+        一次调用可绘制多指标面板 (1×N)，每个指标一个子图，对齐 figures4papers
+        `plot_bars.py` 的多面板布局。
+
+        Args:
+            components (List[str]): 参与消融的部件名 (如 ['Transfer', 'Contrastive'])。
+                全集为 baseline_label，其余组合按"移除 X"解码生成 y 轴标签。
+            scores (List[float] or List[List[float]]):
+                单指标时为长度 = 组合数的一维列表；
+                多指标时为外层 = 指标数、内层 = 组合数的二维列表。
+                组合顺序约定: [全集, 移除 components[0], 移除 components[1], ...]。
+            metrics (Optional[List[str]], optional): 指标名，用作每个子图的 x 轴 label。
+                多指标时长度需等于 len(scores)；单指标时可省。
+            baseline_label (str, optional): 全集组合的标签文本。默认为 'Full'。
+            base_color (Optional[str], optional): 基色 hex。默认取
+                `paperplot.SEMANTIC_PALETTE['proposed']` (#0F4D92)。
+            alpha_range (Tuple[float, float], optional): alpha 渐变范围 (浅端, 深端)。
+                默认 (0.2, 1.0)，全集最深。
+            tags (Optional[List], optional): 每个指标子图的 tag 列表。多指标时需
+                指向不同子图；缺省时按 `self.axes` 顺序顺次解析未占用轴。
+            x_labels (Optional[List[str]], optional): 覆盖默认的 x 轴 label。
+                长度需等于指标数。
+            ax (Optional[plt.Axes], optional): 单指标时直接指定一个 Axes 对象。
+            **kwargs: 其他传递给 `ax.barh` 的关键字参数 (如 height, edgecolor)。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+
+        Note:
+            本方法不走 `_execute_plot`，因为 `_execute_plot` 会按 label 自动赋单一
+            color，覆盖这里的 alpha 渐变编码。改用手动路径 (`_resolve_ax_and_tag` +
+            `ax.barh`)，与 `add_spectra` 等领域模板一致。
+
+            图例不在此方法内生成；调用方应在布局中预留一个额外子图，再用
+            `add_legend_panel` 把图例放进去，完整复刻 figures4papers 的 1×(N+1) 布局。
+        """
+        from ..palettes import SEMANTIC_PALETTE
+        import matplotlib.colors as mcolors
+
+        # --- 归一化为多指标的二维结构 ---
+        if scores and np.ndim(scores) == 1:
+            scores_2d = [list(scores)]
+        else:
+            scores_2d = [list(s) for s in scores]
+
+        n_metrics = len(scores_2d)
+        n_combos = len(scores_2d[0])
+        for row in scores_2d:
+            if len(row) != n_combos:
+                raise ValueError(
+                    f"All metric score lists must have the same length (n_combos={n_combos}); "
+                    f"got {len(row)}."
+                )
+
+        # 组合总数应为 len(components) + 1 (全集 + 逐个移除)
+        if n_combos != len(components) + 1:
+            raise ValueError(
+                f"Expected n_combos = len(components)+1 = {len(components) + 1}, "
+                f"got {n_combos}. Combination order: [full, remove components[0], ...]."
+            )
+
+        if metrics is not None and len(metrics) != n_metrics:
+            raise ValueError(
+                f"len(metrics)={len(metrics)} must equal n_metrics={n_metrics}."
+            )
+        if x_labels is not None and len(x_labels) != n_metrics:
+            raise ValueError(
+                f"len(x_labels)={len(x_labels)} must equal n_metrics={n_metrics}."
+            )
+        if tags is not None and len(tags) != n_metrics:
+            raise ValueError(
+                f"len(tags)={len(tags)} must equal n_metrics={n_metrics}."
+            )
+
+        base = base_color or SEMANTIC_PALETTE['proposed']
+        base_rgb = mcolors.to_rgb(base)
+        alphas = np.linspace(alpha_range[0], alpha_range[1], n_combos)
+
+        # --- y 轴标签：全集 + 逐个移除部件 ---
+        y_labels = [baseline_label] + [f'w/o {c}' for c in components]
+        y_pos = np.arange(n_combos)
+
+        # legend 句柄：为每条 bar 显式打 label，使其能被 add_legend_panel 收集。
+        # ablation 通常只有一个“方法”系列（用 alpha 区分子集），故全集条打
+        # baseline_label，其余条 label 设为下划线前缀以在去重时被跳过。
+        bar_labels = [baseline_label] + ['_' + c for c in components]
+
+        # 可选的误差棒（多指标场景下可按指标提供 dict[tag]->array 或 list）
+        err_data = kwargs.pop('xerr', None)
+
+        for i in range(n_metrics):
+            _tag = tags[i] if tags is not None else None
+            _ax = None
+            # 多指标时不支持统一 ax；单指标时允许用户传入的 ax
+            if n_metrics == 1:
+                _ax = ax
+            _ax_obj, resolved_tag = self._resolve_ax_and_tag(_tag, _ax)
+
+            row_scores = scores_2d[i]
+            # 每条用 (r,g,b,alpha) 编码完整度
+            colors = [(*base_rgb, float(a)) for a in alphas]
+
+            per_kwargs = dict(kwargs)
+            if isinstance(err_data, dict):
+                # 按指标 tag 提供误差
+                key = _tag if _tag is not None else i
+                if key in err_data:
+                    per_kwargs['xerr'] = err_data[key]
+
+            # label= 列表传给 ax.barh：为每条单独打 label，使图例可被
+            # add_legend_panel 收集；全集条用可读标签，其余用下划线隐藏。
+            _ax_obj.barh(y_pos, row_scores, color=colors,
+                         label=bar_labels, **per_kwargs)
+            _ax_obj.set_yticks(y_pos)
+            _ax_obj.set_yticklabels(y_labels)
+            _ax_obj.invert_yaxis()  # 全集在顶部
+
+            label = (metrics[i] if metrics is not None
+                     else (x_labels[i] if x_labels is not None else None))
+            if label is not None:
+                _ax_obj.set_xlabel(label)
+
+            self.last_active_tag = resolved_tag
+
+        return self
+
     def add_sers_dualpeak_dualaxis(
         self,
         data: pd.DataFrame,

@@ -2,6 +2,7 @@ from typing import List
 
 from .core import Plotter
 from .exceptions import PaperPlotError, TagNotFoundError, DuplicateTagError, PlottingSpaceError
+from .palettes import SEMANTIC_PALETTE, SEMANTIC_PALETTE_LIST, SEMANTIC_BANDS
 from . import utils
 
 def generate_grid_layout(rows: int, cols: int) -> List[List[str]]:

@@ -91,5 +91,50 @@ class LegendMixin:
         
         if lines:
             self.fig.legend(lines, labels, loc=loc, bbox_to_anchor=bbox_to_anchor, ncol=ncol, **kwargs)
-            
+
+        return self
+
+    def add_legend_panel(self, tag, source_tag=None, loc='center', **kwargs) -> 'Plotter':
+        """将一个已有子图改造为专用的图例面板 (legend-only panel)。
+
+        借鉴自 figures4papers 的多面板布局惯例：当一个子图被设为图例专用时，
+        关闭其坐标轴，把来自其他子图的图例句柄合并放进来，避免图例压住数据。
+
+        Args:
+            tag (Union[str, int]): 用作图例面板的子图 tag (必须已存在于布局中)。
+            source_tag (Union[str, List, None], optional): 收集图例句柄的来源。
+                - str: 单个源子图 tag；
+                - list: 多个源子图 tag (多指标场景，如 ['m1','m2'])；
+                - None: 收集全部 `self.axes` + `self.twin_axes` (默认)。
+            loc (str, optional): 图例在该面板内的位置。默认为 'center'。
+            **kwargs: 其他传递给 `ax.legend` 的参数 (e.g., fontsize, ncol)。
+
+        Returns:
+            Plotter: 返回Plotter实例以支持链式调用。
+        """
+        ax = self._get_ax_by_tag(tag)
+        ax.set_axis_off()
+
+        # 解析源 ax 列表
+        if source_tag is None:
+            source_axes = list(self.axes) + list(self.twin_axes.values())
+        elif isinstance(source_tag, (list, tuple)):
+            source_axes = [self._get_ax_by_tag(t) for t in source_tag]
+        else:
+            source_axes = [self._get_ax_by_tag(source_tag)]
+
+        lines = []
+        labels = []
+        seen_labels = set()
+        for src_ax in source_axes:
+            h, l = src_ax.get_legend_handles_labels()
+            for handle, label in zip(h, l):
+                if label not in seen_labels and not label.startswith('_'):
+                    lines.append(handle)
+                    labels.append(label)
+                    seen_labels.add(label)
+
+        if lines:
+            ax.legend(lines, labels, loc=loc, **kwargs)
+
         return self
